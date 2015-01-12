@@ -56,14 +56,14 @@ const void* Db::Entry_data (
 
 // 
 //
-unsigned int Db::Entry_data_size (
+size_t Db::Entry_data_size (
 	const void*	   f_Data, 
 	unsigned int   entry_Index) 
 {
 	const unsigned char* data_File = (const unsigned char*) f_Data; 
 
 	// file entry table begins immediate after entry_Count
-	const unsigned int* entry_Table =  (const unsigned int* ) &data_File[sizeof (Db::Data_file_header)]; 
+	const size_t* entry_Table =  (const size_t* ) &data_File[sizeof (Db::Data_file_header)]; 
 
 	// 2 * because <offset + size>
 	return  entry_Table[ (2 * entry_Index) + 1 ]; 

@@ -8,7 +8,6 @@
 
 //#include "e9coretype.h"
 #include "VecMath.h"
-#include "Goby.h"	
 
 
 namespace Ik 
@@ -20,13 +19,10 @@ namespace Ik
 
    // 
    void Solve_2D (
-
       Ma::Vec2f*        pts, 
       float*            angles, 
-
       int               num_points, 
       const Ma::Vec2f&  targ
-
       ); 
 
 }

@@ -1,30 +1,28 @@
-#ifndef include_MatrixFn
-#define include_MatrixFn
+#ifndef _MatrixFns_
+#define _MatrixFns_
 
 
 
 #include "MathTypes.h"
 
-namespace Ma
+namespace Ma 
 { 
-
-
 	//
 	//
-	template<unsigned R, unsigned C, typename _Ty>
-	inline Matrix<R, C, _Ty>& SetIdent (Matrix<R, C, _Ty>& m) {
-		for (unsigned r = 0; r < R; r++) {
-			for (unsigned c = 0; c < C; c++) {
-				if (r == c) 
-					m[r][c] = _Ty(1);
-				else 
-					m[r][c] = _Ty(0); 
-				}
-			}
-		return m;
-		}	
-	//
-	//
+	//template<int N, typename Ty_> 
+	//inline Vector<N, Ty_>& MultMatVec 
+	//(  
+	//   Vector<N, Ty_>& out, 
+	//   const Matrix<N, N, Ty_>& mat, 
+	//   const Vector<N, Ty_>& vec
+	//) 
+	//{
+	  // Vector<N, Ty_> vTmp;
+	//   for (int i = 0; i < N; i++) {
+	//      vTmp[i] = Dot (mat[i], vec); 
+	//   }
+	//   return Copy (out, vTmp);	
+	//}	
 
 	//
 	// MultMat33Vec3
@@ -206,7 +204,7 @@ namespace Ma
 	//
 	//
 	template<unsigned R, unsigned C, typename _Ty>
-	inline Matrix<R, C, _Ty>& SetMatIdent (Matrix<R, C, _Ty>& m) {
+	inline Matrix<R, C, _Ty>& SetIdent (Matrix<R, C, _Ty>& m) {
 		for (unsigned r = 0; r < R; r++) {
 			for (unsigned c = 0; c < C; c++) {
 				if (r == c) 
@@ -277,7 +275,11 @@ namespace Ma
     *                                                
     ************************************************************************/ 
    template<int R, int C, typename Ty_> 
-   inline Matrix<C, R, Ty_>& Transpose (Matrix<C, R, Ty_>& dst, const Matrix<R, C, Ty_>& src) 
+   inline Matrix<C, R, Ty_>& 
+	   Transpose (
+	   Matrix<C, R, Ty_>& dst, 
+	   const Matrix<R, C, Ty_>& src
+	   ) 
    {
       for (int iR = 0; iR < R; iR++) 
       {
@@ -292,44 +294,47 @@ namespace Ma
    /* ***********************************************************************
     *                                                
     ************************************************************************/ 
-   template<int R, int C, typename Ty_> 
-   inline Matrix<C, R, Ty_>& Transpose (Matrix<C, R, Ty_>& mat) 
-   {
-      //ASSERT (R == C);
-      for (int iR = 0; iR < R; iR++) 
-      {
-         for (int iC = iR; iC < C; iC++) 
-         {
-            Ty_ tmp = mat[iC][iR]; 
-            mat[iC][iR] = mat[iR][iC];
-            mat[iR][iC] = tmp;
-         }
-      }
-      return mat; 
-   }
+	template<int R, int C, typename Ty_> 
+		inline Matrix<C, R, Ty_>& 
+	Transpose (Matrix<C, R, Ty_>& mat)  {
+	   //ASSERT (R == C);
+	   for (int iR = 0; iR < R; iR++) 
+	   {
+		  for (int iC = iR; iC < C; iC++) 
+		  {
+			 Ty_ tmp = mat[iC][iR]; 
+			 mat[iC][iR] = mat[iR][iC];
+			 mat[iR][iC] = tmp;
+		  }
+	   }
+	   return mat; 
+	}
 
    /** *********************************************************************
     *                                                
     ************************************************************************/ 
-   template<int R, int C, typename Ty_> 
-   inline Matrix<R, C, Ty_>& MultMat 
-   (
-      Matrix<R, C, Ty_>& out, 
-      const Matrix<R, C, Ty_>& lhs, 
-      const Matrix<R, C, Ty_>& rhs
-   ) 
-   { 
+	template<int R, int C, typename Ty_> 
+		inline Matrix<R, C, Ty_>& 
+	MultMat (
+		Matrix<R, C, Ty_>& out, 
+		const Matrix<R, C, Ty_>& lhs, 
+		const Matrix<R, C, Ty_>& rhs
+	) 
+	{ 
 		Matrix<R, C, Ty_> mTmp; 
-		for (int iR = 0; iR < R; iR++ ) 
+		for (int iR = 0; iR < R; iR++) 
 		{
-			for (int iC = 0; iC < C; iC++ ) 
+			for (int iC = 0; iC < C; iC++) 
 			{
-				mTmp[iR][iC]	= lhs[iR][0] * rhs[0][iC]  
-								+ lhs[iR][1] * rhs[1][iC]  
-								+ lhs[iR][2] * rhs[2][iC];  
+				mTmp[iR][iC] = Ty_(0); 
+
+				for (size_t iEl = 0; iEl < R; iEl++)
+					mTmp[iR][iC] += lhs[iR][iEl] * rhs[iEl][iC]; 
+				
+				//(lhs[iC][0] * rhs[0][iR]) + (lhs[iC][1] * rhs[1][iR]) + (lhs[iC][2] * rhs[2][iR] ); 
 			}
-	   }
-	   return Copy (out, mTmp);
+		}
+	   return Copy(out, mTmp);
    } 
 
 
@@ -337,25 +342,29 @@ namespace Ma
    /** 
     * The version above breaks the compiler, 
     */
-   template<unsigned _R, unsigned _C, typename _ElTy> 
-   inline Vector<_C, _ElTy>& Mult (
+	template<unsigned _R, unsigned _C, typename _ElTy> 
+		inline Vector<_C, _ElTy>& 
+	Mult (
 	   Vector<_C, _ElTy>& out, 
 	   const Matrix<_R, _C, _ElTy>& mat, 
-	   const Vector<_C, _ElTy>& vec) 
-   {
-	   Vector<_C, _ElTy> vTmp;
+	   const Vector<_C, _ElTy>& vec) {
+
+		Vector<_C, _ElTy> vTmp;
+
 		for (int i = 0; i < _C; i++) 
 			vTmp[i] = Dot (mat[i], vec); 
+
 		return Copy (out, vTmp);	
-   }
+	}
 
 	//
 	template<unsigned _R, unsigned _C, typename _Ty>
-	inline Matrix<_R, _C, _Ty>& SetMatRotateX (Matrix<_R, _C, _Ty>& out, _Ty rads) {
+		inline Matrix<_R, _C, _Ty>& 
+	SetMatRotateX (Matrix<_R, _C, _Ty>& out, _Ty rads) {
 		_Ty t_Cos;
 		_Ty t_Sin;
 
-		SetMatIdent (out);
+		SetIdent(out);
 		t_Cos = (_Ty) cos (rads);
 		t_Sin = (_Ty) sin (rads);
 
@@ -367,64 +376,6 @@ namespace Ma
 		}
 
 
-template<unsigned _R, unsigned _C, typename _Ty>
-   inline Matrix<_R, _C, _Ty>& SetMatRotateY (
-      Matrix<_R, _C, _Ty>& out, 
-      _Ty rads) 
-{
-
-	_Ty t_Cos;
-	_Ty t_Sin;
-
-   SetMatIdent (out);
-   t_Cos = (float)(cos (rads)),
-   t_Sin = (float)(sin (rads));
-
-   out[0][0] = t_Cos;
-   out[0][2] = t_Sin;
-   out[2][0] = -t_Sin;
-   out[2][2] = t_Cos;
-
-   return out; 
-}
-
-template<unsigned _R, unsigned _C, typename _Ty>
-
-   inline Matrix<_R, _C, _Ty>& SetMatRotateZ (
-      Matrix<_R, _C, _Ty>& out, 
-      _Ty rads) 
-{
-	_Ty t_Cos;
-	_Ty t_Sin;
-
-   SetMatIdent (out);
-   t_Cos = (float)(cos (rads)),
-   t_Sin = (float)(sin (rads));
-
-
-   out[0][0] = t_Cos;
-   out[0][1] = -t_Sin;
-   out[1][0] = t_Sin;
-   out[1][1] = t_Cos;
-   //m[0] = fcos;
-   //m[1] = -fsin;
-   //m[4] = fsin;
-   //m[5] = fcos;
-   return out; 
-}
-
-
-// 0 1 2 3
-// 4 5 6 7
-// 8 9 A B
-// C D E F
-// 
-// 0 1 2
-// 3 4 5
-// 6 7 8
-
-
- 
 //
 //matrix44f* SetMat44RotateY (matrix44f* out, float rads) {
 //
@@ -459,7 +410,10 @@ template<unsigned _R, unsigned _C, typename _Ty>
 //   return out; 
 //}
 	template<typename _Ty>
-	inline Matrix<4, 4, _Ty>& AddMat44Transl (Matrix<4, 4, _Ty>& out, const Vector<3, _Ty>& v) {
+		inline Matrix<4, 4, _Ty>& 
+	AddMat44Transl (
+		Matrix<4, 4, _Ty>& out, 
+		const Vector<3, _Ty>& v) {
 		// tested
 		out[0][3] += X (v);
 		out[1][3] += Y (v);
