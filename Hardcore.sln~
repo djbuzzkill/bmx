@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestGL01", "TestGL01\TestGL01.vcxproj", "{89C9A4A8-57C4-4740-ADE9-B2008D1B60D5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_HordeIntgrTest", "HordeIntgrTest\HordeIntgrTest.vcxproj", "{DB35708E-41BA-4945-8633-1BCCD0253E9A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "throwaway", "throwaway\throwaway.vcxproj", "{7236A89B-B727-4C2E-B0F4-4400C2227699}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dx", "Dx\Dx.vcxproj", "{4ACE7C5A-DA85-4013-9FD7-93DEBE9F6FD0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_OpenGL_integration", "test_OpenGL_integration\test_OpenGL_integration.vcxproj", "{FCDC982A-4CD4-4501-A7B0-481B60747179}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_Underworld", "test_Underworld\test_Underworld.vcxproj", "{5C5C5970-A3F5-433B-ACD5-D79862DB5DCC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Worldshop_test", "Worldshop_test\Worldshop_test.vcxproj", "{258F2263-6A65-4938-9695-BFDABD2DFB26}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89C9A4A8-57C4-4740-ADE9-B2008D1B60D5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{89C9A4A8-57C4-4740-ADE9-B2008D1B60D5}.Debug|Win32.Build.0 = Debug|Win32
+		{89C9A4A8-57C4-4740-ADE9-B2008D1B60D5}.Release|Win32.ActiveCfg = Release|Win32
+		{89C9A4A8-57C4-4740-ADE9-B2008D1B60D5}.Release|Win32.Build.0 = Release|Win32
+		{DB35708E-41BA-4945-8633-1BCCD0253E9A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DB35708E-41BA-4945-8633-1BCCD0253E9A}.Debug|Win32.Build.0 = Debug|Win32
+		{DB35708E-41BA-4945-8633-1BCCD0253E9A}.Release|Win32.ActiveCfg = Release|Win32
+		{DB35708E-41BA-4945-8633-1BCCD0253E9A}.Release|Win32.Build.0 = Release|Win32
+		{7236A89B-B727-4C2E-B0F4-4400C2227699}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7236A89B-B727-4C2E-B0F4-4400C2227699}.Debug|Win32.Build.0 = Debug|Win32
+		{7236A89B-B727-4C2E-B0F4-4400C2227699}.Release|Win32.ActiveCfg = Release|Win32
+		{7236A89B-B727-4C2E-B0F4-4400C2227699}.Release|Win32.Build.0 = Release|Win32
+		{4ACE7C5A-DA85-4013-9FD7-93DEBE9F6FD0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4ACE7C5A-DA85-4013-9FD7-93DEBE9F6FD0}.Debug|Win32.Build.0 = Debug|Win32
+		{4ACE7C5A-DA85-4013-9FD7-93DEBE9F6FD0}.Release|Win32.ActiveCfg = Release|Win32
+		{4ACE7C5A-DA85-4013-9FD7-93DEBE9F6FD0}.Release|Win32.Build.0 = Release|Win32
+		{FCDC982A-4CD4-4501-A7B0-481B60747179}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FCDC982A-4CD4-4501-A7B0-481B60747179}.Debug|Win32.Build.0 = Debug|Win32
+		{FCDC982A-4CD4-4501-A7B0-481B60747179}.Release|Win32.ActiveCfg = Release|Win32
+		{FCDC982A-4CD4-4501-A7B0-481B60747179}.Release|Win32.Build.0 = Release|Win32
+		{5C5C5970-A3F5-433B-ACD5-D79862DB5DCC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5C5C5970-A3F5-433B-ACD5-D79862DB5DCC}.Debug|Win32.Build.0 = Debug|Win32
+		{5C5C5970-A3F5-433B-ACD5-D79862DB5DCC}.Release|Win32.ActiveCfg = Release|Win32
+		{5C5C5970-A3F5-433B-ACD5-D79862DB5DCC}.Release|Win32.Build.0 = Release|Win32
+		{258F2263-6A65-4938-9695-BFDABD2DFB26}.Debug|Win32.ActiveCfg = Debug|Win32
+		{258F2263-6A65-4938-9695-BFDABD2DFB26}.Debug|Win32.Build.0 = Debug|Win32
+		{258F2263-6A65-4938-9695-BFDABD2DFB26}.Release|Win32.ActiveCfg = Release|Win32
+		{258F2263-6A65-4938-9695-BFDABD2DFB26}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

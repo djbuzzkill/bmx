@@ -1,0 +1,9 @@
+﻿Build started 1/12/2015 1:39:35 AM.
+     1>Project "C:\Quarantine\hardcore\test_OpenGL_integration\test_OpenGL_integration.vcxproj" on node 2 (Clean target(s)).
+     1>_PrepareForClean:
+         Deleting file "Debug\test_Ope.FCDC982A.tlog\test_OpenGL_integration.lastbuildstate".
+     1>Done Building Project "C:\Quarantine\hardcore\test_OpenGL_integration\test_OpenGL_integration.vcxproj" (Clean target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.04
