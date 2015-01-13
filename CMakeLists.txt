@@ -6,10 +6,18 @@ project (Hardcore)
 
 if (CMAKE_CL_64)
 	set (SDL2_PLATFORM_LIB_DIR "x64")
+	set (GLEW_PLATFORM_LIB_DIR "x64")
 
 else ()
 	set (SDL2_PLATFORM_LIB_DIR "x86")
+	set (GLEW_PLATFORM_LIB_DIR "Win32")
 endif ()
+
+
+
+
+
+
 	 
 include_directories (
 	J:/Quarantine/hardcore
@@ -20,11 +28,13 @@ include_directories (
 	$ENV{GLM_ROOT}
 	$ENV{GLEW_ROOT}/include
 	$ENV{SDL2_ROOT}/include
+	C:/3rdPartyLibs/gli-0.5.1.0
 	)
 
 
 link_directories (
-	$ENV{SDL2_ROOT}/lib/{SDL2_PLATFORM_LIB_DIR}
+	$ENV{SDL2_ROOT}/lib/${SDL2_PLATFORM_LIB_DIR}
+	$ENV{GLEW_ROOT}/lib/Release/${GLEW_PLATFORM_LIB_DIR}
 	)
 
 # target_link_libraries (
@@ -46,3 +56,6 @@ link_directories (
 
 add_subdirectory (Dx)
 add_subdirectory (SDL2_platform)
+add_subdirectory (OpenGL_system)
+
+add_subdirectory (test_GL4_experiment)
