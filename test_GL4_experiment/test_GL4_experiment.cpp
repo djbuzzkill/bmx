@@ -38,14 +38,11 @@ static void wat ()
 }
 
 
-#define IL_FALSE			0
-#define IL_TRUE				1
-
 //  Matches OpenGL's right now.
 //! Data formats \link Formats Formats\endlink
 
 //
-// exper_alpha
+// exper_alpha 
 class exper_alpha : public sy::RT_window_listener 
    {
 public: 
