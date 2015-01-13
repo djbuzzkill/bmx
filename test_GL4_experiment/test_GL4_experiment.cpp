@@ -238,8 +238,8 @@ int exper_alpha::Initialize (sy::System_context* sc)
       il.get_data (hgt_dat, kImagePath_height); 
 
       std::vector<float> fhgt_dat (hgt_dat.size());
-      for (int i = 0; i < hgt_dat.size(); i++)
-         fhgt_dat [i] = hgt_dat[i] / 255.0f; 
+      for (size_t i = 0; i < hgt_dat.size(); i++)
+         fhgt_dat [i] = (float) (hgt_dat[i] / 255.0f); 
 
       il.image_properties (img_col_props, kImagePath_color);
       std::string img_col_fmg  = il.enum_2_string (img_col_props["IL_IMAGE_FORMAT"]);
