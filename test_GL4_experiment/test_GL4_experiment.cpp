@@ -3,36 +3,6 @@
 #include "stdafx.h"
 #include "test_GL4_experiment.h"
 
-// #include <map>
-// #include <list>
-// #include <vector>
-// #include <string>
-// #include <memory>
-// #include <sstream>
-// #include <algorithm>
-// 
-// #include <Dx/System.h>
-// #include <OpenGL_system/OpenGL_system.h>
-// //#include <Dx/IKSolver2d.h>
-// //#include <Xp/Xp.h> 
-// //#include <Dx/Horde3D_platform.h> 
-// //
-// //#include <Horde3D.h>
-// //#include <Horde3DUtils.h>
-// 
-// #include <il/il.h>
-// #include <gli/gli.h>
-// 
-// 
-// #include <SDL.h>
-// #include <GL/glew.h>
-// #include <SDL2_platform\SDL2_platform.h>
-// 
-// #include <glm/glm.hpp>
-// #include <glm/ext.hpp>
-
-// #include <SDL_opengl.h>
-//#include <tinyxml2.h>
 
 static void wat () 
 {
@@ -81,7 +51,7 @@ const std::wstring exper_alpha :: kImagePath_color  = L"C:/Quarantine/Textures/h
 
 
 
-#if 0 // Devil/ResIL not available in 64 binary
+#if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
 
 //
 //// 
@@ -222,42 +192,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
    GLuint txrIDs[10] =  {0}; 
    glGenTextures (10, txrIDs); 
 
-   //{  // testing glm
-   //   glm::dvec3 a (0.2, 0.4, -0.3); 
-   //   glm::dvec3 b (1.2, 0.4, -0.3); 
-   //
-   //   glm::dquat qa (1.0, 0.0, 0.0, 0.0); 
-   //
-   //   glm::dvec3 c = a + b; 
-   //
-   //   glm::dvec3::value_type dp = glm::dot(a, b); 
-   //}
-
-
-   //{  // just testing
-   //   DevIL il; 
-   //
-   //   std::map<std::string, int> img_col_props; 
-   //   std::map<std::string, int> img_hgt_props; 
-   //
-   //   il.image_properties (img_hgt_props, kImagePath_height);
-   //   std::string img_hgt_fmg  = il.enum_2_string (img_hgt_props["IL_IMAGE_FORMAT"]);
-   //   std::string img_hgt_type = il.enum_2_string (img_hgt_props["IL_IMAGE_TYPE"]  );
-   //   std::vector<unsigned char> hgt_dat;
-   //   il.get_data (hgt_dat, kImagePath_height); 
-   //
-   //   std::vector<float> fhgt_dat (hgt_dat.size());
-   //   for (int i = 0; i < hgt_dat.size(); i++)
-   //      fhgt_dat [i] = hgt_dat[i] / 255.0f; 
-   //
-   //   il.image_properties (img_col_props, kImagePath_color);
-   //   std::string img_col_fmg  = il.enum_2_string (img_col_props["IL_IMAGE_FORMAT"]);
-   //   std::string img_col_type = il.enum_2_string (img_col_props["IL_IMAGE_TYPE"]  );
-   //   std::vector<unsigned char> col_dat;
-   //   il.get_data (col_dat, kImagePath_color); 
-   //
-   //   wat (); 
-   //}
 
    return 0; 
    }
