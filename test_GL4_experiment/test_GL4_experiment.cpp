@@ -48,10 +48,13 @@ static void wat ()
 //! Data formats \link Formats Formats\endlink
 
 //
-// exper_alpha
+// exper_alpha 
 class exper_alpha : public sy::RT_window_listener 
    {
 public: 
+
+   static const std::wstring kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
+   static const std::wstring kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
    exper_alpha () {}
    virtual ~exper_alpha () {}
@@ -200,6 +203,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
       avail_vers  ["GLEW_VERSION_4_2"]            =      GLEW_VERSION_4_2;
       avail_vers  ["GLEW_VERSION_4_3"]            =      GLEW_VERSION_4_3;
       avail_vers  ["GLEW_VERSION_4_4"]            =      GLEW_VERSION_4_4;
+      avail_vers  ["GLEW_VERSION_4_5"]            =      GLEW_VERSION_4_5;
    };
 
 
@@ -217,7 +221,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
    glGetIntegerv (GL_MAX_TEXTURE_SIZE, &max_txr_size );  
    GLuint txrIDs[10] =  {0}; 
    glGenTextures (10, txrIDs); 
-
 
    //{  // testing glm
    //   glm::dvec3 a (0.2, 0.4, -0.3); 
