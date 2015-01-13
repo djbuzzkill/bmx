@@ -5,12 +5,16 @@ project (Hardcore)
 
 
 if (CMAKE_CL_64)
+
 	set (SDL2_PLATFORM_LIB_DIR "x64")
 	set (GLEW_PLATFORM_LIB_DIR "x64")
+	set (DEVIL_PLATFORM_LIB_DIR "libcmt-x64")
 
 else ()
+
 	set (SDL2_PLATFORM_LIB_DIR "x86")
 	set (GLEW_PLATFORM_LIB_DIR "Win32")
+
 endif ()
 
 
@@ -27,13 +31,15 @@ include_directories (
 	$ENV{GLM_ROOT}
 	$ENV{GLEW_ROOT}/include
 	$ENV{SDL2_ROOT}/include
-	C:/3rdPartyLibs/gli-0.5.1.0
+	$ENV{DEVIL_ROOT}/include
+	
 	)
 
 
 link_directories (
 	$ENV{SDL2_ROOT}/lib/${SDL2_PLATFORM_LIB_DIR}
 	$ENV{GLEW_ROOT}/lib/Release/${GLEW_PLATFORM_LIB_DIR}
+	$ENV{DEVIL_ROOT}/lib/x64/${DEVIL_PLATFORM_LIB_DIR}
 	)
 
 # target_link_libraries (

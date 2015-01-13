@@ -18,9 +18,14 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <gli/gli.hpp>
 
 #include <Dx/System.h>
 #include <OpenGL_system/OpenGL_system.h>
+
+
+#define DEVIL_LIB_IS_AVAILABLE 1
+#ifdef DEVIL_LIB_IS_AVAILABLE 
+   #include <IL/IL.h>
+#endif
 
 #endif

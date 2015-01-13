@@ -23,8 +23,8 @@ class exper_alpha : public sy::RT_window_listener
    {
 public: 
 
-   static const std::wstring kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
-   static const std::wstring kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
+   static const std::string kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
+   static const std::string kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
    exper_alpha () {}
    virtual ~exper_alpha () {}
@@ -42,14 +42,13 @@ private:
    std::shared_ptr<sy::OpenGL_system>     glsys;
    std::shared_ptr<sy::Graphics_window>   windo; 
 
-   static const std::wstring kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
-   static const std::wstring kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 }; 
 
-const std::wstring exper_alpha :: kImagePath_height = L"C:/Quarantine/Textures/hgt/mountains512.png";
-const std::wstring exper_alpha :: kImagePath_color  = L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
+const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
+const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
 
+#define DEVIL_LIB_IS_AVAILABLE 1
 
 #if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
 
@@ -62,7 +61,7 @@ public:
 
    ~DevIL () { ilShutDown(); }
 
-   std::vector<unsigned char>& get_data (std::vector<unsigned char>& out, const std::wstring& fname) const
+   std::vector<unsigned char>& get_data (std::vector<unsigned char>& out, const std::string& fname) const
    {
       out.clear (); 
       ILuint imgID = ilGenImage (); 
@@ -84,7 +83,7 @@ public:
 
    } 
 
-   bool image_properties (std::map<std::string, int>& iprops, const std::wstring& fname) const
+   bool image_properties (std::map<std::string, int>& iprops, const std::string& fname) const
    {
       iprops.clear();
       
@@ -173,7 +172,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
       avail_vers  ["GLEW_VERSION_4_2"]            =      GLEW_VERSION_4_2;
       avail_vers  ["GLEW_VERSION_4_3"]            =      GLEW_VERSION_4_3;
       avail_vers  ["GLEW_VERSION_4_4"]            =      GLEW_VERSION_4_4;
-      avail_vers  ["GLEW_VERSION_4_5"]            =      GLEW_VERSION_4_5;
    };
 
 
