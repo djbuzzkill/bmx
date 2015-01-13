@@ -12,11 +12,10 @@ else ()
 endif ()
 	 
 include_directories (
-	J:/Quarantine/hardcore
+	$ENV{HARDCORE_ROOT}
 	$ENV{BOOST_SDK_ROOT}/include
 	$ENV{FREETYPE2_ROOT}
 	$ENV{FREETYPE_GL_ROOT}
-	$ENV{FREETYPE2_ROOT}
 	$ENV{GLM_ROOT}
 	$ENV{GLEW_ROOT}/include
 	$ENV{SDL2_ROOT}/include
