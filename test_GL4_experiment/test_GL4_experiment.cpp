@@ -47,6 +47,9 @@ class exper_alpha : public sy::RT_window_listener
    {
 public: 
 
+   static const std::wstring kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
+   static const std::wstring kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
+
    exper_alpha () {}
    virtual ~exper_alpha () {}
 
@@ -63,8 +66,6 @@ private:
    std::shared_ptr<sy::OpenGL_system>     glsys;
    std::shared_ptr<sy::Graphics_window>   windo; 
 
-   static const std::wstring kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
-   static const std::wstring kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 }; 
 
 const std::wstring exper_alpha :: kImagePath_height = L"C:/Quarantine/Textures/hgt/mountains512.png";
