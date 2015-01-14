@@ -10,10 +10,6 @@ static void wat ()
    i++; 
 }
 
-
-#define IL_FALSE			0
-#define IL_TRUE				1
-
 //  Matches OpenGL's right now.
 //! Data formats \link Formats Formats\endlink
 
@@ -90,8 +86,12 @@ public:
       ILuint imgID = ilGenImage (); 
 
       ilBindImage (imgID); 
+//      ilLoadImage (fname.c_str ()); 
       if (IL_FALSE == ilLoadImage (fname.c_str ()))
-         return false; 
+      {
+        ILenum erro_no = ilGetError ();  
+        return false; 
+      }
       
       iprops["IL_IMAGE_BITS_PER_PIXEL"]   = ilGetInteger (IL_IMAGE_BITS_PER_PIXEL);   
       iprops["IL_IMAGE_WIDTH"         ]   = ilGetInteger (IL_IMAGE_WIDTH         );   
@@ -155,6 +155,20 @@ int exper_alpha::Initialize (sy::System_context* sc)
    ////
    //
    // 
+
+   {
+      //const std::string test_file = "C:/usr/Kbsd_Heightmap_Example.jpg"; 
+      const std::string test_file = "C:/usr/ResIL-1.8.2/docs/images/DevIL.png"; 
+      DevIL il; 
+
+      std::map<std::string, int> props; 
+      il.image_properties (props, test_file); 
+
+      std::string img_type =  il.enum_2_string (props["IL_IMAGE_TYPE"]); 
+      std::string img_fmt = il.enum_2_string (props["IL_IMAGE_FORMAT"]); 
+      
+      props.size (); 
+   }
 
    std::map<std::string, int> avail_feat; 
    std::map<std::string, int> avail_vers;
