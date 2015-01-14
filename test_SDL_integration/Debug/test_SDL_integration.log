@@ -1,9 +1,25 @@
-﻿Build started 1/12/2015 1:39:34 AM.
-     1>Project "C:\Quarantine\hardcore\test_SDL_integration\test_SDL_integration.vcxproj" on node 2 (Clean target(s)).
-     1>_PrepareForClean:
-         Deleting file "Debug\test_SDL.010A31B0.tlog\test_SDL_integration.lastbuildstate".
-     1>Done Building Project "C:\Quarantine\hardcore\test_SDL_integration\test_SDL_integration.vcxproj" (Clean target(s)).
+﻿Build started 1/13/2015 12:23:14 AM.
+     1>Project "C:\Quarantine\hardcore\test_SDL_integration\test_SDL_integration.vcxproj" on node 3 (Build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\test_SDL.010A31B0.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp test_SDL_integration.cpp
+         test_SDL_integration.cpp
+     1>c:\quarantine\hardcore\test_sdl_integration\test_sdl_integration.cpp(375): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\quarantine\hardcore\test_sdl_integration\test_sdl_integration.cpp(378): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\quarantine\hardcore\test_sdl_integration\test_sdl_integration.cpp(378): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\quarantine\hardcore\test_sdl_integration\test_sdl_integration.cpp(388): warning C4102: 'Ma' : unreferenced label
+         stdafx.cpp
+         Generating Code...
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Quarantine\hardcore\Debug\test_SDL_integration.exe" /INCREMENTAL /NOLOGO Xp.lib Dx.lib OpenGL32.lib Debug/Horde3D.lib Debug/Horde3DUtils.lib BulletCollision_Debug.lib BulletDynamics_Debug.lib LinearMath_Debug.lib SDL2_platform.lib SDL2.lib SDL2main.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Quarantine\hardcore\Debug\test_SDL_integration.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Quarantine\hardcore\Debug\test_SDL_integration.lib" /MACHINE:X86 Debug\stdafx.obj
+         Debug\test_SDL_integration.obj
+         test_SDL_integration.vcxproj -> C:\Quarantine\hardcore\Debug\test_SDL_integration.exe
+       FinalizeBuildStatus:
+         Deleting file "Debug\test_SDL.010A31B0.tlog\unsuccessfulbuild".
+         Touching "Debug\test_SDL.010A31B0.tlog\test_SDL_integration.lastbuildstate".
+     1>Done Building Project "C:\Quarantine\hardcore\test_SDL_integration\test_SDL_integration.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.03
+Time Elapsed 00:00:11.93

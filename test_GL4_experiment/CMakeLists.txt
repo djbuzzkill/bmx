@@ -27,7 +27,6 @@ target_link_libraries (test_GL4_experiment
 	SDL2
 	SDL2main
 	SDL2_platform
-	ResIL
 	)
 
 
