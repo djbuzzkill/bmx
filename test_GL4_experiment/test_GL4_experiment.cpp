@@ -48,7 +48,6 @@ const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
 
-#define DEVIL_LIB_IS_AVAILABLE 1
 
 #if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
 

@@ -23,7 +23,6 @@
 #include <OpenGL_system/OpenGL_system.h>
 
 
-#define DEVIL_LIB_IS_AVAILABLE 1
 #ifdef DEVIL_LIB_IS_AVAILABLE 
    #include <IL/IL.h>
 #endif
