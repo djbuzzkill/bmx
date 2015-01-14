@@ -136,7 +136,8 @@ private:
 
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
-
+////
+//
 
 
 
@@ -150,9 +151,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
    GLenum glew_res = ::glewInit (); 
    ////
    //
-   // 
-
-
 
    std::map<std::string, int> avail_feat; 
    std::map<std::string, int> avail_vers;
