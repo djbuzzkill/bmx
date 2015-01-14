@@ -1,9 +1,18 @@
-﻿Build started 1/12/2015 1:39:35 AM.
-     1>Project "C:\Quarantine\hardcore\Bullet_platform\Bullet_platform.vcxproj" on node 2 (Clean target(s)).
-     1>_PrepareForClean:
-         Deleting file "Debug\Bullet_platform.tlog\Bullet_platform.lastbuildstate".
-     1>Done Building Project "C:\Quarantine\hardcore\Bullet_platform\Bullet_platform.vcxproj" (Clean target(s)).
+﻿Build started 1/12/2015 2:23:56 AM.
+     1>Project "C:\Quarantine\hardcore\Bullet_platform\Bullet_platform.vcxproj" on node 4 (Build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\Bullet_platform.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Bullet_platform.cpp
+         Bullet_platform.cpp
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"C:\Quarantine\hardcore\Debug\Bullet_platform.lib" /NOLOGO Debug\Bullet_platform.obj
+         Bullet_platform.vcxproj -> C:\Quarantine\hardcore\Debug\Bullet_platform.lib
+       FinalizeBuildStatus:
+         Deleting file "Debug\Bullet_platform.tlog\unsuccessfulbuild".
+         Touching "Debug\Bullet_platform.tlog\Bullet_platform.lastbuildstate".
+     1>Done Building Project "C:\Quarantine\hardcore\Bullet_platform\Bullet_platform.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.02
+Time Elapsed 00:00:01.75
