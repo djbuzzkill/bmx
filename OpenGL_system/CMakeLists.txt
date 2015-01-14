@@ -1,0 +1,26 @@
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+project (OpenGL_system)
+
+
+set (OGLSYS_PLATFORM_HEADER_FILES
+	OpenGL_system.cpp
+	)
+	
+	
+set (OGLSYS_PLATFORM_SOURCE_FILES
+	OpenGL_system.h
+	)
+
+add_library (OpenGL_system
+	${OGLSYS_PLATFORM_HEADER_FILES}
+	${OGLSYS_PLATFORM_SOURCE_FILES}
+	)
+
+
+
+
+
+
+
