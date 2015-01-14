@@ -10,45 +10,12 @@ static void wat ()
    i++; 
 }
 
-//  Matches OpenGL's right now.
-//! Data formats \link Formats Formats\endlink
 
-//
-// exper_alpha 
-class exper_alpha : public sy::RT_window_listener 
-   {
-public: 
-
-   static const std::string kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
-   static const std::string kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
-
-   exper_alpha () {}
-   virtual ~exper_alpha () {}
-
-		// 
-	virtual int		Initialize	   (sy::System_context*); 
-	virtual int		Deinitialize   (sy::System_context*); 
-	virtual int		Update	      (sy::System_context*); 
-
-	virtual void OnWindowResize		(int wd, int ht); 
-	virtual void OnWindowClose		(); 
-	virtual void OnWindowActivate	(bool activate); 
-
-private: 
-   std::shared_ptr<sy::OpenGL_system>     glsys;
-   std::shared_ptr<sy::Graphics_window>   windo; 
-
-}; 
-
-const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
-const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
-
-
-
-#if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
 
 //
 //// 
+#if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
+
 class DevIL
    {
 public: 
@@ -136,8 +103,42 @@ public:
 protected:
    }; 
 
-
 #endif
+
+
+
+//
+// exper_alpha 
+class exper_alpha : public sy::RT_window_listener 
+   {
+public: 
+
+   static const std::string kImagePath_height   ; 
+   static const std::string kImagePath_color    ; 
+
+   exper_alpha () {}
+   virtual ~exper_alpha () {}
+
+		// 
+	virtual int		Initialize	   (sy::System_context*); 
+	virtual int		Deinitialize   (sy::System_context*); 
+	virtual int		Update	      (sy::System_context*); 
+
+	virtual void OnWindowResize		(int wd, int ht); 
+	virtual void OnWindowClose		(); 
+	virtual void OnWindowActivate	(bool activate); 
+
+private: 
+   std::shared_ptr<sy::OpenGL_system>     glsys;
+   std::shared_ptr<sy::Graphics_window>   windo; 
+
+}; 
+
+const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
+const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
+
+
+
 
 //
 //// 
