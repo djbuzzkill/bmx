@@ -27,6 +27,7 @@ include_directories (
 	$ENV{GLEW_ROOT}/include
 	$ENV{SDL2_ROOT}/include
 	$ENV{FREEIMAGE_ROOT}/include
+	$ENV{BOOST_LIB_ROOT}
 	)
 
 
