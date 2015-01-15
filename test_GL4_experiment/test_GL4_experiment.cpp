@@ -2,6 +2,8 @@
 
 #include "stdafx.h"
 #include "test_GL4_experiment.h"
+#include <boost/shared_array.hpp>
+
 
 
 static void wat () 
@@ -11,6 +13,20 @@ static void wat ()
 }
 
 
+
+
+union ptru 
+{
+   void*             v; 
+   char*             c;
+   unsigned char*    uc;
+   short*            s;
+   unsigned short*   us;
+   int*              i;
+   unsigned*         ui;
+   float*            f;
+   double*           d;
+}; 
 
 //
 // exper_alpha 
@@ -29,15 +45,15 @@ public:
 	virtual int		Deinitialize   (sy::System_context*); 
 	virtual int		Update	      (sy::System_context*); 
 
-	virtual void OnWindowResize		(int wd, int ht); 
+	virtual void OnWindowResize   (int wd, int ht); 
 	virtual void OnWindowClose		(); 
 	virtual void OnWindowActivate	(bool activate); 
 
 private: 
+
    std::shared_ptr<sy::OpenGL_system>     glsys;
    std::shared_ptr<sy::Graphics_window>   windo; 
-
-}; 
+   }; 
 
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
@@ -139,9 +155,104 @@ public:
    
 protected:
    }; 
-
-
 #endif
+
+
+
+//
+//// 
+void process_terrain_for_runtime ()
+{
+   int n_x_tiles = 6900 / 1024; 
+   int n_y_tiles = 17177 / 1024; 
+   n_x_tiles += (6900  % 1024) ? 1 : 0; 
+   n_y_tiles += (17177 % 1024) ? 1 : 0; 
+
+   const std::string file_color  = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif";
+   const std::string file_height = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif"; 
+   const std::string file_igm    = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat";
+
+   const char* imgfiles[] = {
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif", 
+      }; 
+
+   const FREE_IMAGE_FORMAT fmt[] = { 
+      FIF_TIFF, 
+      FIF_TIFF, 
+      // FIF_JPEG, 
+      // FIF_PNG, 
+      // FIF_TARGA, 
+      }; 
+
+
+   for (int i = 0; i < 2; i++ ) 
+   {
+      std::string fname = imgfiles[i]; 
+
+      FIBITMAP* img = FreeImage_Load (fmt[i] ,  imgfiles[i]); 
+
+      unsigned                wd          = FreeImage_GetWidth(img); 
+      unsigned                ht          = FreeImage_GetHeight (img); 
+      unsigned                bpp         = FreeImage_GetBPP (img); 
+      FREE_IMAGE_COLOR_TYPE   ctyp        = FreeImage_GetColorType (img); 
+      FREE_IMAGE_TYPE         typ         = FreeImage_GetImageType (img); 
+      ptru                    data        = { FreeImage_GetBits (img) }; 
+
+      unsigned                red_mask    = FreeImage_GetRedMask  (img);
+      unsigned                greean_mask = FreeImage_GetGreenMask(img);
+      unsigned                blue_mask   = FreeImage_GetBlueMask (img);
+
+
+      int num_pages = 0; 
+      if (FIMULTIBITMAP* multibitmap = FreeImage_OpenMultiBitmap (FIF_TIFF , imgfiles[i], FALSE, TRUE))
+      {
+         num_pages = FreeImage_GetPageCount  (multibitmap);
+         FreeImage_CloseMultiBitmap          (multibitmap); 
+      }
+
+
+
+      BITMAPINFO* bm_ptr = FreeImage_GetInfo (img);
+
+      unsigned npxls = wd * ht; 
+
+      std::vector<float> fdat;
+      fdat.reserve ( npxls ); 
+
+      switch (i)
+      {
+         fdat.clear (); 
+      case 0: 
+
+         for (int ipx = 0; ipx < npxls ; ipx++)
+         {
+            if (data.f[i] > -2550.0f)
+               fdat.push_back (data.f[i]); 
+         }
+
+      break; 
+
+      case 1: 
+         for (int ipx = 0; ipx < npxls ; ipx++)
+         {
+            if (data.f[i] > -2550.0f)
+               fdat.push_back (data.f[i]); 
+         }
+
+      break; 
+      
+      default:
+      break; 
+      }
+
+
+
+      FreeImage_Unload (img); 
+      wat (); 
+   }
+
+}
 
 //
 //// 
@@ -182,42 +293,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
    objIDs["sh_tess_evalution"]   = glCreateShader (GL_TESS_EVALUATION_SHADER);
    glGenProgramPipelines (1, &objIDs["prog_pipeline"]);
    wat ();
-
-   //
-
-   const char* imgfiles[] = {
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif", 
-      "C:/usr/Kbsd_Heightmap_Example.jpg", 
-      "C:/usr/height_maps/mt-ruapehu-and-ngauruhoe.png", 
-      "C:/usr/height_maps/D4.png", 
-      "C:/usr/height_maps/C4.png", 
-      
-      }; 
-
-   const FREE_IMAGE_FORMAT fmt[] = { 
-      FIF_TIFF, 
-      FIF_TIFF, 
-      FIF_JPEG, 
-      FIF_PNG, 
-      FIF_PNG, 
-      }; 
-
-
-   for (int i = 0; i < 2; i++ ) 
-   {
-      std::string fname = imgfiles[i]; 
-
-      FIBITMAP* img = FreeImage_Load (fmt[i] ,  imgfiles[i]); 
-
-      unsigned                wd          = FreeImage_GetWidth(img); 
-      unsigned                ht          = FreeImage_GetHeight (img); 
-      unsigned                bpp         = FreeImage_GetBPP (img); 
-      FREE_IMAGE_COLOR_TYPE   ctyp        = FreeImage_GetColorType (img); 
-      FREE_IMAGE_TYPE         typ         = FreeImage_GetImageType (img); 
-      FreeImage_Unload (img); 
-      wat (); 
-   }
 
    return 0; 
    }
