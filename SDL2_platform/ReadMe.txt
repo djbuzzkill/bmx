@@ -1,6 +1,6 @@
-// SDL2_platform //////////////////////////////////////////
+// SDL2_platform - static library /////////////////////////////////////////////
 
 
-certain code can have multiple implementions (e.g. CreateWindow(), DispactchEvent(), etc.). 
-This lib implements all SDL2 dependent functions. 
+some code can have multiple implementions (e.g. CreateWindow(), 
+DispactchEvent(), etc.). This lib implements all SDL2 dependent functions. 
 
