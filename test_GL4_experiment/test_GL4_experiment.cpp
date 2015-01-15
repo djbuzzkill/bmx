@@ -43,7 +43,8 @@ const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
 
-#define DEVIL_LIB_IS_AVAILABLE 1
+
+
 
 #if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
 
@@ -183,11 +184,40 @@ int exper_alpha::Initialize (sy::System_context* sc)
    wat ();
 
    //
-   GLint max_txr_size = 0; 
-   glGetIntegerv (GL_MAX_TEXTURE_SIZE, &max_txr_size );  
-   GLuint txrIDs[10] =  {0}; 
-   glGenTextures (10, txrIDs); 
 
+   const char* imgfiles[] = {
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif", 
+      "C:/usr/Kbsd_Heightmap_Example.jpg", 
+      "C:/usr/height_maps/mt-ruapehu-and-ngauruhoe.png", 
+      "C:/usr/height_maps/D4.png", 
+      "C:/usr/height_maps/C4.png", 
+      
+      }; 
+
+   const FREE_IMAGE_FORMAT fmt[] = { 
+      FIF_TIFF, 
+      FIF_TIFF, 
+      FIF_JPEG, 
+      FIF_PNG, 
+      FIF_PNG, 
+      }; 
+
+
+   for (int i = 0; i < 2; i++ ) 
+   {
+      std::string fname = imgfiles[i]; 
+
+      FIBITMAP* img = FreeImage_Load (fmt[i] ,  imgfiles[i]); 
+
+      unsigned                wd          = FreeImage_GetWidth(img); 
+      unsigned                ht          = FreeImage_GetHeight (img); 
+      unsigned                bpp         = FreeImage_GetBPP (img); 
+      FREE_IMAGE_COLOR_TYPE   ctyp        = FreeImage_GetColorType (img); 
+      FREE_IMAGE_TYPE         typ         = FreeImage_GetImageType (img); 
+      FreeImage_Unload (img); 
+      wat (); 
+   }
 
    return 0; 
    }

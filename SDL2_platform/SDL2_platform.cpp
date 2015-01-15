@@ -262,12 +262,12 @@ public:
    virtual unsigned long long GetTimerFrequencyHz  () { return ::SDL_GetPerformanceFrequency(); }
 
 	// Request_system ();
-	virtual void SysReq (Request req)
+	virtual void SysReq (sy::SystemRequest req)
    {
       SDL_Event event; 
 		switch (req) 
       {
-      case sy::System_context::Req_Exit:
+      case sy::SR_Exit:
             is_quit  = true; 
             event.type = SDL_QUIT; 
 				SDL_PushEvent (&event); 

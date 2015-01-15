@@ -22,9 +22,7 @@
 #include <Dx/System.h>
 #include <OpenGL_system/OpenGL_system.h>
 
+#include <FreeImage.h>
 
-#ifdef DEVIL_LIB_IS_AVAILABLE 
-   #include <IL/IL.h>
-#endif
 
 #endif

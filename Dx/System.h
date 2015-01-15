@@ -152,9 +152,12 @@ namespace sy
    }
 
    
-
 	//
 	// SystemContext - whatever things across platform
+	enum SystemRequest {
+		SR_Exit = 0,  
+		}; 
+
 	class System_context 
 		{ 
 	protected: 
@@ -164,9 +167,6 @@ namespace sy
 
 	public: 
 
-		enum Request {
-			Req_Exit = 0,  
-			}; 
 
       // deprecated by GraphicsWindow
 		virtual sy::Window*				Create_window		(Window_listener*, const char* title) = 0; 
@@ -183,7 +183,7 @@ namespace sy
       virtual  unsigned long long   GetTimerFrequencyHz  () = 0;
 
 		// Request_system ();
-		virtual void	   SysReq			(Request req) = 0; 
+		virtual void	   SysReq			(SystemRequest req) = 0; 
 		}; 
 
    // Time_tracker 

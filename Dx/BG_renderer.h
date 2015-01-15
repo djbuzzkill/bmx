@@ -126,6 +126,31 @@ namespace BG_tile
 }; 
 
 
+
+struct Terrain_params 
+{
+   struct Tile
+   {
+      glm::dvec2  origin;
+      void*       col;
+      void*       hgt;
+
+      typedef std::map<BG_tile::Key, Tile, BG_tile::less_than> Map; 
+   }; 
+
+   int      num_X_tiles;
+   int      num_Y_tiles; 
+
+   double   easting_Tile_step;
+   double   northing_Tile_step; 
+
+   double   height_range ; 
+   double   height_offset; 
+
+   Tile::Map tileMap;
+}; 
+
+
 #if defined (GLEW_MX)
 
 struct GLEW_MT_context 
