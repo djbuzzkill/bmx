@@ -11,7 +11,6 @@
 #include <sstream>
 #include <algorithm>
 
-
 #include <SDL.h>
 #include <GL/glew.h>
 #include <SDL2_platform/SDL2_platform.h>
@@ -23,6 +22,5 @@
 #include <OpenGL_system/OpenGL_system.h>
 
 #include <FreeImage.h>
-
 
 #endif

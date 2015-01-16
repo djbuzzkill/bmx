@@ -41,13 +41,13 @@ public:
    virtual ~exper_alpha () {}
 
 		// 
-	virtual int		Initialize	   (sy::System_context*); 
-	virtual int		Deinitialize   (sy::System_context*); 
-	virtual int		Update	      (sy::System_context*); 
+	virtual int		Initialize	      (sy::System_context*); 
+	virtual int		Deinitialize      (sy::System_context*); 
+	virtual int		Update	         (sy::System_context*); 
 
-	virtual void OnWindowResize   (int wd, int ht); 
-	virtual void OnWindowClose		(); 
-	virtual void OnWindowActivate	(bool activate); 
+	virtual void   OnWindowResize    (int wd, int ht); 
+	virtual void   OnWindowClose		(); 
+	virtual void   OnWindowActivate	(bool activate); 
 
 private: 
 
@@ -163,34 +163,148 @@ protected:
 //// 
 void process_terrain_for_runtime ()
 {
-   int n_x_tiles = 6900 / 1024; 
-   int n_y_tiles = 17177 / 1024; 
-   n_x_tiles += (6900  % 1024) ? 1 : 0; 
-   n_y_tiles += (17177 % 1024) ? 1 : 0; 
 
-   const std::string file_color  = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif";
-   const std::string file_height = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif"; 
-   const std::string file_igm    = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat";
+   const int kTextureDim = 1024; 
 
-   const char* imgfiles[] = {
-      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
-      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif", 
+   int n_x_tiles = 6900 /  kTextureDim ; 
+   int n_y_tiles = 17177 / kTextureDim ; 
+   n_x_tiles += (6900  % kTextureDim ) ? 1 : 0; 
+   n_y_tiles += (17177 % kTextureDim ) ? 1 : 0; 
+
+
+   const char* terrain_files[] = {
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
       }; 
 
-   const FREE_IMAGE_FORMAT fmt[] = { 
+   const FREE_IMAGE_FORMAT terrain_fmt[] = { 
       FIF_TIFF, 
       FIF_TIFF, 
-      // FIF_JPEG, 
-      // FIF_PNG, 
-      // FIF_TARGA, 
+      FIF_UNKNOWN, 
       }; 
+
+      std::vector<unsigned char> linebuff; 
+      for (unsigned iy = 0; iy < n_y_tiles ; iy++) 
+         for (unsigned ix = 0; ix < n_x_tiles ; ix++) 
+            for (unsigned i = 0; i < 3; i++) 
+      {
+
+         unsigned x_start = ix * kTextureDim; 
+         unsigned y_start = iy * kTextureDim; 
+
+         const std::string       cur_file       = terrain_files [i]; 
+         FIBITMAP*               img            = FreeImage_Load (terrain_fmt[i],  terrain_files[i]); 
+         unsigned                wd             = FreeImage_GetWidth(img); 
+         unsigned                ht             = FreeImage_GetHeight (img); 
+         unsigned                bpp            = FreeImage_GetBPP (img); 
+         FREE_IMAGE_COLOR_TYPE   ctyp           = FreeImage_GetColorType (img); 
+         FREE_IMAGE_TYPE         typ            = FreeImage_GetImageType (img); 
+         ptru                    data           = { FreeImage_GetBits (img) }; 
+
+         unsigned                red_mask       = FreeImage_GetRedMask  (img);
+         unsigned                greean_mask    = FreeImage_GetGreenMask(img);
+         unsigned                blue_mask      = FreeImage_GetBlueMask (img);
+
+         //  
+         unsigned                x_end          = (std::min) ( (x_start + kTextureDim),  wd); 
+         unsigned                y_end          = (std::min) ( (y_start + kTextureDim),  ht); 
+
+
+         std::map<FREE_IMAGE_TYPE, int> sizeOf_FI_component; 
+         std::map<FREE_IMAGE_TYPE, int> numberOf_FI_components; 
+         {
+sizeOf_FI_component[FIT_UNKNOWN]       = -1; 
+sizeOf_FI_component[FIT_BITMAP]        = -1; 
+sizeOf_FI_component[FIT_UINT16]        = 2;
+sizeOf_FI_component[FIT_INT16]         = 2; 
+sizeOf_FI_component[FIT_UINT32]        = 4; 
+sizeOf_FI_component[FIT_INT32]         = 4; 
+sizeOf_FI_component[FIT_FLOAT]         = 4; 
+sizeOf_FI_component[FIT_DOUBLE]        = 8; 
+sizeOf_FI_component[FIT_COMPLEX]       = 8; 
+sizeOf_FI_component[FIT_RGB16]         = 2; 
+sizeOf_FI_component[FIT_RGBA16]        = 2; 
+sizeOf_FI_component[FIT_RGBF]          = 4; 
+sizeOf_FI_component[FIT_RGBAF]         = 4; 
+
+numberOf_FI_components[FIT_UNKNOWN]    = -1;
+numberOf_FI_components[FIT_BITMAP]     = -1;
+numberOf_FI_components[FIT_UINT16]     = 1;  
+numberOf_FI_components[FIT_INT16]      = 1; 
+numberOf_FI_components[FIT_UINT32]     = 1; 
+numberOf_FI_components[FIT_INT32]      = 1; 
+numberOf_FI_components[FIT_FLOAT]      = 1; 
+numberOf_FI_components[FIT_DOUBLE]     = 1; 
+numberOf_FI_components[FIT_COMPLEX]    = 2; 
+numberOf_FI_components[FIT_RGB16]      = 3; 
+numberOf_FI_components[FIT_RGBA16]     = 4; 
+numberOf_FI_components[FIT_RGBF]       = 3; 
+numberOf_FI_components[FIT_RGBAF]      = 4; 
+         }      
+
+
+         //
+         //
+         ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
+
+         // create out file
+         std::ostringstream oss; 
+         oss << "mars_col_" << ix << "_" << iy << ".dat"; 
+         std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
+
+         size_t sizeOf_line = 1; 
+         if (linebuff.size () < sizeOf_line)
+            linebuff.resize (sizeOf_line);
+
+         switch (i)
+         {
+         case 0: // color 
+
+            for (unsigned iln = y_start; iln < y_end; iln++)
+               
+            
+            
+            fwrite (linebuff.data (), 1, sizeOf_line, outf.get()); 
+
+         break; 
+
+         case 1: // height 
+            fwrite (linebuff.data (), 1, sizeOf_line, outf.get()); 
+
+         break; 
+
+         case 2: // 
+
+            fwrite (linebuff.data (), 1, sizeOf_line, outf.get()); 
+
+         break; 
+
+         default: 
+         break; 
+         }
+
+      }
+
 
 
    for (int i = 0; i < 2; i++ ) 
    {
-      std::string fname = imgfiles[i]; 
+      const char* imgfiles[] = {
+         "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+         "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif", 
+         }; 
 
-      FIBITMAP* img = FreeImage_Load (fmt[i] ,  imgfiles[i]); 
+      const FREE_IMAGE_FORMAT fmt[] = { 
+         FIF_TIFF, 
+         FIF_TIFF, 
+         // FIF_JPEG, 
+         // FIF_PNG, 
+         // FIF_TARGA, 
+         }; 
+
+      std::string    fname = imgfiles[i]; 
+      FIBITMAP*      img   = FreeImage_Load (fmt[i],  imgfiles[i]); 
 
       unsigned                wd          = FreeImage_GetWidth(img); 
       unsigned                ht          = FreeImage_GetHeight (img); 
@@ -265,6 +379,9 @@ int exper_alpha::Initialize (sy::System_context* sc)
    ////
    //
    // 
+
+   process_terrain_for_runtime (); 
+
 
    std::map<std::string, int> avail_feat; 
    std::map<std::string, int> avail_vers;
