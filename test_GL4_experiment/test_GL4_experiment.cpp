@@ -4,6 +4,7 @@
 #include "test_GL4_experiment.h"
 #include <boost/shared_array.hpp>
 
+void process_mars_terrain_for_runtime ();
 
 
 static void wat () 
@@ -161,7 +162,8 @@ protected:
 
 //
 //// 
-void process_terrain_for_runtime ()
+#define GENERATE_MARS_TILES 0
+void process_mars_terrain_for_runtime ()
 {
    //
    ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
@@ -305,87 +307,7 @@ void process_terrain_for_runtime ()
          }
       }
    }
-
-   printf ("\n finished tiles");
-   BOOST_ASSERT(0); 
-   for (int i = 0; i < 2; i++ ) 
-   {
-      const char* imgfiles[] = {
-         "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
-         "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif", 
-         }; 
-
-      const FREE_IMAGE_FORMAT fmt[] = { 
-         FIF_TIFF, 
-         FIF_TIFF, 
-         // FIF_JPEG, 
-         // FIF_PNG, 
-         // FIF_TARGA, 
-         }; 
-
-      std::string    fname = imgfiles[i]; 
-      FIBITMAP*      img   = FreeImage_Load (fmt[i],  imgfiles[i]); 
-
-      unsigned                wd          = FreeImage_GetWidth(img); 
-      unsigned                ht          = FreeImage_GetHeight (img); 
-      unsigned                bpp         = FreeImage_GetBPP (img); 
-      FREE_IMAGE_COLOR_TYPE   ctyp        = FreeImage_GetColorType (img); 
-      FREE_IMAGE_TYPE         typ         = FreeImage_GetImageType (img); 
-      ptru                    data        = { FreeImage_GetBits (img) }; 
-
-      unsigned                red_mask    = FreeImage_GetRedMask  (img);
-      unsigned                greean_mask = FreeImage_GetGreenMask(img);
-      unsigned                blue_mask   = FreeImage_GetBlueMask (img);
-
-
-      int num_pages = 0; 
-      if (FIMULTIBITMAP* multibitmap = FreeImage_OpenMultiBitmap (FIF_TIFF , imgfiles[i], FALSE, TRUE))
-      {
-         num_pages = FreeImage_GetPageCount  (multibitmap);
-         FreeImage_CloseMultiBitmap          (multibitmap); 
-      }
-
-
-
-      BITMAPINFO* bm_ptr = FreeImage_GetInfo (img);
-
-      unsigned npxls = wd * ht; 
-
-      std::vector<float> fdat;
-      fdat.reserve ( npxls ); 
-
-      switch (i)
-      {
-         fdat.clear (); 
-      case 0: 
-
-         for (int ipx = 0; ipx < npxls ; ipx++)
-         {
-            if (data.f[i] > -2550.0f)
-               fdat.push_back (data.f[i]); 
-         }
-
-      break; 
-
-      case 1: 
-         for (int ipx = 0; ipx < npxls ; ipx++)
-         {
-            if (data.f[i] > -2550.0f)
-               fdat.push_back (data.f[i]); 
-         }
-
-      break; 
-      
-      default:
-      break; 
-      }
-
-
-
-      FreeImage_Unload (img); 
-      wat (); 
-   }
-
+ 
 }
 
 //
@@ -400,8 +322,10 @@ int exper_alpha::Initialize (sy::System_context* sc)
    //
    // 
 
-   process_terrain_for_runtime (); 
 
+#if GENERATE_MARS_TILES 
+   process_mars_terrain_for_runtime  (); 
+#endif
 
    std::map<std::string, int> avail_feat; 
    std::map<std::string, int> avail_vers;
