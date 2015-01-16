@@ -163,19 +163,51 @@ protected:
 //// 
 void process_terrain_for_runtime ()
 {
-
-   const int kTextureDim = 1024; 
-
-   int n_x_tiles = 6900 /  kTextureDim ; 
-   int n_y_tiles = 17177 / kTextureDim ; 
-   n_x_tiles += (6900  % kTextureDim ) ? 1 : 0; 
-   n_y_tiles += (17177 % kTextureDim ) ? 1 : 0; 
-
+   //
+   ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
+   //
+   std::map<FREE_IMAGE_TYPE, int> sizeOf_FI_component; 
+   std::map<FREE_IMAGE_TYPE, int> numberOf_FI_components; 
+   {
+      sizeOf_FI_component[FIT_UNKNOWN]       = -1; 
+      sizeOf_FI_component[FIT_BITMAP]        = -1; 
+      sizeOf_FI_component[FIT_UINT16]        = 2;
+      sizeOf_FI_component[FIT_INT16]         = 2; 
+      sizeOf_FI_component[FIT_UINT32]        = 4; 
+      sizeOf_FI_component[FIT_INT32]         = 4; 
+      sizeOf_FI_component[FIT_FLOAT]         = 4; 
+      sizeOf_FI_component[FIT_DOUBLE]        = 8; 
+      sizeOf_FI_component[FIT_COMPLEX]       = 8; 
+      sizeOf_FI_component[FIT_RGB16]         = 2; 
+      sizeOf_FI_component[FIT_RGBA16]        = 2; 
+      sizeOf_FI_component[FIT_RGBF]          = 4; 
+      sizeOf_FI_component[FIT_RGBAF]         = 4; 
+   
+      numberOf_FI_components[FIT_UNKNOWN]    = -1;
+      numberOf_FI_components[FIT_BITMAP]     = -1;
+      numberOf_FI_components[FIT_UINT16]     = 1;  
+      numberOf_FI_components[FIT_INT16]      = 1; 
+      numberOf_FI_components[FIT_UINT32]     = 1; 
+      numberOf_FI_components[FIT_INT32]      = 1; 
+      numberOf_FI_components[FIT_FLOAT]      = 1; 
+      numberOf_FI_components[FIT_DOUBLE]     = 1; 
+      numberOf_FI_components[FIT_COMPLEX]    = 2; 
+      numberOf_FI_components[FIT_RGB16]      = 3; 
+      numberOf_FI_components[FIT_RGBA16]     = 4; 
+      numberOf_FI_components[FIT_RGBF]       = 3; 
+      numberOf_FI_components[FIT_RGBAF]      = 4; 
+   }      
 
    const char* terrain_files[] = {
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
+      }; 
+
+   const std::string tile_type[] = {
+      "mars_col_", 
+      "mars_hgt_", 
+      "mars_igm_", 
       }; 
 
    const FREE_IMAGE_FORMAT terrain_fmt[] = { 
@@ -184,110 +216,98 @@ void process_terrain_for_runtime ()
       FIF_UNKNOWN, 
       }; 
 
-      std::vector<unsigned char> linebuff; 
-      for (unsigned iy = 0; iy < n_y_tiles ; iy++) 
-         for (unsigned ix = 0; ix < n_x_tiles ; ix++) 
-            for (unsigned i = 0; i < 3; i++) 
+   const int kTextureDim = 1024; 
+   const int n_x_tiles = (6900  / kTextureDim) + (6900  % kTextureDim  ? 1 : 0); 
+   const int n_y_tiles = (17177 / kTextureDim) + (17177 % kTextureDim  ? 1 : 0); 
+
+   const unsigned wd = 6900 ;
+   const unsigned ht = 17177;
+
+   std::vector<unsigned char> linebuff; 
+
+   for (unsigned iy = 0; iy < n_y_tiles; iy++) 
+      for (unsigned ix = 0; ix < n_x_tiles; ix++) 
+         for (unsigned itx = 0; itx < 2; itx++) 
+   {
+      const std::string kTilePath   = "C:/Quarantine/Mars/tiled/"; 
+      const std::string cur_file    = terrain_files[itx]; 
+
+      // in pixels 
+      unsigned x_tile_start   = ix * kTextureDim; 
+      unsigned y_tile_start   = iy * kTextureDim * wd; 
+      // 
+      // upper left (in pixels) of the current tile
+      unsigned tile_start     = x_tile_start + y_tile_start; 
+
+      // create out file
+      std::ostringstream oss; 
+      oss << kTilePath << tile_type[itx] << iy << "_" << ix << ".dat"; 
+      std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
+
+      unsigned x_count = (ix * kTextureDim + kTextureDim) < wd ? kTextureDim : wd % kTextureDim; 
+      unsigned y_count = (iy * kTextureDim + kTextureDim) < ht ? kTextureDim : ht % kTextureDim; 
+
+      if (itx < 2)
       {
+         size_t      sizeOf_pixel = wd * 4;
+         FIBITMAP*   img          = FreeImage_Load (terrain_fmt[itx], terrain_files[itx]);  
+         ptru        src          = { FreeImage_GetBits (img) }; 
 
-         unsigned x_start = ix * kTextureDim; 
-         unsigned y_start = iy * kTextureDim; 
+         if (linebuff.size () < (sizeOf_pixel * kTextureDim))
+            linebuff.resize (sizeOf_pixel * kTextureDim);
+         ptru ptr = { linebuff.data() }; 
 
-         const std::string       cur_file       = terrain_files [i]; 
-         FIBITMAP*               img            = FreeImage_Load (terrain_fmt[i],  terrain_files[i]); 
-         unsigned                wd             = FreeImage_GetWidth(img); 
-         unsigned                ht             = FreeImage_GetHeight (img); 
-         unsigned                bpp            = FreeImage_GetBPP (img); 
-         FREE_IMAGE_COLOR_TYPE   ctyp           = FreeImage_GetColorType (img); 
-         FREE_IMAGE_TYPE         typ            = FreeImage_GetImageType (img); 
-         ptru                    data           = { FreeImage_GetBits (img) }; 
-
-         unsigned                red_mask       = FreeImage_GetRedMask  (img);
-         unsigned                greean_mask    = FreeImage_GetGreenMask(img);
-         unsigned                blue_mask      = FreeImage_GetBlueMask (img);
-
-         //  
-         unsigned                x_end          = (std::min) ( (x_start + kTextureDim),  wd); 
-         unsigned                y_end          = (std::min) ( (y_start + kTextureDim),  ht); 
-
-
-         std::map<FREE_IMAGE_TYPE, int> sizeOf_FI_component; 
-         std::map<FREE_IMAGE_TYPE, int> numberOf_FI_components; 
+         //case 0: // color txr
+         //case 1: // height txr
+         for (unsigned iln = 0; iln < kTextureDim; iln++)
          {
-sizeOf_FI_component[FIT_UNKNOWN]       = -1; 
-sizeOf_FI_component[FIT_BITMAP]        = -1; 
-sizeOf_FI_component[FIT_UINT16]        = 2;
-sizeOf_FI_component[FIT_INT16]         = 2; 
-sizeOf_FI_component[FIT_UINT32]        = 4; 
-sizeOf_FI_component[FIT_INT32]         = 4; 
-sizeOf_FI_component[FIT_FLOAT]         = 4; 
-sizeOf_FI_component[FIT_DOUBLE]        = 8; 
-sizeOf_FI_component[FIT_COMPLEX]       = 8; 
-sizeOf_FI_component[FIT_RGB16]         = 2; 
-sizeOf_FI_component[FIT_RGBA16]        = 2; 
-sizeOf_FI_component[FIT_RGBF]          = 4; 
-sizeOf_FI_component[FIT_RGBAF]         = 4; 
+            std::fill (ptr.f, ptr.f + kTextureDim, -2553.0f);  
 
-numberOf_FI_components[FIT_UNKNOWN]    = -1;
-numberOf_FI_components[FIT_BITMAP]     = -1;
-numberOf_FI_components[FIT_UINT16]     = 1;  
-numberOf_FI_components[FIT_INT16]      = 1; 
-numberOf_FI_components[FIT_UINT32]     = 1; 
-numberOf_FI_components[FIT_INT32]      = 1; 
-numberOf_FI_components[FIT_FLOAT]      = 1; 
-numberOf_FI_components[FIT_DOUBLE]     = 1; 
-numberOf_FI_components[FIT_COMPLEX]    = 2; 
-numberOf_FI_components[FIT_RGB16]      = 3; 
-numberOf_FI_components[FIT_RGBA16]     = 4; 
-numberOf_FI_components[FIT_RGBF]       = 3; 
-numberOf_FI_components[FIT_RGBAF]      = 4; 
-         }      
+            if (iln < y_count)
+            {
+               unsigned pixel_begin = iln * wd + tile_start; 
+               unsigned pixel_end   = pixel_begin + x_count; 
+               std::copy (src.f + pixel_begin, src.f + pixel_end, ptr.f);
+            }
 
-
-         //
-         //
-         ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
-
-         // create out file
-         std::ostringstream oss; 
-         oss << "mars_col_" << ix << "_" << iy << ".dat"; 
-         std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
-
-         size_t sizeOf_line = 1; 
-         if (linebuff.size () < sizeOf_line)
-            linebuff.resize (sizeOf_line);
-
-         switch (i)
-         {
-         case 0: // color 
-
-            for (unsigned iln = y_start; iln < y_end; iln++)
-               
-            
-            
-            fwrite (linebuff.data (), 1, sizeOf_line, outf.get()); 
-
-         break; 
-
-         case 1: // height 
-            fwrite (linebuff.data (), 1, sizeOf_line, outf.get()); 
-
-         break; 
-
-         case 2: // 
-
-            fwrite (linebuff.data (), 1, sizeOf_line, outf.get()); 
-
-         break; 
-
-         default: 
-         break; 
+            fwrite (ptr.v, sizeof(float), kTextureDim, outf.get()); 
          }
 
+         FreeImage_Unload (img); 
       }
+      else
+      {
 
+ 
+         size_t sizeOf_pixel = 16;
+         boost::shared_array<double>   img (new double[2 * wd * ht]); 
+         ptru                          src = { img.get() }; 
+         std::shared_ptr<FILE>         infile (fopen (terrain_files[itx], "rb"), fclose); 
+         fread (src.v, 2 * sizeof(double), wd * ht, infile.get()); 
 
+         if (linebuff.size () < (sizeOf_pixel * kTextureDim))
+            linebuff.resize (sizeOf_pixel * kTextureDim);
+         ptru ptr = { linebuff.data() }; 
 
+         
+         for (unsigned iln = 0; iln < kTextureDim; iln++)
+         {
+            std::fill (ptr.d, ptr.d + 2 * kTextureDim, -1.0);  
+
+            if (iln < y_count)
+            {
+               unsigned pixel_begin = iln * wd + tile_start; 
+               unsigned pixel_end   = pixel_begin + x_count; 
+               std::copy (src.f + pixel_begin, src.f + pixel_end, ptr.f);
+            }
+
+            fwrite (ptr.v, 2 * sizeof(double), kTextureDim, outf.get()); 
+         }
+      }
+   }
+
+   printf ("\n finished tiles");
+   BOOST_ASSERT(0); 
    for (int i = 0; i < 2; i++ ) 
    {
       const char* imgfiles[] = {
