@@ -18,6 +18,13 @@ const int k_GL_Minor_version = 2;
 
 // C:\usr\glm
 
+
+unsigned int sy::Window::kDef_windowed_width    = 1024; 
+unsigned int sy::Window::kDef_windowed_height   = 768; 
+
+unsigned int sy::Graphics_window::kDef_windowed_width    = sy::Window::kDef_windowed_width ; 
+unsigned int sy::Graphics_window::kDef_windowed_height   = sy::Window::kDef_windowed_height; 
+
 class SDL_window : public sy::Graphics_window, public cx::Destructor
 {
    // | SDL_WINDOW_FULLSCREEN
@@ -697,3 +704,4 @@ void Rn::Draw_axes (
 
 
 }
+

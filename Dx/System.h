@@ -241,6 +241,8 @@ namespace sy
 	class Window 
 		{
 	public: 
+      static unsigned int kDef_windowed_width    ;  
+      static unsigned int kDef_windowed_height   ; 
 
 		//
 		// funcs
@@ -275,7 +277,14 @@ namespace sy
    // Graphics_window 
    class Graphics_window : public Window, public Graphics_display
       {
+   public: 
+ 
+      static unsigned int kDef_windowed_width    ;  
+      static unsigned int kDef_windowed_height   ; 
+
    protected: 
+
+
       Graphics_window () {}
       
       }; 

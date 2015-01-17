@@ -3,17 +3,25 @@
 #include "stdafx.h"
 #include "test_GL4_experiment.h"
 #include <boost/shared_array.hpp>
+#include <Dx/VecMath.h>
 
 void process_mars_terrain_for_runtime ();
 
+struct View_struc 
+{
+   Ma::Vec3d pos; 
+   Ma::Vec3d rot; 
+   double dist_near; 
+   double dist_far; 
+   double FoV_rad; 
+   double aspect; 
+}; 
 
 static void wat () 
 {
    int i = 0; 
    i++; 
 }
-
-
 
 
 union ptru 
@@ -52,8 +60,14 @@ public:
 
 private: 
 
+   std::map<std::string, GLuint>          objIDs; 
+   View_struc                             view; 
+   Ma::Vec2ui                             viewport_pos; 
+   Ma::Vec2ui                             viewport_dim; 
+
    std::shared_ptr<sy::OpenGL_system>     glsys;
    std::shared_ptr<sy::Graphics_window>   windo; 
+
    }; 
 
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
@@ -198,7 +212,7 @@ void process_mars_terrain_for_runtime ()
       numberOf_FI_components[FIT_RGBA16]     = 4; 
       numberOf_FI_components[FIT_RGBF]       = 3; 
       numberOf_FI_components[FIT_RGBAF]      = 4; 
-   }      
+   } 
 
    const char* terrain_files[] = {
       "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
@@ -314,7 +328,9 @@ void process_mars_terrain_for_runtime ()
 //// 
 int exper_alpha::Initialize (sy::System_context* sc) 
 { 
-   windo.reset (sc->Create_GraphicsWindow(this, "EXP0", 1024, 768, false));
+      
+
+   windo.reset (sc->Create_GraphicsWindow(this, "EXP0", sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height, false));
    windo->Show (true); 
    glsys.reset(sy::Create_OpenGL_system());
    GLenum glew_res = ::glewInit (); 
@@ -327,6 +343,20 @@ int exper_alpha::Initialize (sy::System_context* sc)
    process_mars_terrain_for_runtime  (); 
 #endif
 
+   //
+   // setup viewport fields 
+   Ma::Set(view.pos, 0.0, 0.0, 0.0); 
+   Ma::Set(view.rot, 0.0, 0.0, 0.0); 
+   view.FoV_rad      = Ma::Pi / 3.0; 
+   view.aspect       = double(sy::Graphics_window::kDef_windowed_width) / double(sy::Graphics_window::kDef_windowed_height); 
+   view.dist_near    = 10.0; 
+   view.dist_far     = 5000.0; 
+
+   Ma::Set (viewport_pos, unsigned (0), unsigned (0)); 
+   Ma::Set (viewport_dim, sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height); 
+   
+   //
+   //  OpenGL 
    std::map<std::string, int> avail_feat; 
    std::map<std::string, int> avail_vers;
    {
@@ -345,14 +375,18 @@ int exper_alpha::Initialize (sy::System_context* sc)
       avail_vers  ["GLEW_VERSION_4_4"]            =      GLEW_VERSION_4_4;
    };
 
-
    // 
-   std::map<std::string, GLuint> objIDs ; 
-   objIDs["sh_vertex"]           = glCreateShader (GL_VERTEX_SHADER); 
-   objIDs["sh_fragment"]         = glCreateShader (GL_FRAGMENT_SHADER);
-   objIDs["sh_tess_control"]     = glCreateShader (GL_TESS_CONTROL_SHADER);
-   objIDs["sh_tess_evalution"]   = glCreateShader (GL_TESS_EVALUATION_SHADER);
-   glGenProgramPipelines (1, &objIDs["prog_pipeline"]);
+   // 
+   objIDs["shader_vert"]      = glCreateShader (GL_VERTEX_SHADER); 
+   objIDs["shader_frag"]      = glCreateShader (GL_FRAGMENT_SHADER);
+   objIDs["shader_tessContr"] = glCreateShader (GL_TESS_CONTROL_SHADER);
+   objIDs["shader_tessEval"]  = glCreateShader (GL_TESS_EVALUATION_SHADER);
+
+
+
+   // glsys->Build_shader_program  
+   // glsys->Create_shader
+
    wat ();
 
    return 0; 
@@ -374,15 +408,24 @@ int exper_alpha::Update (sy::System_context* sc)
 
 //
 //
-void exper_alpha::OnWindowResize	(int wd, int ht) {} 
+void exper_alpha::OnWindowResize	(int wd, int ht) 
+{
+   Ma::Set (viewport_dim, unsigned (wd), unsigned (ht) ); 
+}
+ 
 
 //
 //
-void exper_alpha::OnWindowClose	() {}
+void exper_alpha::OnWindowClose () 
+{
+}
 
 //
 //
-void exper_alpha::OnWindowActivate(bool activate) {}
+void exper_alpha::OnWindowActivate(bool activate) 
+{
+}
+
 
 //
 // 

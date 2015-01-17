@@ -30,6 +30,7 @@ include_directories (
 	$ENV{BOOST_LIB_ROOT}
 	)
 
+message (STATUS	"BOOST_LIB_ROOT: $ENV{BOOST_LIB_ROOT}")
 
 link_directories (
 	$ENV{SDL2_ROOT}/lib/${SDL2_PLATFORM_LIB_DIR}
