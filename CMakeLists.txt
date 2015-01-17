@@ -20,7 +20,6 @@ endif ()
 	 
 include_directories (
 	$ENV{HARDCORE_ROOT}
-	$ENV{BOOST_SDK_ROOT}/include
 	$ENV{FREETYPE2_ROOT}
 	$ENV{FREETYPE_GL_ROOT}/lib/
 	$ENV{GLM_ROOT}
@@ -30,6 +29,8 @@ include_directories (
 	$ENV{BOOST_LIB_ROOT}
 	)
 
+
+message (STATUS	"BOOST_SDK_ROOT: $ENV{BOOST_SDK_ROOT}")
 message (STATUS	"BOOST_LIB_ROOT: $ENV{BOOST_LIB_ROOT}")
 
 link_directories (

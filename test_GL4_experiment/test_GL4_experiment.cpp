@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "test_GL4_experiment.h"
+
 #include <boost/shared_array.hpp>
 #include <Dx/VecMath.h>
 
