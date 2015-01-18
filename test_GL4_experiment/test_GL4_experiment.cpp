@@ -8,6 +8,46 @@
 
 void process_mars_terrain_for_runtime ();
 
+template<
+   size_t   Depth, 
+   size_t   Row, 
+   size_t   Col, 
+   typename Ty, 
+   typename MatTy = Ma::Matrix<Row, Cols, Ty> > 
+struct Cubetrix {
+ 
+   Cubetrix () : m () {}
+      // 
+      // subscript 
+            MatTy& operator [] (size_t rindex) { return m[rindex]; }
+      const MatTy& operator [] (size_t rindex ) const { return m[rindex]; }
+		// :::::::::::::::::::::::
+		Ty* ptr () { 
+			return reinterpret_cast<Ty*> (this); 
+			}
+
+		const Ty* ptr () const { 
+			return reinterpret_cast<const Ty*> (this); 
+		}
+
+   Ma::Matrix<Row, Col, Ty> m; 
+};
+
+
+//
+////
+struct Spatial_sector : public cx::Destructor {
+   
+   virtual ~Spatial_sector () { 
+      }
+}; 
+
+typedef Cubetrix<3, 4, 5, Spatial_sector*> Sim_space;
+
+
+
+//
+//
 struct View_struc 
 {
    Ma::Vec3d pos; 
@@ -38,6 +78,9 @@ union ptru
    double*           d;
 }; 
 
+
+const size_t num_X_tiles = 7 ;
+const size_t num_Y_tiles = 17;
 //
 // exper_alpha 
 class exper_alpha : public sy::RT_window_listener 
@@ -47,7 +90,9 @@ public:
    static const std::string kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
    static const std::string kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
-   exper_alpha () {}
+   exper_alpha (); 
+
+
    virtual ~exper_alpha () {}
 
 		// 
@@ -68,6 +113,10 @@ private:
 
    std::shared_ptr<sy::OpenGL_system>     glsys;
    std::shared_ptr<sy::Graphics_window>   windo; 
+
+   typedef Ma::Matrix<num_Y_tiles, num_X_tiles, GLuint> TextureTable; 
+   std::shared_ptr<TextureTable> colTbl ;
+   std::shared_ptr<TextureTable> hgtTbl ;
 
    }; 
 
@@ -327,9 +376,24 @@ void process_mars_terrain_for_runtime ()
 
 //
 //// 
+exper_alpha::exper_alpha ()  
+   : colTbl (new TextureTable)
+   , hgtTbl (new TextureTable)
+{
+}
+
+//
+//
+void somefn ()
+{
+   void; 
+}
+
+//
+//// 
 int exper_alpha::Initialize (sy::System_context* sc) 
 { 
-      
+      void; 
 
    windo.reset (sc->Create_GraphicsWindow(this, "EXP0", sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height, false));
    windo->Show (true); 
@@ -343,6 +407,76 @@ int exper_alpha::Initialize (sy::System_context* sc)
 #if GENERATE_MARS_TILES 
    process_mars_terrain_for_runtime  (); 
 #endif
+
+   const size_t kTextureDim = 1024;
+   const size_t n_x_tiles = (6900  / kTextureDim) + (6900  % kTextureDim  ? 1 : 0); 
+   const size_t n_y_tiles = (17177 / kTextureDim) + (17177 % kTextureDim  ? 1 : 0); 
+
+   typedef Ma::Matrix<num_Y_tiles, num_X_tiles, GLuint> TextureTable; 
+
+   TextureTable&                 colRef = *colTbl; 
+   TextureTable&                 hgtRef = *hgtTbl; 
+
+   const std::string kTilePath   = "C:/Quarantine/Mars/tiled/"; 
+
+   size_t num_tiles = num_X_tiles * num_Y_tiles;
+
+
+   const std::string tile_type[] = {
+      "mars_col_", 
+      "mars_hgt_", 
+      "mars_igm_", 
+      }; 
+
+   const size_t wd = 6900 ;
+   const size_t ht = 17177;
+
+   glGenTextures (num_tiles, colRef.ptr()); 
+   glGenTextures (num_tiles, hgtRef.ptr()); 
+
+   for (size_t iy = 0; iy < n_y_tiles; iy++)
+      for (size_t ix = 0; ix < n_x_tiles; ix++)
+         for (size_t itx = 0; itx < 2; itx++)
+   {
+      std::stringstream oss; 
+      oss << kTilePath << tile_type[itx] << iy << "_" << ix << ".dat"; 
+      std::shared_ptr<FILE> intx (fopen (oss.str().c_str (), "rb"), fclose); 
+      std::vector<float> fbuf (wd * ht); 
+
+//      glTextureImage2DEXT (colRef[iy][ix], GL_TEXTURE_2D, 0, GL_R32F, kTextureDim,kTextureDim, 0, GL_R32F, fbuf.data()); 
+
+      switch (itx) 
+      {
+      case 0: 
+
+         fread (fbuf.data(), sizeof(float), wd * ht, intx.get());
+         {
+
+         }
+
+      break; 
+
+      case 1:
+
+         fread (fbuf.data(), sizeof(float), wd * ht, intx.get());
+
+      break;
+
+      default:       
+      break; 
+      }      
+
+
+   }
+   // GLuint txrIDs[n_y_tiles][n_x_tiles];
+
+   //glGenTextures (wd, txrIDs
+
+
+
+   //oss << kTilePath << tile_type[itx] << iy << "_" << ix << ".dat"; 
+   //std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
+
 
    //
    // setup viewport fields 
