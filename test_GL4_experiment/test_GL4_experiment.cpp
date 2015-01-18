@@ -36,10 +36,10 @@ struct Cubetrix {
 
 //
 ////
-struct Spatial_sector : public cx::Destructor {
+struct Spatial_sector 
+{
+
    
-   virtual ~Spatial_sector () { 
-      }
 }; 
 
 typedef Cubetrix<3, 4, 5, Spatial_sector*> Sim_space;
@@ -123,104 +123,6 @@ private:
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
-
-
-
-
-#if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
-
-//
-//// 
-class DevIL
-   {
-public: 
-   DevIL () { ilInit (); }
-
-   ~DevIL () { ilShutDown(); }
-
-   std::vector<unsigned char>& get_data (std::vector<unsigned char>& out, const std::string& fname) const
-   {
-      out.clear (); 
-      ILuint imgID = ilGenImage (); 
-
-      ilBindImage (imgID); 
-      if (IL_FALSE == ilLoadImage (fname.c_str ()))
-         return out; 
-      
-
-      GLuint sizeOf_data = ilGetInteger (IL_IMAGE_SIZE_OF_DATA  );   
-
-      out.resize (sizeOf_data, 0); 
-      
-      ILubyte* data = ilGetData (); 
-      std::copy(data , data + sizeOf_data, &out[0]); 
-      ilDeleteImage (imgID); 
-
-      return out; 
-
-   } 
-
-   bool image_properties (std::map<std::string, int>& iprops, const std::string& fname) const
-   {
-      iprops.clear();
-      
-      ILuint imgID = ilGenImage (); 
-
-      ilBindImage (imgID); 
-      if (IL_FALSE == ilLoadImage (fname.c_str ()))
-      {
-        ILenum erro_no = ilGetError ();  
-        return false; 
-      }
-      
-      iprops["IL_IMAGE_BITS_PER_PIXEL"]   = ilGetInteger (IL_IMAGE_BITS_PER_PIXEL);   
-      iprops["IL_IMAGE_WIDTH"         ]   = ilGetInteger (IL_IMAGE_WIDTH         );   
-      iprops["IL_IMAGE_HEIGHT"        ]   = ilGetInteger (IL_IMAGE_HEIGHT        );   
-      iprops["IL_IMAGE_BPP"           ]   = ilGetInteger (IL_IMAGE_BPP           );   
-      iprops["IL_IMAGE_DEPTH"         ]   = ilGetInteger (IL_IMAGE_DEPTH         );   
-      iprops["IL_IMAGE_CHANNELS"      ]   = ilGetInteger (IL_IMAGE_CHANNELS      );   
-      iprops["IL_IMAGE_FORMAT"        ]   = ilGetInteger (IL_IMAGE_FORMAT        );   
-      iprops["IL_IMAGE_TYPE"          ]   = ilGetInteger (IL_IMAGE_TYPE          );   
-      iprops["IL_IMAGE_FORMAT"        ]   = ilGetInteger (IL_IMAGE_FORMAT        ); 
-      iprops["IL_IMAGE_TYPE"          ]   = ilGetInteger (IL_IMAGE_TYPE          );   
-      iprops["IL_IMAGE_SIZE_OF_DATA"  ]   = ilGetInteger (IL_IMAGE_SIZE_OF_DATA  );   
-
-      ilDeleteImage (imgID); 
-      return true; 
-   }
-
-   std::string enum_2_string (int i) const
-   {
-      static std::map<int, std::string> IL_define_map; 
-
-      if ( !IL_define_map.size() )
-      {
-         IL_define_map[IL_COLOUR_INDEX]      = "IL_COLOUR_INDEX"    ;
-         IL_define_map[IL_COLOR_INDEX]       = "IL_COLOR_INDEX"     ;
-         IL_define_map[IL_ALPHA]             = "IL_ALPHA"           ;
-         IL_define_map[IL_RGB]               = "IL_RGB"             ;
-         IL_define_map[IL_RGBA]              = "IL_RGBA"            ;
-         IL_define_map[IL_BGR]               = "IL_BGR"             ;
-         IL_define_map[IL_BGRA]              = "IL_BGRA"            ;
-         IL_define_map[IL_LUMINANCE]         = "IL_LUMINANCE"       ;
-         IL_define_map[IL_LUMINANCE_ALPHA]   = "IL_LUMINANCE_ALPHA" ;
-         IL_define_map[IL_BYTE]              = "IL_BYTE"            ;
-         IL_define_map[IL_UNSIGNED_BYTE]     = "IL_UNSIGNED_BYTE"   ;
-         IL_define_map[IL_SHORT]             = "IL_SHORT"           ;
-         IL_define_map[IL_UNSIGNED_SHORT]    = "IL_UNSIGNED_SHORT"  ;
-         IL_define_map[IL_INT]               = "IL_INT"             ;
-         IL_define_map[IL_UNSIGNED_INT]      = "IL_UNSIGNED_INT"    ;
-         IL_define_map[IL_FLOAT]             = "IL_FLOAT"           ;
-         IL_define_map[IL_DOUBLE]            = "IL_DOUBLE"          ;
-         IL_define_map[IL_HALF]              = "IL_HALF"            ;
-      }
-
-      return IL_define_map.count (i) ? IL_define_map[i] : std::string("");  
-   }
-   
-protected:
-   }; 
-#endif
 
 
 
@@ -571,4 +473,163 @@ int _tmain (int argc, _TCHAR* argv[])
    sy::Run_realtime_task (sc.get(), run.get()); 
 	return 0;
 }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+#if DEVIL_LIB_IS_AVAILABLE // Devil/ResIL not available in 64 binary
+
+//
+//// 
+class DevIL
+   {
+public: 
+   DevIL () { ilInit (); }
+
+   ~DevIL () { ilShutDown(); }
+
+   std::vector<unsigned char>& get_data (std::vector<unsigned char>& out, const std::string& fname) const
+   {
+      out.clear (); 
+      ILuint imgID = ilGenImage (); 
+
+      ilBindImage (imgID); 
+      if (IL_FALSE == ilLoadImage (fname.c_str ()))
+         return out; 
+      
+
+      GLuint sizeOf_data = ilGetInteger (IL_IMAGE_SIZE_OF_DATA  );   
+
+      out.resize (sizeOf_data, 0); 
+      
+      ILubyte* data = ilGetData (); 
+      std::copy(data , data + sizeOf_data, &out[0]); 
+      ilDeleteImage (imgID); 
+
+      return out; 
+
+   } 
+
+   bool image_properties (std::map<std::string, int>& iprops, const std::string& fname) const
+   {
+      iprops.clear();
+      
+      ILuint imgID = ilGenImage (); 
+
+      ilBindImage (imgID); 
+      if (IL_FALSE == ilLoadImage (fname.c_str ()))
+      {
+        ILenum erro_no = ilGetError ();  
+        return false; 
+      }
+      
+      iprops["IL_IMAGE_BITS_PER_PIXEL"]   = ilGetInteger (IL_IMAGE_BITS_PER_PIXEL);   
+      iprops["IL_IMAGE_WIDTH"         ]   = ilGetInteger (IL_IMAGE_WIDTH         );   
+      iprops["IL_IMAGE_HEIGHT"        ]   = ilGetInteger (IL_IMAGE_HEIGHT        );   
+      iprops["IL_IMAGE_BPP"           ]   = ilGetInteger (IL_IMAGE_BPP           );   
+      iprops["IL_IMAGE_DEPTH"         ]   = ilGetInteger (IL_IMAGE_DEPTH         );   
+      iprops["IL_IMAGE_CHANNELS"      ]   = ilGetInteger (IL_IMAGE_CHANNELS      );   
+      iprops["IL_IMAGE_FORMAT"        ]   = ilGetInteger (IL_IMAGE_FORMAT        );   
+      iprops["IL_IMAGE_TYPE"          ]   = ilGetInteger (IL_IMAGE_TYPE          );   
+      iprops["IL_IMAGE_FORMAT"        ]   = ilGetInteger (IL_IMAGE_FORMAT        ); 
+      iprops["IL_IMAGE_TYPE"          ]   = ilGetInteger (IL_IMAGE_TYPE          );   
+      iprops["IL_IMAGE_SIZE_OF_DATA"  ]   = ilGetInteger (IL_IMAGE_SIZE_OF_DATA  );   
+
+      ilDeleteImage (imgID); 
+      return true; 
+   }
+
+   std::string enum_2_string (int i) const
+   {
+      static std::map<int, std::string> IL_define_map; 
+
+      if ( !IL_define_map.size() )
+      {
+         IL_define_map[IL_COLOUR_INDEX]      = "IL_COLOUR_INDEX"    ;
+         IL_define_map[IL_COLOR_INDEX]       = "IL_COLOR_INDEX"     ;
+         IL_define_map[IL_ALPHA]             = "IL_ALPHA"           ;
+         IL_define_map[IL_RGB]               = "IL_RGB"             ;
+         IL_define_map[IL_RGBA]              = "IL_RGBA"            ;
+         IL_define_map[IL_BGR]               = "IL_BGR"             ;
+         IL_define_map[IL_BGRA]              = "IL_BGRA"            ;
+         IL_define_map[IL_LUMINANCE]         = "IL_LUMINANCE"       ;
+         IL_define_map[IL_LUMINANCE_ALPHA]   = "IL_LUMINANCE_ALPHA" ;
+         IL_define_map[IL_BYTE]              = "IL_BYTE"            ;
+         IL_define_map[IL_UNSIGNED_BYTE]     = "IL_UNSIGNED_BYTE"   ;
+         IL_define_map[IL_SHORT]             = "IL_SHORT"           ;
+         IL_define_map[IL_UNSIGNED_SHORT]    = "IL_UNSIGNED_SHORT"  ;
+         IL_define_map[IL_INT]               = "IL_INT"             ;
+         IL_define_map[IL_UNSIGNED_INT]      = "IL_UNSIGNED_INT"    ;
+         IL_define_map[IL_FLOAT]             = "IL_FLOAT"           ;
+         IL_define_map[IL_DOUBLE]            = "IL_DOUBLE"          ;
+         IL_define_map[IL_HALF]              = "IL_HALF"            ;
+      }
+
+      return IL_define_map.count (i) ? IL_define_map[i] : std::string("");  
+   }
+   
+protected:
+   }; 
+#endif
+
+
+
+
 
