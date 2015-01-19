@@ -402,6 +402,11 @@ struct Sphere { public:
 	typedef Vector<2, int>     Vec2i;  
 	typedef Vector<3, int>     Vec3i; 
 	typedef Vector<4, int>     Vec4i; 
+
+	typedef Vector<2, unsigned int>     Vec2ui;  
+	typedef Vector<3, unsigned int>     Vec3ui; 
+	typedef Vector<4, unsigned int>     Vec4ui; 
+
 	
 	typedef Vector<2, unsigned int>     Vec2ui;  
 	typedef Vector<3, unsigned int>     Vec3ui; 
