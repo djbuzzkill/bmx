@@ -13,24 +13,32 @@ template<
    size_t   Row, 
    size_t   Col, 
    typename Ty, 
-   typename MatTy = Ma::Matrix<Row, Cols, Ty> > 
+   typename MatTy = Ma::Matrix<Row, Col, Ty> > 
+
 struct Cubetrix {
+   
+   typedef Ty ElemType; 
  
-   Cubetrix () : m () {}
+   enum { NDepth  = Depth } ;
+   enum { NHeight = MatTy::NRows };  
+   enum { NWidth  = MatTy::NCols };
+
+
+   Cubetrix () : m () { }
       // 
       // subscript 
             MatTy& operator [] (size_t rindex) { return m[rindex]; }
       const MatTy& operator [] (size_t rindex ) const { return m[rindex]; }
 		// :::::::::::::::::::::::
-		Ty* ptr () { 
+   Ty* ptr () { 
 			return reinterpret_cast<Ty*> (this); 
 			}
 
-		const Ty* ptr () const { 
-			return reinterpret_cast<const Ty*> (this); 
-		}
+	const Ty* ptr () const { 
+		return reinterpret_cast<const Ty*> (this); 
+	   }
 
-   Ma::Matrix<Row, Col, Ty> m; 
+   Ma::Matrix<Row, Col, Ty> m;
 };
 
 
@@ -118,19 +126,18 @@ private:
    std::shared_ptr<TextureTable> colTbl ;
    std::shared_ptr<TextureTable> hgtTbl ;
 
+   Sim_space sim; 
    }; 
 
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
-
-
-
 //
 //// 
-#define GENERATE_MARS_TILES 0
+#define GENERATE_MARS_TILES 1
 void process_mars_terrain_for_runtime ()
 {
+   printf ("\nbegin processing"); 
    //
    ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
    //
@@ -167,9 +174,9 @@ void process_mars_terrain_for_runtime ()
    } 
 
    const char* terrain_files[] = {
-      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
-      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
-      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
+      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
       }; 
 
    const std::string tile_type[] = {
@@ -197,7 +204,7 @@ void process_mars_terrain_for_runtime ()
       for (unsigned ix = 0; ix < n_x_tiles; ix++) 
          for (unsigned itx = 0; itx < 2; itx++) 
    {
-      const std::string kTilePath   = "C:/Quarantine/Mars/tiled/"; 
+      const std::string kTilePath   = "J:/Quarantine/Mars/tiled/"; 
       const std::string cur_file    = terrain_files[itx]; 
 
       // in pixels 
@@ -274,6 +281,10 @@ void process_mars_terrain_for_runtime ()
       }
    }
  
+
+   printf ("\ndone processing"); 
+   BOOST_ASSERT (0); 
+
 }
 
 //
@@ -299,8 +310,9 @@ int exper_alpha::Initialize (sy::System_context* sc)
 
    windo.reset (sc->Create_GraphicsWindow(this, "EXP0", sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height, false));
    windo->Show (true); 
-   glsys.reset(sy::Create_OpenGL_system());
+   glsys.reset (sy::Create_OpenGL_system ());
    GLenum glew_res = ::glewInit (); 
+
    ////
    //
    // 
@@ -319,11 +331,12 @@ int exper_alpha::Initialize (sy::System_context* sc)
    TextureTable&                 colRef = *colTbl; 
    TextureTable&                 hgtRef = *hgtTbl; 
 
+
    const std::string kTilePath   = "C:/Quarantine/Mars/tiled/"; 
 
    size_t num_tiles = num_X_tiles * num_Y_tiles;
 
-
+   
    const std::string tile_type[] = {
       "mars_col_", 
       "mars_hgt_", 
@@ -332,6 +345,9 @@ int exper_alpha::Initialize (sy::System_context* sc)
 
    const size_t wd = 6900 ;
    const size_t ht = 17177;
+   
+
+   Spatial_sector** sector = sim.ptr(); 
 
    glGenTextures (num_tiles, colRef.ptr()); 
    glGenTextures (num_tiles, hgtRef.ptr()); 

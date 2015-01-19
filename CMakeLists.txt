@@ -8,14 +8,11 @@ if (CMAKE_CL_64)
 	set (FREEIMAGE_LIB_DIR "x64")
 	set (SDL2_PLATFORM_LIB_DIR "x64")
 	set (GLEW_PLATFORM_LIB_DIR "x64")
-
-else ()
+else () 
 	set (FREEIMAGE_LIB_DIR "x86")
 	set (SDL2_PLATFORM_LIB_DIR "x86")
 	set (GLEW_PLATFORM_LIB_DIR "Win32")
 endif ()
-
-
 
 	 
 include_directories (
