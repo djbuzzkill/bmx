@@ -134,7 +134,8 @@ const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt
 
 //
 //// 
-#define GENERATE_MARS_TILES 1
+#define GENERATE_MARS_TILES 0
+
 void process_mars_terrain_for_runtime ()
 {
    printf ("\nbegin processing"); 
