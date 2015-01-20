@@ -6,7 +6,12 @@
 #include <boost/shared_array.hpp>
 #include <Dx/VecMath.h>
 
+
+// convert original large textures to 1024 tiles
 void process_mars_terrain_for_runtime ();
+
+// convert f32 tiles to u16; 
+void quantize_height_tiles_to_u16 ();
 
 template<
    size_t   Depth, 
@@ -288,20 +293,83 @@ void process_mars_terrain_for_runtime ()
 
 }
 
+
+//
+////
+#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
+//
+void quantize_height_tiles_to_u16 ()
+{
+   // Step 1 - cut a hole in the box
+   // compute statistics about the original source image
+   // values below -2330.0 is a masked value
+   // find mean, min, max 
+   const std::string kHeight_name = "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif"; 
+
+   // read something into v
+   BOOST_ASSERT (0); 
+   std::vector<float> v; 
+   float min_val     = 0.0f;
+   float max_val     = 0.0f; 
+   float mean        = 0.0f; 
+   float std_dev     = 0.0f; 
+   float sq_sum      = 0.0f; 
+
+   std::vector<float> diff(v.size());
+   std::transform(v.begin(), v.end(), diff.begin(),
+               std::bind2nd(std::minus<float>(), mean));
+   sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+   std_dev = std::sqrt(sq_sum / v.size());
+
+   // now go through and produce quantized u16 tiles
+   const std::string kTilePath   = "C:/Quarantine/Mars/tiled/"; 
+   
+   const int kTextureDim = 1024; 
+   const int n_x_tiles = (6900  / kTextureDim) + (6900  % kTextureDim  ? 1 : 0); 
+   const int n_y_tiles = (17177 / kTextureDim) + (17177 % kTextureDim  ? 1 : 0); 
+
+   const unsigned wd = 6900 ;
+   const unsigned ht = 17177;
+   
+   for (unsigned iy = 0; iy < n_y_tiles; iy++) 
+      for (unsigned ix = 0; ix < n_x_tiles; ix++) 
+   { 
+      std::ostringstream src_ss , dst_ss; 
+
+      // convert this
+      src_ss << kTilePath << "mars_hgt_" << iy << "_" << ix << ".dat"; 
+      std::shared_ptr<FILE> srcf (fopen (src_ss.str().c_str (), "rb"), fclose); 
+      // into this
+      dst_ss << kTilePath << "mars_hgt_" << iy << "_" << ix << ".u16"; 
+      std::shared_ptr<FILE> dstf (fopen (src_ss.str().c_str (), "rb"), fclose); 
+
+   }
+
+}
+
+
 //
 //// 
 exper_alpha::exper_alpha ()  
    : colTbl (new TextureTable)
    , hgtTbl (new TextureTable)
 {
+
+   #if GENERATE_MARS_TILES 
+   process_mars_terrain_for_runtime  (); 
+   #endif
+
+   #if RUN_QUANTIZE_HEIGHT_TILES_TO_U16 
+   quantize_height_tiles_to_u16 (); 
+   #endif
+
+
+
 }
 
 //
 //
-void somefn ()
-{
-   void; 
-}
+
 
 //
 //// 
@@ -318,19 +386,15 @@ int exper_alpha::Initialize (sy::System_context* sc)
    //
    // 
 
-
-#if GENERATE_MARS_TILES 
-   process_mars_terrain_for_runtime  (); 
-#endif
-
    const size_t kTextureDim = 1024;
    const size_t n_x_tiles = (6900  / kTextureDim) + (6900  % kTextureDim  ? 1 : 0); 
    const size_t n_y_tiles = (17177 / kTextureDim) + (17177 % kTextureDim  ? 1 : 0); 
 
+
    typedef Ma::Matrix<num_Y_tiles, num_X_tiles, GLuint> TextureTable; 
 
-   TextureTable&                 colRef = *colTbl; 
-   TextureTable&                 hgtRef = *hgtTbl; 
+   TextureTable& colRef = *colTbl; 
+   TextureTable& hgtRef = *hgtTbl; 
 
 
    const std::string kTilePath   = "C:/Quarantine/Mars/tiled/"; 

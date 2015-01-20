@@ -9,6 +9,7 @@
 #include <string>
 #include <memory>
 #include <sstream>
+#include <numeric>
 #include <algorithm>
 
 #include <SDL.h>
