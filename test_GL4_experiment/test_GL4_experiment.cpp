@@ -180,9 +180,9 @@ void process_mars_terrain_for_runtime ()
    } 
 
    const char* terrain_files[] = {
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
-      "J:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
+      "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
       }; 
 
    const std::string tile_type[] = {
@@ -258,10 +258,9 @@ void process_mars_terrain_for_runtime ()
       }
       else
       {
-
  
-         size_t sizeOf_pixel = 16;
-         boost::shared_array<double>   img (new double[2 * wd * ht]); 
+         size_t sizeOf_pixel = 16; // 2 * sizeof(double)
+         boost::shared_array<double>   img (new double[sizeOf_pixel * wd * ht]); 
          ptru                          src = { img.get() }; 
          std::shared_ptr<FILE>         infile (fopen (terrain_files[itx], "rb"), fclose); 
          fread (src.v, 2 * sizeof(double), wd * ht, infile.get()); 
