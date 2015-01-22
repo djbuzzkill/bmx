@@ -29,10 +29,10 @@
 
 #else
 
-	#define Debug(...)   
-	#define Assert(x, msg, ...)
-	#define Break(msg, ...) 
-	#define BreakAssert(msg, ...) 
+	#define DX_Debug(...)   
+	#define DX_Assert(x, msg, ...)
+	#define DX_Break(msg, ...) 
+	#define DX_BreakAssert(msg, ...) 
 
 #endif
 
