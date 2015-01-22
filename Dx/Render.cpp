@@ -116,7 +116,7 @@ namespace Rn
       if (err != GL_NO_ERROR )
       {
          error_s_  = glewGetErrorString (err);
-         Assert (0, "validation failed"); 
+         DX_Assert (0, "validation failed"); 
       }
 
 
@@ -128,8 +128,8 @@ namespace Rn
    //
    GLuint Create_shader (const GLchar* shaderSource, GLenum shaderType)
    {
-      Assert (shaderSource, "invalid shader source"); 
-      Assert (shaderType == GL_VERTEX_SHADER  || shaderType == GL_FRAGMENT_SHADER, "must be a VS or FS (for now)"); 
+      DX_Assert (shaderSource, "invalid shader source"); 
+      DX_Assert (shaderType == GL_VERTEX_SHADER  || shaderType == GL_FRAGMENT_SHADER, "must be a VS or FS (for now)"); 
 
       GLuint shaderID = glCreateShader (shaderType); 
 
@@ -157,7 +157,7 @@ namespace Rn
 		   //Debug ("Shader Error:\n %s", output);
 		   //BreakAssert (0, "shader compile fail");
          glDeleteShader(shaderID); 
-         Assert (0, "compile failed"); 
+         DX_Assert (0, "compile failed"); 
 		   return 0;
 	   }
 

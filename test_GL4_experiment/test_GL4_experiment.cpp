@@ -6,7 +6,7 @@
 #include <boost/shared_array.hpp>
 #include <Dx/VecMath.h>
 
-#define MARS_DRIVE "C:/" 
+#define MARS_DRIVE "J:/" 
 
 // convert original large textures to 1024 tiles
 void process_mars_terrain_for_runtime ();
@@ -44,6 +44,9 @@ namespace mars_terr
    const unsigned kHt            = 17177;
 }
 
+
+//
+////
 template<
    size_t   Depth, 
    size_t   Row, 
@@ -399,13 +402,16 @@ void quantize_height_tiles_to_u16 ()
       std::shared_ptr<FILE> dstf (fopen (src_ss.str().c_str (), "rb"), fclose); 
       fread (usbuf.data (), sizeof(unsigned short ), npxls, dstf.get()); 
 
-      for (int iy = 0; iy < mars_terr::kNum_Y_tiles; iy++) 
-      {
-         BOOST_ASSERT (0); 
-         //*usbuf.get()  = 
-         //fbuf (usbuf.data()); 
-      }
 
+      float inv_mean = 1.0f / mean; 
+      std::transform (
+         fbuf.begin(), 
+         fbuf.end (), 
+         usbuf.end (), 
+         [&] (float f) { return  unsigned short(inv_mean * f); }
+         ); 
+
+      fwrite (usbuf.data (), sizeof (unsigned short), npxls, dstf.get()); 
    }
 
 }

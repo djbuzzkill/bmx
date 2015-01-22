@@ -6,6 +6,8 @@
 
 namespace sy
 { 
+   //
+
    //enum PipelineStage 
    //{
    //   _INVALID_PIPELINE_STAGE_ = -1, 
@@ -20,7 +22,6 @@ namespace sy
    //{
    //
    //};
-
 
    class OpenGL_system : public cx::Destructor
       { 

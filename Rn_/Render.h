@@ -1,7 +1,7 @@
 #ifndef _Scene_
 #define _Scene_
 
-#include "Ma/VecMath.h"
+#include "Dx/VecMath.h"
 //#include "GL/glew.h"
 
 

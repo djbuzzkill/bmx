@@ -18,10 +18,10 @@
 	#ifdef _WIN32
 
 		void _debug_break_ ();
-		#define Debug(...)   fprintf(stderr, __VA_ARGS__)
-		#define Assert(x, msg, ...) if((x) == false){printf("\n\n*WTF* -------------> \""##msg##"\" ", __VA_ARGS__); assert(0);} 
-		#define Break(msg, ...) do{printf("\n\n*BREAK* -------------> \""##msg##"\" ", __VA_ARGS__); _debug_break_ ();}while(0)
-		#define BreakAssert(x, msg, ...) if((x) == false){printf("\n\n*BREAK* -------------> \""##msg##"\" ", __VA_ARGS__); _debug_break_ ();} 
+		#define DX_Debug(...)   fprintf(stderr, __VA_ARGS__)
+		#define DX_Assert(x, msg, ...) if((x) == false){printf("\n\n*WTF* -------------> \""##msg##"\" ", __VA_ARGS__); assert(0);} 
+		#define DX_Break(msg, ...) do{printf("\n\n*BREAK* -------------> \""##msg##"\" ", __VA_ARGS__); _debug_break_ ();}while(0)
+		#define DX_BreakAssert(x, msg, ...) if((x) == false){printf("\n\n*BREAK* -------------> \""##msg##"\" ", __VA_ARGS__); _debug_break_ ();} 
 
 	#else
 		#include "NeedPlatformBreak.h"
