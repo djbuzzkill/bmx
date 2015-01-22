@@ -20,8 +20,16 @@
 #include <glm/ext.hpp>
 
 #include <Dx/System.h>
-#include <OpenGL_system/OpenGL_system.h>
+#include <Dx/Utility.h>
 
+#include <OpenGL_system/OpenGL_system.h>
+#include "mars_terr.h"
 #include <FreeImage.h>
+
+
+
+
+
+
 
 #endif

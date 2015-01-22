@@ -2,17 +2,12 @@
 
 #include "stdafx.h"
 #include "test_GL4_experiment.h"
+#include "quantize_height_tiles_to_u16.h"
+#include "process_mars_terrain_for_runtime.h"
 
 #include <boost/shared_array.hpp>
 #include <Dx/VecMath.h>
 
-#define MARS_DRIVE "C:/" 
-
-// convert original large textures to 1024 tiles
-void process_mars_terrain_for_runtime ();
-
-// convert f32 tiles to u16; 
-void quantize_height_tiles_to_u16 ();
 
 namespace mars_terr
 {
@@ -43,6 +38,23 @@ namespace mars_terr
    const unsigned kWd            = 6900 ;
    const unsigned kHt            = 17177;
 }
+
+#define GENERATE_MARS_TILES 1
+//// 
+//
+
+#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
+//// 
+//
+
+//// 
+//
+
+// convert original large textures to 1024 tiles
+void process_mars_terrain_for_runtime ();
+
+// convert f32 tiles to u16; 
+void quantize_height_tiles_to_u16 ();
 
 
 //
@@ -111,18 +123,18 @@ static void wat ()
 }
 
 
-union ptru 
-{
-   void*             v; 
-   char*             c;
-   unsigned char*    uc;
-   short*            s;
-   unsigned short*   us;
-   int*              i;
-   unsigned*         ui;
-   float*            f;
-   double*           d;
-}; 
+//union ptru 
+//{
+//   void*             v; 
+//   char*             c;
+//   unsigned char*    uc;
+//   short*            s;
+//   unsigned short*   us;
+//   int*              i;
+//   unsigned*         ui;
+//   float*            f;
+//   double*           d;
+//}; 
 
 
 const size_t num_X_tiles = 7 ;
@@ -169,264 +181,6 @@ private:
 
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
-
-//
-//// 
-#define GENERATE_MARS_TILES 1
-
-void process_mars_terrain_for_runtime ()
-{
-   printf ("\nbegin processing"); 
-   //
-   ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
-   //
-   std::map<FREE_IMAGE_TYPE, int> sizeOf_FI_component; 
-   std::map<FREE_IMAGE_TYPE, int> numberOf_FI_components; 
-   {
-      sizeOf_FI_component[FIT_UNKNOWN]       = -1; 
-      sizeOf_FI_component[FIT_BITMAP]        = -1; 
-      sizeOf_FI_component[FIT_UINT16]        = 2;
-      sizeOf_FI_component[FIT_INT16]         = 2; 
-      sizeOf_FI_component[FIT_UINT32]        = 4; 
-      sizeOf_FI_component[FIT_INT32]         = 4; 
-      sizeOf_FI_component[FIT_FLOAT]         = 4; 
-      sizeOf_FI_component[FIT_DOUBLE]        = 8; 
-      sizeOf_FI_component[FIT_COMPLEX]       = 8; 
-      sizeOf_FI_component[FIT_RGB16]         = 2; 
-      sizeOf_FI_component[FIT_RGBA16]        = 2; 
-      sizeOf_FI_component[FIT_RGBF]          = 4; 
-      sizeOf_FI_component[FIT_RGBAF]         = 4; 
-   
-      numberOf_FI_components[FIT_UNKNOWN]    = -1;
-      numberOf_FI_components[FIT_BITMAP]     = -1;
-      numberOf_FI_components[FIT_UINT16]     = 1;  
-      numberOf_FI_components[FIT_INT16]      = 1; 
-      numberOf_FI_components[FIT_UINT32]     = 1; 
-      numberOf_FI_components[FIT_INT32]      = 1; 
-      numberOf_FI_components[FIT_FLOAT]      = 1; 
-      numberOf_FI_components[FIT_DOUBLE]     = 1; 
-      numberOf_FI_components[FIT_COMPLEX]    = 2; 
-      numberOf_FI_components[FIT_RGB16]      = 3; 
-      numberOf_FI_components[FIT_RGBA16]     = 4; 
-      numberOf_FI_components[FIT_RGBF]       = 3; 
-      numberOf_FI_components[FIT_RGBAF]      = 4; 
-   } 
-
-   std::vector<unsigned char> linebuff; 
-
-   for (unsigned itx = 0; itx < 2; itx++) 
-      for (unsigned iy = 0; iy < mars_terr::kNum_Y_tiles; iy++) 
-         for (unsigned ix = 0; ix < mars_terr::kNum_X_tiles; ix++) 
-   {
-      const std::string cur_file    = mars_terr::kFiles[itx]; 
-
- 
- 
-      // in pixels 
-      unsigned x_tile_start   = ix * mars_terr::kTexture_dim; 
-      unsigned y_tile_start   = iy * mars_terr::kTexture_dim * mars_terr::kWd; 
-      // 
-      // upper left (in pixels) of the current tile
-      unsigned tile_start     = x_tile_start + y_tile_start; 
-
-
-      // create out file
-      std::ostringstream oss; 
-      oss << mars_terr::kTilePath << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
-      std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
-
-      
-      unsigned x_count = (ix * mars_terr::kTexture_dim + mars_terr::kTexture_dim) < mars_terr::kWd ? mars_terr::kTexture_dim : mars_terr::kWd % mars_terr::kTexture_dim; 
-      unsigned y_count = (iy * mars_terr::kTexture_dim + mars_terr::kTexture_dim) < mars_terr::kHt ? mars_terr::kTexture_dim : mars_terr::kHt % mars_terr::kTexture_dim; 
-
-      if (itx < 2)
-      {
-         size_t      sizeOf_pixel = mars_terr::kWd * 4;
-         FIBITMAP*   img          = FreeImage_Load (mars_terr::kFIF_fmt[itx], mars_terr::kFiles[itx]);  
-         ptru        src          = { FreeImage_GetBits (img) }; 
-
-         if (linebuff.size () < (sizeOf_pixel * mars_terr::kTexture_dim))
-            linebuff.resize (sizeOf_pixel * mars_terr::kTexture_dim);
-         ptru ptr = { linebuff.data() }; 
-
-         //case 0: // color txr
-         //case 1: // height txr
-         for (unsigned iln = 0; iln < mars_terr::kTexture_dim; iln++)
-         {
-            std::fill (ptr.f, ptr.f + mars_terr::kTexture_dim, -2553.0f);  
-
-            if (iln < y_count)
-            {
-               unsigned pixel_begin = iln * mars_terr::kWd + tile_start; 
-               unsigned pixel_end   = pixel_begin + x_count; 
-               std::copy (src.f + pixel_begin, src.f + pixel_end, ptr.f);
-            }
-
-            fwrite (ptr.v, sizeof(float), mars_terr::kTexture_dim, outf.get()); 
-         }
-
-         FreeImage_Unload (img); 
-      }
-      else
-      {
- 
-         size_t sizeOf_pixel = 16; // 2 * sizeof(double)
-         boost::shared_array<double>   img (new double[sizeOf_pixel * mars_terr::kWd * mars_terr::kHt]); 
-         ptru                          src = { img.get() }; 
-         std::shared_ptr<FILE>         infile (fopen (mars_terr::kFiles[itx], "rb"), fclose); 
-         fread (src.v, 2 * sizeof(double), mars_terr::kWd * mars_terr::kHt, infile.get()); 
-
-         if (linebuff.size () < (sizeOf_pixel * mars_terr::kTexture_dim))
-            linebuff.resize (sizeOf_pixel * mars_terr::kTexture_dim);
-         ptru ptr = { linebuff.data() }; 
-
-         
-         for (unsigned iln = 0; iln < mars_terr::kTexture_dim; iln++)
-         {
-            std::fill (ptr.d, ptr.d + 2 * mars_terr::kTexture_dim, -1.0);  
-
-            if (iln < y_count)
-            {
-               unsigned pixel_begin = iln * mars_terr::kWd + tile_start; 
-               unsigned pixel_end   = pixel_begin + x_count; 
-               std::copy (src.f + pixel_begin, src.f + pixel_end, ptr.f);
-            }
-
-            fwrite (ptr.v, 2 * sizeof(double), mars_terr::kTexture_dim, outf.get()); 
-         }
-      }
-   }
- 
-
-   printf ("\ndone processing"); 
-   BOOST_ASSERT (0); 
-
-}
-
-
-//
-////
-#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
-//
-void quantize_height_tiles_to_u16 ()
-{
-   // Step 1 - cut a hole in the box
-   // compute statistics about the original source image
-   // values below -2330.0 is a masked value
-   // find mean, min, max 
-   //FreeImage_Initialise ();
-   
-   const int height_index = 1; 
-
-   const size_t npxls = mars_terr::kWd * mars_terr::kHt; 
-
-   // read something into v
-   //BOOST_ASSERT (0); 
-
-
-   std::vector<float> v (npxls, 0.0f); 
-
-
-   //float mean = avg; 
-   //std::transform (
-   //   v.begin(), 
-   //   v.end(), 
-   //   diff.begin(),
-   //   std::bind2nd(std::minus<float>(), mean)
-   //   );
-   //
-   //sqr_sum = std::inner_product (diff.begin(), diff.end(), diff.begin(), 0.0);
-   //std_dev = std::sqrt(sqr_sum / v.size());
-
-   //   
-   size_t ntiles = mars_terr::kNum_Y_tiles * mars_terr::kNum_X_tiles; 
-
-   const size_t sizeOf_src = npxls * sizeof(float) ; 
-   const size_t sizeOf_dst = npxls * sizeof(unsigned short) ; 
-
-   for (size_t ity = 0; ity < 2; ity++)
-   {
-      
-      v.clear();
-      const std::string kHeight_name = mars_terr::kFiles[height_index];  
-
-      ptru dat; 
-       
-      //FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif");
-      FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
-
-
-printf ("\nopen tif");
-
-      if (img) 
-         dat.v = FreeImage_GetBits (img) ; 
-      else 
-         BOOST_ASSERT (0); 
-      
-
-printf ("\nfilter mask");
-      const float mask_val = -2553.0f;
-      for (size_t i = 0; i < npxls ; i++)
-      {
-         if (dat.f[i] > mask_val )
-            v.push_back (dat.f[i]);
-      }
-
-      FreeImage_Unload (img);
-
-
-printf ("\ncompute stats");
-
-      float min_val     = *std::min_element (v.begin(), v.end());
-      float max_val     = *std::max_element (v.begin(), v.end());; 
-      float inv_val_range   = 1.0f / (max_val - min_val);
-
-      // we dont do it on the original file
-      //std::vector<float> normalized_heights (v.size()); 
-      for (size_t i = 0; i < v.size(); i++)
-         v[i] =  (v[i] - min_val) * inv_val_range;
-
-      float avg = 0.0f; 
-      for (std::vector<float>::iterator it = v.begin(); it != v.end(); it++)
-         avg += *it;        
-
-      avg /= float (v.size());
-      
-printf ("\nbegin generating");
-      const size_t ntilepxls = mars_terr::kTexture_dim * mars_terr::kTexture_dim; 
-      for (unsigned iy = 0; iy < mars_terr::kNum_Y_tiles; iy++) 
-         for (unsigned ix = 0; ix < mars_terr::kNum_X_tiles; ix++) 
-      { 
-         std::ostringstream src_ss , dst_ss; 
-         std::shared_ptr<float>            fbuf  (new float[ntilepxls]); 
-         std::shared_ptr<unsigned short>   usbuf (new unsigned short[ntilepxls]); 
-
-         // convert this
-         src_ss << mars_terr::kTilePath << mars_terr::kType[ity] << iy << "_" << ix << ".dat"; 
-         std::shared_ptr<FILE> srcf (fopen (src_ss.str().c_str (), "rb"), fclose); 
-         fread (fbuf.get(), sizeof(float), ntilepxls, srcf.get()); 
-      
-         // into this
-         dst_ss << mars_terr::kTilePath << mars_terr::kType[ity] << iy << "_" << ix << ".u16"; 
-         std::shared_ptr<FILE> dstf (fopen (dst_ss.str().c_str (), "wb"), fclose); 
-
-         float inv_mean = 1.0f / avg; 
-         std::transform (
-            fbuf.get(), 
-            fbuf.get() + ntilepxls, 
-            usbuf.get(), 
-            [&] (float f) { return unsigned short(inv_mean * f); }
-            ); 
-
-         fwrite (usbuf.get(), sizeof (unsigned short), ntilepxls, dstf.get()); 
-      }
-printf ("\nfinish tile ");
-
-   }
-printf ("\nwat");
-
-}
-
 
 //
 //// 
