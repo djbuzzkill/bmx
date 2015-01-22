@@ -9,6 +9,14 @@
 #include <Dx/VecMath.h>
 
 
+#define GENERATE_MARS_TILES 0
+//// 
+//
+
+#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
+//// 
+//
+
 namespace mars_terr
 {
    const char* kFiles[] = {
@@ -38,14 +46,6 @@ namespace mars_terr
    const unsigned kWd            = 6900 ;
    const unsigned kHt            = 17177;
 }
-
-#define GENERATE_MARS_TILES 1
-//// 
-//
-
-#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
-//// 
-//
 
 //// 
 //
@@ -121,21 +121,6 @@ static void wat ()
    int i = 0; 
    i++; 
 }
-
-
-//union ptru 
-//{
-//   void*             v; 
-//   char*             c;
-//   unsigned char*    uc;
-//   short*            s;
-//   unsigned short*   us;
-//   int*              i;
-//   unsigned*         ui;
-//   float*            f;
-//   double*           d;
-//}; 
-
 
 const size_t num_X_tiles = 7 ;
 const size_t num_Y_tiles = 17;

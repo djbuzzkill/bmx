@@ -40,14 +40,14 @@ void quantize_height_tiles_to_u16 ()
 
    const size_t sizeOf_src = npxls * sizeof(float) ; 
    const size_t sizeOf_dst = npxls * sizeof(unsigned short) ; 
-
+   int tile_count = 0;
    for (size_t ity = 0; ity < 2; ity++)
    {
       
       v.clear();
       const std::string kHeight_name = mars_terr::kFiles[height_index];  
 
-      ptru dat; 
+      Ut::ptru dat; 
        
       //FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif");
       FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
@@ -62,7 +62,7 @@ printf ("\nopen tif");
       
 
 printf ("\nfilter mask");
-      const float mask_val = -2553.0f;
+      const float mask_val = -2552.0f;
       for (size_t i = 0; i < npxls ; i++)
       {
          if (dat.f[i] > mask_val )
@@ -88,12 +88,15 @@ printf ("\ncompute stats");
          avg += *it;        
 
       avg /= float (v.size());
-      
-printf ("\nbegin generating");
+printf ("\nbegin generating tiles");
       const size_t ntilepxls = mars_terr::kTexture_dim * mars_terr::kTexture_dim; 
       for (unsigned iy = 0; iy < mars_terr::kNum_Y_tiles; iy++) 
          for (unsigned ix = 0; ix < mars_terr::kNum_X_tiles; ix++) 
       { 
+printf ("\n   tile (%i)", tile_count);
+
+         
+
          std::ostringstream src_ss , dst_ss; 
          std::shared_ptr<float>            fbuf  (new float[ntilepxls]); 
          std::shared_ptr<unsigned short>   usbuf (new unsigned short[ntilepxls]); 
@@ -107,6 +110,14 @@ printf ("\nbegin generating");
          dst_ss << mars_terr::kTilePath << mars_terr::kType[ity] << iy << "_" << ix << ".u16"; 
          std::shared_ptr<FILE> dstf (fopen (dst_ss.str().c_str (), "wb"), fclose); 
 
+         // just remap the masked pixels to 0
+         std::transform (
+            fbuf.get(), 
+            fbuf.get() + ntilepxls, 
+            fbuf.get(), 
+            [&] (float f) { return (f > mask_val  ? f : 0.0f); }
+            ); 
+
          float inv_mean = 1.0f / avg; 
          std::transform (
             fbuf.get(), 
@@ -116,8 +127,10 @@ printf ("\nbegin generating");
             ); 
 
          fwrite (usbuf.get(), sizeof (unsigned short), ntilepxls, dstf.get()); 
+         tile_count++;
+
       }
-printf ("\nfinish tile ");
+printf ("\nfinish tiles ");
 
    }
 printf ("\nwat");

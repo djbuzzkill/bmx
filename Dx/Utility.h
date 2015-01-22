@@ -52,6 +52,20 @@ namespace Ut
 {
 	typedef std::vector<unsigned char> Byte_array; 
 
+   union ptru 
+   {
+      void*             v; 
+      char*             c;
+      unsigned char*    uc;
+      short*            s;
+      unsigned short*   us;
+      int*              i;
+      unsigned*         ui;
+      float*            f;
+      double*           d;
+   }; 
+
+
 	//
 	size_t SizeOf_file (
 		const std::string& fname
@@ -64,8 +78,9 @@ namespace Ut
 		); 
 
 	//
-template<typename _Ty>
-	struct Bukkit : public std::vector<_Ty> {
+   template<
+      typename _Ty>
+   struct Bukkit : public std::vector<_Ty> {
 
 	Bukkit (size_t c) : std::vector<_Ty> (c), counter (0) {
 		}
