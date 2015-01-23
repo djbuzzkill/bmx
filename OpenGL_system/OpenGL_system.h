@@ -31,19 +31,15 @@ namespace sy
       virtual void     Validate_GL_call     () = 0;
 
       virtual void   other_opengl_shit () = 0;
-
+   private: 
       };
 
    OpenGL_system* Create_OpenGL_system ();  
-
 
    void Load_uniform_matrix   (GLuint uniformID, float* ); 
    void Load_uniform_vector   (GLuint uniformID, float* ); 
    void Load_uniform_texture  (GLuint uniformID, unsigned int); 
    void Load_uniform_sampler  (GLuint uniformID, unsigned int); 
-
-
-
 }
 
 #endif

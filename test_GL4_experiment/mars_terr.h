@@ -30,10 +30,6 @@ namespace mars_terr
    extern const std::string         kType[];
    extern const FREE_IMAGE_FORMAT   kFIF_fmt[];
    extern const size_t              kNum_files; 
-
-   //extern const char*               kBasePath[]; 
-   //extern const char*               kTilePath; 
-
    extern const int                 kTexture_dim; 
    extern const int                 kNum_X_tiles;  
    extern const int                 kNum_Y_tiles;  

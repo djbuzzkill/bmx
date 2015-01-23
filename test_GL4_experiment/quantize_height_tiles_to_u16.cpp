@@ -62,7 +62,7 @@ printf ("\nopen tif");
       
 
 printf ("\nfilter mask");
-      const float mask_val = -2552.0f;
+      const float mask_val = -2552.0f;;
       for (size_t i = 0; i < npxls ; i++)
       {
          if (dat.f[i] > mask_val )
@@ -95,15 +95,11 @@ printf ("\nbegin generating tiles");
       { 
 printf ("\n   tile (%i)", tile_count);
 
-         
-
          std::ostringstream src_ss , dst_ss; 
          std::shared_ptr<float>            fbuf  (new float[ntilepxls]); 
          std::shared_ptr<unsigned short>   usbuf (new unsigned short[ntilepxls]); 
 
          // convert this
-
-         
          src_ss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[ity] << iy << "_" << ix << ".dat"; 
          std::shared_ptr<FILE> srcf (fopen (src_ss.str().c_str (), "rb"), fclose); 
          fread (fbuf.get(), sizeof(float), ntilepxls, srcf.get()); 

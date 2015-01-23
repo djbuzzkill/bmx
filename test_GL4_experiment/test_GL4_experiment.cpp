@@ -274,8 +274,9 @@ int exper_alpha::Initialize (sy::System_context* sc)
    {
       std::stringstream oss; 
       oss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
-      std::shared_ptr<FILE> intx (fopen (oss.str().c_str (), "rb"), fclose); 
-      std::vector<float> fbuf (mars_terr::kWd * mars_terr::kHt); 
+      std::string             fname = oss.str();
+      std::shared_ptr<FILE>   indat (fopen (fname.c_str(), "rb"), fclose);
+      std::vector<float>      fbuf (mars_terr::kWd * mars_terr::kHt); 
    }
 
    //
