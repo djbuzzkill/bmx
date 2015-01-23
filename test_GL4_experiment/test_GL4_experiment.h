@@ -26,6 +26,4 @@
 #include "mars_terr.h"
 #include <FreeImage.h>
 
-
-
 #endif

@@ -40,19 +40,24 @@ namespace mars_terr
    const size_t   kNum_files     = El_count (kFiles); 
 
    const char  kBase_path  []   = MARS_DRIVE "Quarantine/Mars/"; 
-   const char  kTile_path  []   = MARS_DRIVE "tiled/"; 
-   const char  kShader_path[]   = MARS_DRIVE "shader/"; 
+   const char  kTile_path  []   = "tiled/"; 
+   const char  kShader_path[]   = "shader/"; 
 
    extern const char kShader_name[] = "mars_terr"; 
 
    extern const char* kShader_ext[] = {
       ".vs", 
-      ".vs", 
+      ".fs", 
       ".tcs", 
       ".tes", 
       }; 
 
-
+   unsigned int kShader_types[] = {
+      GL_VERTEX_SHADER           ,  
+      GL_FRAGMENT_SHADER         , 
+      GL_TESS_CONTROL_SHADER     , 
+      GL_TESS_EVALUATION_SHADER  , 
+      }; 
 
    const int      kTexture_dim   = 1024; 
    const int      kNum_X_tiles   = (6900  / kTexture_dim) + (6900  % kTexture_dim? 1 : 0); 
@@ -291,24 +296,23 @@ int exper_alpha::Initialize (sy::System_context* sc)
    objIDs["shader_tessEval"]  = glCreateShader (GL_TESS_EVALUATION_SHADER);
    // load and build program
 
-   "mars_terr" vs fs tcs tes
 
    //
    // query attrib. and uniforms
    
    // 
    // setup geometry
-   GLuint shader_types[] = {
-      GL_VERTEX_SHADER           ,  
-      GL_FRAGMENT_SHADER         , 
-      GL_TESS_CONTROL_SHADER     , 
-      GL_TESS_EVALUATION_SHADER  , 
-      }; 
 
    for (int ish = 0; ish < 4; ish++) 
    {
       std::ostringstream oss;    
-      oss << mars_terr::kBase_path << mars_terr::kShader_path << mars_terr::kShader[ish]; 
+      oss   << mars_terr::kBase_path 
+            << mars_terr::kShader_path 
+            << mars_terr::kShader_name 
+            << mars_terr::kShader_ext[ish];  
+
+      printf ("\nshader:%s", oss.str().c_str ()); 
+
    }
 
 
