@@ -52,7 +52,7 @@ namespace mars_terr
       ".tes", 
       }; 
 
-   unsigned int kShader_types[] = {
+   const unsigned int kShader_types[] = {
       GL_VERTEX_SHADER           ,  
       GL_FRAGMENT_SHADER         , 
       GL_TESS_CONTROL_SHADER     , 
@@ -91,7 +91,7 @@ template<
 
 struct Cubetrix {
    
-   typedef Ty ElemType; 
+   typedef Ty ValueType; 
  
    enum { NDepth  = Depth } ;
    enum { NHeight = MatTy::NRows };  
@@ -115,6 +115,22 @@ struct Cubetrix {
 };
 
 
+
+template<
+   typename Ty,
+   size_t NDepth, 
+   size_t NHeight, 
+   size_t NWidth>
+struct array3D : std::array<std::array<std::array<Ty, NWidth>, NWidth>, NDepth> {
+
+   typedef Ty value_type;
+
+   //typedef Ty 
+   enum { NDepth = NDepth }; 
+   enum { NHeight= NHeight}; 
+   enum { NWidth = NWidth }; 
+   };
+
 //
 ////
 struct Spatial_sector 
@@ -123,9 +139,8 @@ struct Spatial_sector
    
 }; 
 
-typedef Cubetrix<3, 4, 5, Spatial_sector*> Sim_space;
 
-
+typedef array3D<Spatial_sector*, 3, 4, 5> Sim_space;
 
 //
 //
@@ -141,6 +156,11 @@ struct View_struc
 
 static void wat () 
 {
+   size_t nsectors = Sim_space::NWidth * 
+                     Sim_space::NDepth * 
+                     Sim_space::NHeight; 
+
+
    int i = 0; 
    i++; 
 }
@@ -197,6 +217,7 @@ exper_alpha::exper_alpha ()
    , hgtTbl (new TextureTable)
 {
 
+   wat (); 
 
 #if GENERATE_MARS_TILES 
    process_mars_terrain_for_runtime  (); 
@@ -239,7 +260,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
    
    size_t num_tiles = mars_terr::kNum_X_tiles * mars_terr::kNum_Y_tiles;
 
-   Spatial_sector** sector = sim.ptr(); 
+   //Spatial_sector** sector = sim.ptr(); 
 
    const size_t npxls = mars_terr::kWd * mars_terr::kHt; 
 

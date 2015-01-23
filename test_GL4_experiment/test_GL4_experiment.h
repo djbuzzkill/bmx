@@ -5,6 +5,7 @@
 
 #include <map>
 #include <list>
+#include <array>
 #include <vector>
 #include <string>
 #include <memory>
