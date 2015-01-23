@@ -90,7 +90,7 @@ printf ("\n   tile (%i)", tile_count);
             fbuf.get(), 
             fbuf.get() + ntilepxls, 
             usbuf.get(), 
-            [&] (float f) { return unsigned short( range_multiplier * (f - min_val) ); }
+            [&] (float f) { return unsigned short(range_multiplier * (f - min_val)); }
             ); 
 
          fwrite (usbuf.get(), sizeof (unsigned short), ntilepxls, dstf.get()); 
