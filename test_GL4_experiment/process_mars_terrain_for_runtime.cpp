@@ -64,10 +64,10 @@ void process_mars_terrain_for_runtime ()
       // upper left (in pixels) of the current tile
       unsigned tile_start     = x_tile_start + y_tile_start; 
 
-
+      
       // create out file
       std::ostringstream oss; 
-      oss << mars_terr::kTilePath << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
+      oss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
       std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
 
       

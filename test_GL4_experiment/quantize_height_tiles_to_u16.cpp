@@ -102,12 +102,14 @@ printf ("\n   tile (%i)", tile_count);
          std::shared_ptr<unsigned short>   usbuf (new unsigned short[ntilepxls]); 
 
          // convert this
-         src_ss << mars_terr::kTilePath << mars_terr::kType[ity] << iy << "_" << ix << ".dat"; 
+
+         
+         src_ss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[ity] << iy << "_" << ix << ".dat"; 
          std::shared_ptr<FILE> srcf (fopen (src_ss.str().c_str (), "rb"), fclose); 
          fread (fbuf.get(), sizeof(float), ntilepxls, srcf.get()); 
       
          // into this
-         dst_ss << mars_terr::kTilePath << mars_terr::kType[ity] << iy << "_" << ix << ".u16"; 
+         dst_ss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[ity] << iy << "_" << ix << ".u16"; 
          std::shared_ptr<FILE> dstf (fopen (dst_ss.str().c_str (), "wb"), fclose); 
 
          // just remap the masked pixels to 0

@@ -13,7 +13,7 @@
 //// 
 //
 
-#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
+#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 0
 //// 
 //
 
@@ -38,7 +38,22 @@ namespace mars_terr
       }; 
 
    const size_t   kNum_files     = El_count (kFiles); 
-   const char*    kTilePath      = MARS_DRIVE "Quarantine/Mars/tiled/"; 
+
+   const char  kBase_path  []   = MARS_DRIVE "Quarantine/Mars/"; 
+   const char  kTile_path  []   = MARS_DRIVE "tiled/"; 
+   const char  kShader_path[]   = MARS_DRIVE "shader/"; 
+
+   extern const char kShader_name[] = "mars_terr"; 
+
+   extern const char* kShader_ext[] = {
+      ".vs", 
+      ".vs", 
+      ".tcs", 
+      ".tes", 
+      }; 
+
+
+
    const int      kTexture_dim   = 1024; 
    const int      kNum_X_tiles   = (6900  / kTexture_dim) + (6900  % kTexture_dim? 1 : 0); 
    const int      kNum_Y_tiles   = (17177 / kTexture_dim) + (17177 % kTexture_dim? 1 : 0); 
@@ -56,6 +71,9 @@ void process_mars_terrain_for_runtime ();
 // convert f32 tiles to u16; 
 void quantize_height_tiles_to_u16 ();
 
+
+// long beach mini FAX
+// 562 216 6642
 
 //
 ////
@@ -174,19 +192,19 @@ exper_alpha::exper_alpha ()
    , hgtTbl (new TextureTable)
 {
 
-   #if GENERATE_MARS_TILES 
+
+#if GENERATE_MARS_TILES 
    process_mars_terrain_for_runtime  (); 
    assert (0); 
    #endif
 
-   #if RUN_QUANTIZE_HEIGHT_TILES_TO_U16 
+
+#if RUN_QUANTIZE_HEIGHT_TILES_TO_U16 
    printf ("\nbefore quantize_height_tiles_to_u16 ()");
    quantize_height_tiles_to_u16 (); 
    printf ("\nafter quantize_height_tiles_to_u16 ()");
    assert (0); 
    #endif
-
-
 
 }
 
@@ -228,47 +246,11 @@ int exper_alpha::Initialize (sy::System_context* sc)
       for (size_t ix = 0; ix < mars_terr::kNum_X_tiles; ix++)
          for (size_t itx = 0; itx < 2; itx++)
    {
-   
-   
       std::stringstream oss; 
-      oss << mars_terr::kTilePath << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
+      oss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
       std::shared_ptr<FILE> intx (fopen (oss.str().c_str (), "rb"), fclose); 
       std::vector<float> fbuf (mars_terr::kWd * mars_terr::kHt); 
-
-//      glTextureImage2DEXT (colRef[iy][ix], GL_TEXTURE_2D, 0, GL_R32F, kTextureDim,kTextureDim, 0, GL_R32F, fbuf.data()); 
-
-      switch (itx) 
-      {
-      case 0: 
-
-         fread (fbuf.data(), sizeof(float), npxls , intx.get());
-         {
-
-         }
-
-      break; 
-
-      case 1:
-
-         fread (fbuf.data(), sizeof(float), npxls , intx.get());
-
-      break;
-
-      default:       
-      break; 
-      }      
-
-
    }
-   // GLuint txrIDs[n_y_tiles][n_x_tiles];
-
-   //glGenTextures (wd, txrIDs
-
-
-
-   //oss << kTilePath << tile_type[itx] << iy << "_" << ix << ".dat"; 
-   //std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
-
 
    //
    // setup viewport fields 
@@ -281,7 +263,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
 
    Ma::Set (viewport_pos, unsigned (0), unsigned (0)); 
    Ma::Set (viewport_dim, sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height); 
-   
    //
    //  OpenGL 
    std::map<std::string, int> avail_feat; 
@@ -303,11 +284,32 @@ int exper_alpha::Initialize (sy::System_context* sc)
    };
 
    // 
-   // 
+   // create shaders
    objIDs["shader_vert"]      = glCreateShader (GL_VERTEX_SHADER); 
    objIDs["shader_frag"]      = glCreateShader (GL_FRAGMENT_SHADER);
    objIDs["shader_tessContr"] = glCreateShader (GL_TESS_CONTROL_SHADER);
    objIDs["shader_tessEval"]  = glCreateShader (GL_TESS_EVALUATION_SHADER);
+   // load and build program
+
+   "mars_terr" vs fs tcs tes
+
+   //
+   // query attrib. and uniforms
+   
+   // 
+   // setup geometry
+   GLuint shader_types[] = {
+      GL_VERTEX_SHADER           ,  
+      GL_FRAGMENT_SHADER         , 
+      GL_TESS_CONTROL_SHADER     , 
+      GL_TESS_EVALUATION_SHADER  , 
+      }; 
+
+   for (int ish = 0; ish < 4; ish++) 
+   {
+      std::ostringstream oss;    
+      oss << mars_terr::kBase_path << mars_terr::kShader_path << mars_terr::kShader[ish]; 
+   }
 
 
 
@@ -330,6 +332,12 @@ int exper_alpha::Deinitialize(sy::System_context* sc)
 //
 int exper_alpha::Update (sy::System_context* sc) 
 {
+   // process input
+
+   // update states
+
+   // render 
+
    return 0; 
 }
 
