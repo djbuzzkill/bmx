@@ -27,7 +27,7 @@ void quantize_height_tiles_to_u16 ()
       v.clear();
       const std::string kHeight_name = mars_terr::kFiles[height_index];  
        
- printf ("\nopen tif");
+ printf ("\nopen tif: %s", mars_terr::kFiles[ity]);
      FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
 
       Ut::ptru dat; 

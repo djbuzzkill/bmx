@@ -17,10 +17,3 @@ add_library (OpenGL_system
 	${OGLSYS_PLATFORM_HEADER_FILES}
 	${OGLSYS_PLATFORM_SOURCE_FILES}
 	)
-
-
-
-
-
-
-
