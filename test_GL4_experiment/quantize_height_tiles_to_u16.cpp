@@ -10,32 +10,12 @@ void quantize_height_tiles_to_u16 ()
    // Step 1 - cut a hole in the box
    // compute statistics about the original source image
    // values below -2330.0 is a masked value
-   // find mean, min, max 
-   //FreeImage_Initialise ();
    
    const int height_index = 1; 
 
    const size_t npxls = mars_terr::kWd * mars_terr::kHt; 
 
-   // read something into v
-   //BOOST_ASSERT (0); 
-
-
    std::vector<float> v (npxls, 0.0f); 
-
-
-   //float mean = avg; 
-   //std::transform (
-   //   v.begin(), 
-   //   v.end(), 
-   //   diff.begin(),
-   //   std::bind2nd(std::minus<float>(), mean)
-   //   );
-   //
-   //sqr_sum = std::inner_product (diff.begin(), diff.end(), diff.begin(), 0.0);
-   //std_dev = std::sqrt(sqr_sum / v.size());
-
-   //   
    size_t ntiles = mars_terr::kNum_Y_tiles * mars_terr::kNum_X_tiles; 
 
    const size_t sizeOf_src = npxls * sizeof(float) ; 
@@ -46,20 +26,15 @@ void quantize_height_tiles_to_u16 ()
       
       v.clear();
       const std::string kHeight_name = mars_terr::kFiles[height_index];  
+       
+ printf ("\nopen tif");
+     FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
 
       Ut::ptru dat; 
-       
-      //FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], "C:/Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif");
-      FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
-
-
-printf ("\nopen tif");
-
       if (img) 
          dat.v = FreeImage_GetBits (img) ; 
       else 
          BOOST_ASSERT (0); 
-      
 
 printf ("\nfilter mask");
       const float mask_val = -2552.0f;;
@@ -71,23 +46,16 @@ printf ("\nfilter mask");
 
       FreeImage_Unload (img);
 
-
 printf ("\ncompute stats");
 
-      float min_val     = *std::min_element (v.begin(), v.end());
-      float max_val     = *std::max_element (v.begin(), v.end());; 
-      float inv_val_range   = 1.0f / (max_val - min_val);
+      float min_val        = *std::min_element (v.begin(), v.end());
+      float max_val        = *std::max_element (v.begin(), v.end());
+      float val_range  = max_val - min_val;
 
-      // we dont do it on the original file
-      //std::vector<float> normalized_heights (v.size()); 
-      for (size_t i = 0; i < v.size(); i++)
-         v[i] =  (v[i] - min_val) * inv_val_range;
+printf ("\n   min_val  : %f", min_val    );
+printf ("\n   max_val  : %f", max_val    );
+printf ("\n   val_range: %f", val_range  );
 
-      float avg = 0.0f; 
-      for (std::vector<float>::iterator it = v.begin(); it != v.end(); it++)
-         avg += *it;        
-
-      avg /= float (v.size());
 printf ("\nbegin generating tiles");
       const size_t ntilepxls = mars_terr::kTexture_dim * mars_terr::kTexture_dim; 
       for (unsigned iy = 0; iy < mars_terr::kNum_Y_tiles; iy++) 
@@ -116,12 +84,13 @@ printf ("\n   tile (%i)", tile_count);
             [&] (float f) { return (f > mask_val  ? f : 0.0f); }
             ); 
 
-         float inv_mean = 1.0f / avg; 
+         //
+         float range_multiplier = 65535.0f / val_range; 
          std::transform (
             fbuf.get(), 
             fbuf.get() + ntilepxls, 
             usbuf.get(), 
-            [&] (float f) { return unsigned short(inv_mean * f); }
+            [&] (float f) { return unsigned short( range_multiplier * (f - min_val) ); }
             ); 
 
          fwrite (usbuf.get(), sizeof (unsigned short), ntilepxls, dstf.get()); 

@@ -13,7 +13,7 @@
 //// 
 //
 
-#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 0
+#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
 //// 
 //
 
