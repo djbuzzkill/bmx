@@ -156,15 +156,15 @@ struct View_struc
 
 static void wat () 
 {
-   size_t nsectors = Sim_space::NWidth * 
-                     Sim_space::NDepth * 
-                     Sim_space::NHeight; 
-
-
    int i = 0; 
    i++; 
 }
 
+
+static void die () 
+{
+   *((int*)0) = 0;
+}
 const size_t num_X_tiles = 7 ;
 const size_t num_Y_tiles = 17;
 //
@@ -221,7 +221,7 @@ exper_alpha::exper_alpha ()
 
 #if GENERATE_MARS_TILES 
    process_mars_terrain_for_runtime  (); 
-   assert (0); 
+   die();
    #endif
 
 
@@ -229,7 +229,7 @@ exper_alpha::exper_alpha ()
    printf ("\nbefore quantize_height_tiles_to_u16 ()");
    quantize_height_tiles_to_u16 (); 
    printf ("\nafter quantize_height_tiles_to_u16 ()");
-   assert (0); 
+   die ();
    #endif
 
 }
