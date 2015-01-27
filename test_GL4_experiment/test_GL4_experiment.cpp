@@ -13,7 +13,7 @@
 //// 
 //
 
-#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 1
+#define RUN_QUANTIZE_HEIGHT_TILES_TO_U16 0
 //// 
 //
 
@@ -47,16 +47,16 @@ namespace mars_terr
 
    extern const char* kShader_ext[] = {
       ".vs", 
-      ".fs", 
       ".tcs", 
       ".tes", 
+      ".fs", 
       }; 
 
-   const unsigned int kShader_types[] = {
+   const GLuint kShader_types[] = {
       GL_VERTEX_SHADER           ,  
-      GL_FRAGMENT_SHADER         , 
       GL_TESS_CONTROL_SHADER     , 
       GL_TESS_EVALUATION_SHADER  , 
+      GL_FRAGMENT_SHADER         , 
       }; 
 
    const int      kTexture_dim   = 1024; 

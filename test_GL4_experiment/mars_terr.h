@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include <FreeImage.h>
+#include <GL/glew.h>
 
 
 #include <Dx/Utility.h>
@@ -25,7 +26,7 @@ namespace mars_terr
    extern const char                kShader_path[]; 
    extern const char                kShader_name[];
    extern const char*               kShader_ext[];
-   extern const unsigned int        kShader_types[];
+   extern const GLuint              kShader_types[];
    extern const char*               kFiles[];
    extern const std::string         kType[];
    extern const FREE_IMAGE_FORMAT   kFIF_fmt[];

@@ -13,12 +13,12 @@
 #include <numeric>
 #include <algorithm>
 
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 #include <SDL.h>
 #include <GL/glew.h>
 #include <SDL2_platform/SDL2_platform.h>
-
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 #include <Dx/System.h>
 #include <Dx/Utility.h>
