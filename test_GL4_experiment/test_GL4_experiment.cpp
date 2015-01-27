@@ -163,7 +163,8 @@ static void wat ()
 
 static void die () 
 {
-   *((int*)0) = 0;
+   fprintf(stderr,  "\n....This is the end."); 
+   0[(int*)0] = 0;
 }
 const size_t num_X_tiles = 7 ;
 const size_t num_Y_tiles = 17;
@@ -210,6 +211,12 @@ private:
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
 
+
+
+
+
+
+
 //
 //// 
 exper_alpha::exper_alpha ()  
@@ -237,11 +244,12 @@ exper_alpha::exper_alpha ()
 //
 //
 
-
 //
 //// 
 int exper_alpha::Initialize (sy::System_context* sc) 
 { 
+   char some_abcs[] = "ABCDEFG"; 
+
       void; 
 
    windo.reset (sc->Create_GraphicsWindow(this, "EXP0", sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height, false));
@@ -263,7 +271,6 @@ int exper_alpha::Initialize (sy::System_context* sc)
    //Spatial_sector** sector = sim.ptr(); 
 
    const size_t npxls = mars_terr::kWd * mars_terr::kHt; 
-
 
    glGenTextures (num_tiles, colRef.ptr()); 
    glGenTextures (num_tiles, hgtRef.ptr()); 

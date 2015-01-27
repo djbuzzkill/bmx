@@ -61,7 +61,6 @@ printf ("\nbegin generating tiles");
       for (unsigned iy = 0; iy < mars_terr::kNum_Y_tiles; iy++) 
          for (unsigned ix = 0; ix < mars_terr::kNum_X_tiles; ix++) 
       { 
-printf ("\n   tile (%i)", tile_count);
 
          std::ostringstream src_ss , dst_ss; 
          std::shared_ptr<float>            fbuf  (new float[ntilepxls]); 
@@ -75,6 +74,10 @@ printf ("\n   tile (%i)", tile_count);
          // into this
          dst_ss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[ity] << iy << "_" << ix << ".u16"; 
          std::shared_ptr<FILE> dstf (fopen (dst_ss.str().c_str (), "wb"), fclose); 
+
+printf ("\n   tile (%i)", tile_count);
+printf (" : %s --> %s", src_ss.str().c_str (), dst_ss.str().c_str ());
+
 
          // just remap the masked pixels to 0
          std::transform (
