@@ -381,7 +381,6 @@ printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file);
    // query attrib. and uniforms
    
    // setup geometry
-
    wat ();
 
    return 0; 

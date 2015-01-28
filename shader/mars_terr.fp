@@ -3,7 +3,7 @@
 //
 #version 420
                                                    
-vec3 mars_color = vec3 (0.9, 1.0, 0.6);
+const vec3 mars_color = vec3 (1.0, 0.8, 0.6);
 
 uniform sampler2D colorMap;                        
 in vec2           frag_txcd;                       
