@@ -70,11 +70,6 @@ namespace mars_terr
 //// 
 //
 
-// convert original large textures to 1024 tiles
-void process_mars_terrain_for_runtime ();
-
-// convert f32 tiles to u16; 
-void quantize_height_tiles_to_u16 ();
 
 
 // long beach mini FAX
@@ -154,25 +149,27 @@ struct View_struc
    double aspect; 
 }; 
 
+
+const size_t num_X_tiles = 7 ;
+const size_t num_Y_tiles = 17;
+
+//
+// exper_alpha 
+class exper_alpha : public sy::RT_window_listener 
+   {
+public: 
+
 static void wat () 
 {
    int i = 0; 
    i++; 
 }
 
-
 static void die () 
 {
    fprintf(stderr,  "\n....This is the end."); 
    0[(int*)0] = 0;
 }
-const size_t num_X_tiles = 7 ;
-const size_t num_Y_tiles = 17;
-//
-// exper_alpha 
-class exper_alpha : public sy::RT_window_listener 
-   {
-public: 
 
    static const std::string kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
    static const std::string kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
@@ -210,11 +207,6 @@ private:
 
 const std::string exper_alpha :: kImagePath_height = "C:/Quarantine/Textures/hgt/mountains512.png";
 const std::string exper_alpha :: kImagePath_color  = "C:/Quarantine/Textures/hgt/mountains512.hgt.png";
-
-
-
-
-
 
 
 //
