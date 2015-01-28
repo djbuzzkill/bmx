@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "stdio.h"
+
 namespace sy
 {
    //
@@ -83,6 +85,8 @@ namespace sy
 	   glGetShaderInfoLog (shaderID, 1024, &infolen, err_buf);
 	   //Debug ("Shader Error:\n %s", output);
 	   //BreakAssert (0, "shader compile fail");
+printf ("\ncompile failed: %s", err_buf); 
+
       glDeleteShader(shaderID); 
    //      BOOST_ASSERT (0); 
 	   return 0;

@@ -77,6 +77,11 @@ namespace Ut
 		const std::string&	fname
 		); 
 
+   size_t Load_text_file (
+	   std::vector<char>&   txtfile, 
+	   const std::string&	fname
+      ); 
+
 	//
    template<
       typename _Ty>

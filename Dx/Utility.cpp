@@ -36,13 +36,22 @@ size_t Ut::SizeOf_file (const std::string& fname)
 
 
 
+size_t Ut::Load_text_file (
+	std::vector<char>&   txtfile, 
+	const std::string&	fname)
+{
+   size_t sizeOf_file = Ut::SizeOf_file (fname);
+
+	txtfile.resize (1 + sizeOf_file , 0); 
+	std::shared_ptr<FILE> f (fopen (fname.c_str (), "rb"), fclose); 
+	return fread (&txtfile[0], sizeof (char), sizeOf_file, f.get()); 
+}
 
 
 // 
 size_t Ut::Load_data_file (
 	Ut::Byte_array&		data_File, 
-	const std::string&	fname
-	)
+	const std::string&	fname)
 {
 
 	data_File.resize ( Ut::SizeOf_file (fname) ); 

@@ -39,17 +39,17 @@ namespace mars_terr
 
    const size_t   kNum_files     = El_count (kFiles); 
 
-   const char  kBase_path  []   = MARS_DRIVE "Quarantine/Mars/"; 
-   const char  kTile_path  []   = "tiled/"; 
-   const char  kShader_path[]   = "shader/"; 
+   const char  kBase_path  []   = MARS_DRIVE "Quarantine/"; 
+   const char  kTile_path  []   = "Mars/tiled/"; 
+   const char  kShader_path[]   = "Hardcore/shader/"; 
 
    extern const char kShader_name[] = "mars_terr"; 
 
    extern const char* kShader_ext[] = {
-      ".vs", 
-      ".tcs", 
-      ".tes", 
-      ".fs", 
+      ".vp", 
+      ".tcp", 
+      ".tep", 
+      ".fp", 
       }; 
 
    const GLuint kShader_types[] = {
@@ -282,8 +282,27 @@ int exper_alpha::Initialize (sy::System_context* sc)
       std::stringstream oss; 
       oss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
       std::string             fname = oss.str();
-      std::shared_ptr<FILE>   indat (fopen (fname.c_str(), "rb"), fclose);
-      std::vector<float>      fbuf (mars_terr::kWd * mars_terr::kHt); 
+
+      size_t sizeOf_file = Ut::SizeOf_file (fname);
+
+      if (sizeOf_file)
+      {
+         std::stringstream fnss; 
+         fnss << mars_terr::kType[itx] << iy << "_" << ix << ".dat";  
+         std::string curfname = fnss .str();
+         printf ("\n%s is present.", curfname.c_str());  
+      }
+      else
+      {
+         std::stringstream fnss; 
+         fnss << mars_terr::kType[itx] << iy << "_" << ix << ".dat";  
+         std::string curfname = fnss .str();
+         printf ("\nError: %s has a problem", curfname.c_str());  
+         BOOST_ASSERT (Ut::SizeOf_file (fname)); 
+      }
+
+      //std::shared_ptr<FILE>   indat (fopen (fname.c_str(), "rb"), fclose);
+      //std::vector<float>      fbuf (mars_terr::kWd * mars_terr::kHt); 
    }
 
    //
@@ -319,19 +338,15 @@ int exper_alpha::Initialize (sy::System_context* sc)
 
    // 
    // create shaders
-   objIDs["shader_vert"]      = glCreateShader (GL_VERTEX_SHADER); 
-   objIDs["shader_frag"]      = glCreateShader (GL_FRAGMENT_SHADER);
-   objIDs["shader_tessContr"] = glCreateShader (GL_TESS_CONTROL_SHADER);
-   objIDs["shader_tessEval"]  = glCreateShader (GL_TESS_EVALUATION_SHADER);
+   //objIDs["shader_vert"]      = glCreateShader (GL_VERTEX_SHADER); 
+   //objIDs["shader_frag"]      = glCreateShader (GL_FRAGMENT_SHADER);
+   //objIDs["shader_tessContr"] = glCreateShader (GL_TESS_CONTROL_SHADER);
+   //objIDs["shader_tessEval"]  = glCreateShader (GL_TESS_EVALUATION_SHADER);
    // load and build program
+   printf ("\n\n"); 
 
 
-   //
-   // query attrib. and uniforms
-   
-   // 
-   // setup geometry
-
+   // setup shaders 
    for (int ish = 0; ish < 4; ish++) 
    {
       std::ostringstream oss;    
@@ -340,14 +355,32 @@ int exper_alpha::Initialize (sy::System_context* sc)
             << mars_terr::kShader_name 
             << mars_terr::kShader_ext[ish];  
 
-      printf ("\nshader:%s", oss.str().c_str ()); 
+      int         sizeOf_file = Ut::SizeOf_file(oss.str ()); 
+      std::string shader_name = mars_terr::kShader_path;
+      shader_name += mars_terr::kShader_name; 
+      shader_name += mars_terr::kShader_ext[ish]; 
+
+printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file); 
+
+      std::vector<GLchar> src_txt; 
+      Ut::Load_text_file (src_txt, oss.str ()); 
+
+      objIDs[shader_name] = glsys->Create_shader (
+            src_txt.data(), 
+            mars_terr::kShader_types[ish]
+            ); 
+
+      // glsys->Create_shader
+
+      wat ();
 
    }
 
 
-
-   // glsys->Build_shader_program  
-   // glsys->Create_shader
+   //
+   // query attrib. and uniforms
+   
+   // setup geometry
 
    wat ();
 
