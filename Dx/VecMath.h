@@ -33,7 +33,7 @@ namespace Ma
    template<typename Ty_> 
 	inline Plane<Ty_>* BuildFrustumPlanes (Plane<Ty_>* planes, const Frustum<Ty_>& frus)
    {
-      Assert (planes, "TODO:BuildFrustumPlanes"); 
+      DX_Assert (planes, "TODO:BuildFrustumPlanes"); 
    }
 
 
