@@ -249,6 +249,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
    glsys.reset (sy::Create_OpenGL_system ());
    GLenum glew_res = ::glewInit (); 
 
+   ::glewGetExtension ("GL_ARB_separate_shader_objects"); 
    ////
    //
    // 

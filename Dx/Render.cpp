@@ -104,8 +104,7 @@ namespace Rn
 // 	}
 //
 
-
-
+   //
    void Validate_GL_call ()
    {
       int wat = 0; 
@@ -119,11 +118,8 @@ namespace Rn
          DX_Assert (0, "validation failed"); 
       }
 
-
       wat++; 
    }
-
-
 
    //
    GLuint Create_shader (const GLchar* shaderSource, GLenum shaderType)

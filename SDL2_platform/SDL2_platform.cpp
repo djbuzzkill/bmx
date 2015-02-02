@@ -200,7 +200,6 @@ public:
 	// should be called Dispatch_WindowEvents ()
 	virtual bool DispatchEvents ()
    {
-
       SDL_Event event; 
       bool ret_res = !is_quit; 
       int i= 0; 
