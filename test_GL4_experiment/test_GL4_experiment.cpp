@@ -19,11 +19,12 @@
 
 namespace mars_terr
 {
-   const char* kFiles[] = {
+   const char*    kFiles[] = {
       MARS_DRIVE "Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
       MARS_DRIVE "Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
-      MARS_DRIVE "Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat", 
+      MARS_DRIVE "Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-IGM.dat"
       };
+   const size_t   kNum_files = El_count (kFiles); 
 
    const std::string kType[] = {
       "mars_col_", 
@@ -37,19 +38,22 @@ namespace mars_terr
       FIF_UNKNOWN, 
       }; 
 
-   const size_t   kNum_files     = El_count (kFiles); 
 
-   const char  kBase_path  []   = MARS_DRIVE "Quarantine/"; 
-   const char  kTile_path  []   = "Mars/tiled/"; 
-   const char  kShader_path[]   = "Hardcore/shader/"; 
+   const char     kBase_path[]   = MARS_DRIVE "Quarantine/"; 
+   const char     kTile_subp[]   = "Mars/tiled/"; 
+   const char     kShader_subp[] = "Hardcore/shader/"; 
 
    extern const char kShader_name[] = "mars_terr"; 
 
    extern const char* kShader_ext[] = {
-      ".vp", 
-      ".tcp", 
-      ".tep", 
-      ".fp", 
+      //".vs", 
+      //".tc", 
+      //".te", 
+      //".fs, 
+      "_vp.glsl", 
+      "_tc.glsl", 
+      "_te.glsl", 
+      "_fp.glsl", 
       }; 
 
    const GLuint kShader_types[] = {
@@ -273,7 +277,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
          for (size_t itx = 0; itx < 2; itx++)
    {
       std::stringstream oss; 
-      oss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
+      oss << mars_terr::kBase_path << mars_terr::kTile_subp << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
       std::string             fname = oss.str();
 
       size_t sizeOf_file = Ut::SizeOf_file (fname);
@@ -344,12 +348,12 @@ int exper_alpha::Initialize (sy::System_context* sc)
    {
       std::ostringstream oss;    
       oss   << mars_terr::kBase_path 
-            << mars_terr::kShader_path 
+            << mars_terr::kShader_subp
             << mars_terr::kShader_name 
             << mars_terr::kShader_ext[ish];  
 
       int         sizeOf_file = Ut::SizeOf_file(oss.str ()); 
-      std::string shader_name = mars_terr::kShader_path;
+      std::string shader_name = mars_terr::kShader_subp;
       shader_name += mars_terr::kShader_name; 
       shader_name += mars_terr::kShader_ext[ish]; 
 

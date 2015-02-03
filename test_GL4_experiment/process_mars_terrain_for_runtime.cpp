@@ -67,7 +67,7 @@ void process_mars_terrain_for_runtime ()
       
       // create out file
       std::ostringstream oss; 
-      oss << mars_terr::kBase_path << mars_terr::kTile_path << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
+      oss << mars_terr::kBase_path << mars_terr::kTile_subp << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
       std::shared_ptr<FILE> outf (fopen (oss.str().c_str (), "wb"), fclose); 
 
       

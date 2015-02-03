@@ -22,8 +22,8 @@
 namespace mars_terr
 {
    extern const char                kBase_path[]; 
-   extern const char                kTile_path[]; 
-   extern const char                kShader_path[]; 
+   extern const char                kTile_subp[]; 
+   extern const char                kShader_subp[]; 
    extern const char                kShader_name[];
    extern const char*               kShader_ext[];
    extern const GLuint              kShader_types[];
