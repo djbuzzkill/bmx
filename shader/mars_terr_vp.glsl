@@ -1,34 +1,36 @@
 //
+#version 420
+
+
 // MARS VERTEX PROGRAM
 //
 
-#version 420
+////
+// input vertex 
+in vec3						coord_EN		;                                                        
+in vec2						texCoord		;                                                        
 
-// input assembly 
-uniform mat4      mat_Model		;                                               
-uniform mat4      mat_View		;                                               
-uniform mat4      mat_ModelView	;                                               
-uniform mat4      mat_Proj		;                                               
+////
+// uniform constants 
+uniform mat4				mat_Model		;                                               
+uniform mat4				mat_View		;                                               
+uniform mat4				mat_ModelView	;                                               
+uniform mat4				mat_Proj		;                                               
+uniform sampler2D			heightMap		;                                                  
+uniform float				heightScale		;                                               
 
-uniform sampler2D heightMap		;                                                  
-uniform float     heightScale	;                                               
-
-// vertex input 
-in vec3      coord_EN;                                                        
-in vec2      texCoord;                                                        
-                                                                                       
-// vertex output
+////
+// output vertex 
 out vec2 txrCrd;                                                   
-
-void main ()                                                                  
+out vec4 gl_Position; 
+////
+// 
+void main ()
 {                                                                             
-  
   float height_Coord   = heightScale * texture2D (heightMap, texCoord).r;   
   vec4  posi           = vec4 (coord_EN.x, height_Coord , coord_EN.y, 1.0);   
 
   // output
-
-  //  tx cd
   txrCrd = texCoord;                                                    
 
   // h pos

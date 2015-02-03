@@ -3,7 +3,7 @@
 #version 420
 
 layout(vertices = 4) out;
-in vec3 tc_in_Pos[]; 
+in vec4 tc_in_Pos[]; 
 in vec2	tc_in_TxrCrd[];
 
 // these pass thru
@@ -22,6 +22,9 @@ uniform sampler2D heightMap;
 // uniform float tessLevelInner;
 // uniform float tessLevelOuter;
 
+
+// 
+//
 void main ()
 {
 	gl_TessLevelInner[0] = 2.2;

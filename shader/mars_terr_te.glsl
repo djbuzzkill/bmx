@@ -5,15 +5,15 @@
 
 layout(quads, equal_spacing, cw) in;
 
-uniform mat4      mat_Model   ;                                               
-uniform mat4      mat_View    ;                                               
-uniform mat4      mat_ModelView;                                               
-uniform mat4      mat_Proj    ;                                               
-uniform float     heightScale;                                               
-uniform sampler2D heightMap;                                                  
+uniform mat4		mat_Model   ;                                               
+uniform mat4		mat_View    ;                                               
+uniform mat4		mat_ModelView;                                               
+uniform mat4		mat_Proj    ;                                               
+uniform float		heightScale;                                               
+uniform sampler2D	heightMap;                                                  
 
-in vec4			te_in_position[];
-in vec2			te_in_txcrd[]; 
+in vec4				te_in_position[];
+in vec2				te_in_txcrd[]; 
 
 //quad interpol
 vec4 interpolate(in vec4 v0, in vec4 v1, in vec4 v2, in vec4 v3)
