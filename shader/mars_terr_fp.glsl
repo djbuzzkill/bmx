@@ -1,7 +1,8 @@
+#version 420
+
+
 //
 // MARS FRAGMENT PROGRAM
-//
-#version 420
                                                    
 const vec3 mars_color = vec3 (1.0, 0.8, 0.6);
 

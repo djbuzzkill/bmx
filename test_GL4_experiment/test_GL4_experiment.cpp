@@ -194,7 +194,8 @@ static void die ()
 
 private: 
 
-   std::map<std::string, GLuint>          objIDs; 
+   typedef std::map<std::string, GLuint> ObjectMap;         
+   ObjectMap                              objIDs; 
    View_struc                             view; 
    Ma::Vec2ui                             viewport_pos; 
    Ma::Vec2ui                             viewport_dim; 
@@ -372,6 +373,39 @@ printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file);
       wat ();
 
    }
+
+
+   //GLuint mars_prog = glCreateProgram (); 
+   //
+   //glUseProgram (mars_prog); 
+   GLuint mars_shaders[5] = {0}; 
+   int ish = 0; 
+   for (ObjectMap::const_iterator it = objIDs.begin(); it != objIDs.end(); it++) 
+      mars_shaders[ish++] = it->second; 
+      
+   GLuint mars_prog = glsys->Build_shader_program (mars_shaders); 
+
+   //glUseProgram (mars_prog); 
+
+   GLchar attrib_position[] = "attrib_position" ; 
+   GLchar attrib_texcoord[] = "attrib_texcoord"; 
+
+   GLint attribloc[] = {      
+      glGetAttribLocation (mars_prog, attrib_position), 
+      glGetAttribLocation (mars_prog, attrib_texcoord), 
+   };
+
+      // contants
+   GLuint uniformloc[] = {
+      glGetUniformLocation (mars_prog , "colorMap")    , 
+      glGetUniformLocation (mars_prog , "heightMap")   , 
+      glGetUniformLocation (mars_prog , "heightScale"), 
+      glGetUniformLocation (mars_prog , "mat_Model"),
+      glGetUniformLocation (mars_prog , "mat_View") ,
+      glGetUniformLocation (mars_prog , "mat_Proj") ,
+   }; 
+
+   // now bind the 
 
 
    //

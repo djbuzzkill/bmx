@@ -41,8 +41,7 @@ public:
    //
 
    SDL_window (const std::string& title, sy::Window_listener* ls, int wd, int ht, uint32_t flags_) 
-      : win_ (SDL_CreateWindow (title.c_str(), 64, 64, kDef_windowed_width, kDef_windowed_height, flags_)) 
-      //: win_ () 
+      : win_ (SDL_CreateWindow (title.c_str(), 64, 64, wd, ht, flags_)) 
    {
       SDL_Rect rect; 
       SDL_GetDisplayBounds (0, &rect); 
