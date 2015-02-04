@@ -12,7 +12,8 @@ uniform mat4		mat_Proj    ;
 uniform float		heightScale;                                               
 uniform sampler2D	heightMap;                                                  
 
-in vec4				te_in_position[];
+   vec4				in_position[];
+
 in vec2				texcoord[]; 
 
 
@@ -48,10 +49,10 @@ void main()
 	   ); 
 
 	vec4 pos = interpolate4 (
-	   te_in_position[0], 
-	   te_in_position[1], 
-	   te_in_position[2], 
-	   te_in_position[3]
+	   in_position[0], 
+	   in_position[1], 
+	   in_position[2], 
+	   in_position[3]
 	   );
 
 	pos.z = heightScale * texture2D (heightMap, texCoord).r;

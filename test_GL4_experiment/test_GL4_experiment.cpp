@@ -46,10 +46,6 @@ namespace mars_terr
    extern const char kShader_name[] = "mars_terr"; 
 
    extern const char* kShader_ext[] = {
-      //".vs", 
-      //".tc", 
-      //".te", 
-      //".fs, 
       "_vp.glsl", 
       "_tc.glsl", 
       "_te.glsl", 
@@ -200,12 +196,18 @@ private:
    Ma::Vec2ui                             viewport_pos; 
    Ma::Vec2ui                             viewport_dim; 
 
-   std::shared_ptr<sy::OpenGL_system>     glsys;
+   std::shared_ptr<sy::OpenGL_system>     gl;
    std::shared_ptr<sy::Graphics_window>   windo; 
 
    typedef Ma::Matrix<num_Y_tiles, num_X_tiles, GLuint> TextureTable; 
    std::shared_ptr<TextureTable> colTbl ;
    std::shared_ptr<TextureTable> hgtTbl ;
+
+   typedef std::map<std::string, GLint>   AttributeMap; 
+   typedef std::map<std::string, GLuint>  UniformMap; 
+
+   AttributeMap   terr_attrib_map; 
+   UniformMap     terr_uniform_map; 
 
    Sim_space sim; 
    }; 
@@ -251,7 +253,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
 
    windo.reset (sc->Create_GraphicsWindow(this, "EXP0", sy::Graphics_window::kDef_windowed_width, sy::Graphics_window::kDef_windowed_height, false));
    windo->Show (true); 
-   glsys.reset (sy::Create_OpenGL_system ());
+   gl.reset (sy::Create_OpenGL_system ());
    GLenum glew_res = ::glewInit (); 
 
    ::glewGetExtension ("GL_ARB_separate_shader_objects"); 
@@ -281,7 +283,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
       oss << mars_terr::kBase_path << mars_terr::kTile_subp << mars_terr::kType[itx] << iy << "_" << ix << ".dat"; 
       std::string             fname = oss.str();
 
-      size_t sizeOf_file = Ut::SizeOf_file (fname);
+      size_t sizeOf_file = ut::SizeOf_file (fname);
 
       if (sizeOf_file)
       {
@@ -296,7 +298,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
          fnss << mars_terr::kType[itx] << iy << "_" << ix << ".dat";  
          std::string curfname = fnss .str();
          printf ("\nError: %s has a problem", curfname.c_str());  
-         BOOST_ASSERT (Ut::SizeOf_file (fname)); 
+         BOOST_ASSERT (ut::SizeOf_file (fname)); 
       }
 
       //std::shared_ptr<FILE>   indat (fopen (fname.c_str(), "rb"), fclose);
@@ -353,7 +355,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
             << mars_terr::kShader_name 
             << mars_terr::kShader_ext[ish];  
 
-      int         sizeOf_file = Ut::SizeOf_file(oss.str ()); 
+      int         sizeOf_file = ut::SizeOf_file(oss.str ()); 
       std::string shader_name = mars_terr::kShader_subp;
       shader_name += mars_terr::kShader_name; 
       shader_name += mars_terr::kShader_ext[ish]; 
@@ -361,14 +363,14 @@ int exper_alpha::Initialize (sy::System_context* sc)
 printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file); 
 
       std::vector<GLchar> src_txt; 
-      Ut::Load_text_file (src_txt, oss.str ()); 
+      ut::Load_text_file (src_txt, oss.str ()); 
 
-      objIDs[shader_name] = glsys->Create_shader (
-            src_txt.data(), 
-            mars_terr::kShader_types[ish]
-            ); 
+      objIDs[shader_name] = gl->Create_shader (
+         src_txt.data(), 
+         mars_terr::kShader_types[ish]
+         ); 
 
-      // glsys->Create_shader
+      // gl->Create_shader
 
       wat ();
 
@@ -383,36 +385,36 @@ printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file);
    for (ObjectMap::const_iterator it = objIDs.begin(); it != objIDs.end(); it++) 
       mars_shaders[ish++] = it->second; 
       
-   GLuint mars_prog = glsys->Build_shader_program (mars_shaders); 
+   GLuint mars_prog = gl->Build_shader_program (mars_shaders); 
 
    //glUseProgram (mars_prog); 
 
-   GLchar attrib_position[] = "attrib_position" ; 
+   GLchar attrib_position[] = "attrib_position"; 
    GLchar attrib_texcoord[] = "attrib_texcoord"; 
 
-   GLint attribloc[] = {      
-      glGetAttribLocation (mars_prog, attrib_position), 
-      glGetAttribLocation (mars_prog, attrib_texcoord), 
-   };
+   terr_attrib_map[attrib_position] = glGetAttribLocation (mars_prog, attrib_position), 
+   terr_attrib_map[attrib_texcoord] = glGetAttribLocation (mars_prog, attrib_texcoord), 
 
-      // contants
-   GLuint uniformloc[] = {
-      glGetUniformLocation (mars_prog , "colorMap")    , 
-      glGetUniformLocation (mars_prog , "heightMap")   , 
-      glGetUniformLocation (mars_prog , "heightScale"), 
-      glGetUniformLocation (mars_prog , "mat_Model"),
-      glGetUniformLocation (mars_prog , "mat_View") ,
-      glGetUniformLocation (mars_prog , "mat_Proj") ,
-   }; 
+   // contants
+   terr_uniform_map["colorMap"]     = glGetUniformLocation (mars_prog , "colorMap"     );       
+   terr_uniform_map["heightMap"]    = glGetUniformLocation (mars_prog , "heightMap"    );       
+   terr_uniform_map["heightScale"]  = glGetUniformLocation (mars_prog , "heightScale"  );       
+   terr_uniform_map["mat_Model"]    = glGetUniformLocation (mars_prog , "mat_Model"    );      
+   terr_uniform_map["mat_View"]     = glGetUniformLocation (mars_prog , "mat_View"     );      
+   terr_uniform_map["mat_Proj"]     = glGetUniformLocation (mars_prog , "mat_Proj"     );      
 
-   // now bind the 
+   wat ();
 
+
+   // !!!! Remember what to do with the sampler location !!!! 
+   //
+   //    -> glUniform1i (uniformLoc_map["heightMap"], texture_stage);
+   //
 
    //
    // query attrib. and uniforms
    
    // setup geometry
-   wat ();
 
    return 0; 
    }

@@ -22,8 +22,8 @@ out vec4 gl_Position;
 // 
 void main ()
 {
-	txco		= attrib_texcoord;                                                   
 	gl_Position = vec4 (attrib_position, 1);
+	txco		   = attrib_texcoord;                                                   
 }
 
 

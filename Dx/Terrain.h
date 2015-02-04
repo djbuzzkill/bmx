@@ -27,7 +27,7 @@ protected:
 // Binary Triangle Node 
 struct BT_subdiv_node {
 
-	typedef Ut::Bukkit<BT_subdiv_node> Bukkit; 
+	typedef ut::Bukkit<BT_subdiv_node> Bukkit; 
 
 
 	BT_subdiv_node () : level (0), left_Child (0), right_Child (0), varn_Ind (1) {
@@ -107,7 +107,7 @@ std::vector<Ma::Vec2f>& Build_uv_coords (
 // BT_RT_node - runtime node
 struct BT_RT_node
 {
-	typedef Ut::Bukkit<BT_RT_node> Bukkit; 
+	typedef ut::Bukkit<BT_RT_node> Bukkit; 
 	// orientation of this triangle
 	unsigned dir_Index;	
 	// variance tree index

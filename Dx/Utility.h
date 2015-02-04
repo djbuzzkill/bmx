@@ -48,7 +48,7 @@
 
 
 
-namespace Ut
+namespace ut
 {
 	typedef std::vector<unsigned char> Byte_array; 
 
@@ -73,7 +73,7 @@ namespace Ut
 
 	// 
 	size_t Load_data_file (
-		Ut::Byte_array&		data_File, 
+		ut::Byte_array&		data_File, 
 		const std::string&	fname
 		); 
 

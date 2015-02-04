@@ -30,7 +30,7 @@ void quantize_height_tiles_to_u16 ()
  printf ("\nopen tif: %s", mars_terr::kFiles[ity]);
      FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
 
-      Ut::ptru dat; 
+      ut::ptru dat; 
       if (img) 
          dat.v = FreeImage_GetBits (img) ; 
       else 

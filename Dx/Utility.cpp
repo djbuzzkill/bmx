@@ -23,7 +23,7 @@ void _debug_break_ ()
 
 
 
-size_t Ut::SizeOf_file (const std::string& fname)
+size_t ut::SizeOf_file (const std::string& fname)
 {
 	std::shared_ptr<FILE> f ( fopen (fname.c_str (), "rb"), fclose );  
 
@@ -36,11 +36,11 @@ size_t Ut::SizeOf_file (const std::string& fname)
 
 
 
-size_t Ut::Load_text_file (
+size_t ut::Load_text_file (
 	std::vector<char>&   txtfile, 
 	const std::string&	fname)
 {
-   size_t sizeOf_file = Ut::SizeOf_file (fname);
+   size_t sizeOf_file = ut::SizeOf_file (fname);
 
 	txtfile.resize (1 + sizeOf_file , 0); 
 	std::shared_ptr<FILE> f (fopen (fname.c_str (), "rb"), fclose); 
@@ -49,12 +49,12 @@ size_t Ut::Load_text_file (
 
 
 // 
-size_t Ut::Load_data_file (
-	Ut::Byte_array&		data_File, 
+size_t ut::Load_data_file (
+	ut::Byte_array&		data_File, 
 	const std::string&	fname)
 {
 
-	data_File.resize ( Ut::SizeOf_file (fname) ); 
+	data_File.resize ( ut::SizeOf_file (fname) ); 
 
 	std::shared_ptr<FILE> f (fopen (fname.c_str (), "rb"), fclose); 
 

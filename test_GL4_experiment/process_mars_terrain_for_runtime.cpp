@@ -78,11 +78,11 @@ void process_mars_terrain_for_runtime ()
       {
          size_t      sizeOf_pixel = mars_terr::kWd * 4;
          FIBITMAP*   img          = FreeImage_Load (mars_terr::kFIF_fmt[itx], mars_terr::kFiles[itx]);  
-         Ut::ptru        src          = { FreeImage_GetBits (img) }; 
+         ut::ptru        src          = { FreeImage_GetBits (img) }; 
 
          if (linebuff.size () < (sizeOf_pixel * mars_terr::kTexture_dim))
             linebuff.resize (sizeOf_pixel * mars_terr::kTexture_dim);
-         Ut::ptru ptr = { linebuff.data() }; 
+         ut::ptru ptr = { linebuff.data() }; 
 
          //case 0: // color txr
          //case 1: // height txr
@@ -107,13 +107,13 @@ void process_mars_terrain_for_runtime ()
  
          size_t sizeOf_pixel = 16; // 2 * sizeof(double)
          boost::shared_array<double>   img (new double[sizeOf_pixel * mars_terr::kWd * mars_terr::kHt]); 
-         Ut::ptru                          src = { img.get() }; 
+         ut::ptru                      src = { img.get() }; 
          std::shared_ptr<FILE>         infile (fopen (mars_terr::kFiles[itx], "rb"), fclose); 
          fread (src.v, 2 * sizeof(double), mars_terr::kWd * mars_terr::kHt, infile.get()); 
 
          if (linebuff.size () < (sizeOf_pixel * mars_terr::kTexture_dim))
             linebuff.resize (sizeOf_pixel * mars_terr::kTexture_dim);
-         Ut::ptru ptr = { linebuff.data() }; 
+         ut::ptru ptr = { linebuff.data() }; 
 
          
          for (unsigned iln = 0; iln < mars_terr::kTexture_dim; iln++)
