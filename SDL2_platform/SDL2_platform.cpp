@@ -39,9 +39,15 @@ public:
    SDL_GLContext        gl_;
    //
    //
+
    SDL_window (const std::string& title, sy::Window_listener* ls, int wd, int ht, uint32_t flags_) 
-      : win_ (SDL_CreateWindow (title.c_str(), 64, 64, wd, ht, flags_)) 
+      : win_ (SDL_CreateWindow (title.c_str(), 64, 64, kDef_windowed_width, kDef_windowed_height, flags_)) 
+      //: win_ () 
    {
+      SDL_Rect rect; 
+      SDL_GetDisplayBounds (0, &rect); 
+      win_ = SDL_CreateWindow (title.c_str(), 64, 64, rect.w, rect.h, flags_); 
+
       //SDL_Window* wnd_SDL = SDL_CreateWindow (s_title .c_str() , 64, 64, 800, 600, flags_);
       SDL_assert (win_); 
 
@@ -85,6 +91,8 @@ public:
 
       ::SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
       ::SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+      
+
 
       int supportec_extensions[] = { 
 
