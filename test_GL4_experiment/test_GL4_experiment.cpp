@@ -474,7 +474,7 @@ void exper_alpha::update_render (sy::System_context* sc)
    GLbitfield clear_flags =  
          GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT; 
 
-   gl->Clear      (clear_flags ); 
+   gl->Clear      (clear_flags); 
    gl->UseProgram (objIDs["mars_terr_prog"]); 
 
    // gl->Uniform4d
@@ -490,9 +490,9 @@ void exper_alpha::update_render (sy::System_context* sc)
    glEnableVertexAttribArray (1); 
    glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, glm::value_ptr(*mars_terr::kPatch_verts)); 
    glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, glm::value_ptr(*mars_terr::kPatch_txcrd)); 
+
+
    glDrawArrays(GL_PATCHES, 0, 4); 
-
-
 
    windo->Swap_buffers (); 
 }

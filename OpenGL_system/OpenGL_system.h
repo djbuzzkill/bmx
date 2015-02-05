@@ -28,10 +28,10 @@ namespace sy
    public: 
 
       // pure GL 
-      virtual void UseProgram       (GLuint progID)               = 0;
-      virtual void Clear            (GLbitfield clear_flags)      = 0; 
-      virtual void UniformMatrix4fv (GLint location, GLfloat* f)  = 0; 
-      virtual void Uniform1i        (GLint location, GLint i)     = 0; 
+      virtual void   UseProgram           (GLuint progID)               = 0;
+      virtual void   Clear                (GLbitfield clear_flags)      = 0; 
+      virtual void   UniformMatrix4fv     (GLint location, GLfloat* f)  = 0; 
+      virtual void   Uniform1i            (GLint location, GLint i)     = 0; 
 
       // higher level
       virtual GLuint Create_shader        (const GLchar* shaderSource, GLenum shaderType) = 0;
