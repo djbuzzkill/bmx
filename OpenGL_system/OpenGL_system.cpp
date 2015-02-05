@@ -17,14 +17,20 @@ namespace sy
       //
    OpenGL_system_impl (); 
    virtual ~OpenGL_system_impl (); 
+
+   // ez fns
    virtual GLuint Create_shader        (const GLchar* shaderSource, GLenum shaderType);
    virtual GLuint Build_shader_program (const GLuint* shaders);
+   virtual void   Validate_GL_call     ();
+
+   // pure
    virtual void   UseProgram           (GLuint progID);
    virtual void   Clear                (GLbitfield clear_flags); 
-   virtual void   Validate_GL_call     ();
-   virtual void   other_opengl_shit    ();
-  
-    };
+   virtual void   UniformMatrix4fv     (GLint loc, GLsizei count, GLboolean transpose, const GLfloat* dat); 
+   virtual void   Uniform1i            (GLint location, GLint i); 
+   virtual void   Uniform4fv           (GLint location, GLsizei count, const GLfloat* value); 
+
+};
 
 
    OpenGL_system_impl::OpenGL_system_impl ()
@@ -45,15 +51,26 @@ namespace sy
       error_s_  = glewGetErrorString (err);
       // BOOST_ASSERT (0); 
    }
-
-
    wat++; 
    }
 
-   void OpenGL_system_impl::other_opengl_shit ()
+   void OpenGL_system_impl::UniformMatrix4fv (GLint loc, GLsizei count, GLboolean transpose, const GLfloat* dat)
+   {
+      glUniformMatrix4fv (loc, count, transpose, dat); 
+   } 
+
+   void OpenGL_system_impl::Uniform4fv(GLint location, GLsizei count, const GLfloat* value)
+   {  
+      glUniform4fv (location, count, value); 
+   } 
+   //
+   void OpenGL_system_impl::Uniform1i (GLint location, GLint v0)
    {
 
-   }
+
+
+      glUniform1i (location, v0); 
+   } 
 
    //
    void OpenGL_system_impl::UseProgram (GLuint progID)
