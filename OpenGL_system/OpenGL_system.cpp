@@ -92,8 +92,6 @@ namespace sy
             0
             }; 
       
-
-
          glShaderSource (shaderID, 1, source, len_source); 
 
          glCompileShader(shaderID); 
