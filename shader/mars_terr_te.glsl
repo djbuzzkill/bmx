@@ -12,8 +12,7 @@ uniform mat4		mat_Proj    ;
 uniform float		heightScale;                                               
 uniform sampler2D	heightMap;                                                  
 
-   vec4				in_position[];
-
+in vec4				in_position[];
 in vec2				texcoord[]; 
 
 

@@ -16,7 +16,7 @@
 
 #include <Dx/Utility.h>
 
-#define MARS_DRIVE "C:/" 
+#define MARS_DRIVE "J:/" 
 
 
 namespace mars_terr

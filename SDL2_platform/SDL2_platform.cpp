@@ -17,6 +17,9 @@ const int k_GL_Major_version (4);
 const int k_GL_Minor_version (2);
 
 // C:\usr\glm
+unsigned int sy::Window::kDef_window_X_pos   (128); 
+unsigned int sy::Window::kDef_window_Y_pos   (128); 
+
 unsigned int sy::Window::kDef_windowed_width    (1024); 
 unsigned int sy::Window::kDef_windowed_height   (768); 
 
@@ -35,21 +38,17 @@ public:
    kSDL_default_flags   = SDL_WINDOW_OPENGL  
                         | SDL_WINDOW_RESIZABLE;
 
-   SDL_Window*          win_; 
+   std::shared_ptr<SDL_Window> win_; 
    SDL_GLContext        gl_;
    //
    //
-
    SDL_window (const std::string& title, sy::Window_listener* ls, int wd, int ht, uint32_t flags_) 
-      : win_ (SDL_CreateWindow (title.c_str(), 64, 64, wd, ht, flags_)) 
+      : win_ (SDL_CreateWindow (title.c_str(), sy::Window::kDef_window_X_pos, sy::Window::kDef_window_Y_pos, wd, ht, flags_), SDL_DestroyWindow) 
    {
-      SDL_Rect rect; 
-      SDL_GetDisplayBounds (0, &rect); 
-      win_ = SDL_CreateWindow (title.c_str(), 64, 64, rect.w, rect.h, flags_); 
 
-      //SDL_Window* wnd_SDL = SDL_CreateWindow (s_title .c_str() , 64, 64, 800, 600, flags_);
+      //SDL_Rect rect; 
+      //SDL_GetDisplayBounds (0, &rect); 
       SDL_assert (win_); 
-
       setup_display (); 
    }
 
@@ -57,33 +56,32 @@ public:
    virtual ~SDL_window () 
    {
       SDL_GL_DeleteContext (gl_); 
-      SDL_DestroyWindow (win_); 
    }
 
 	// funcs
 	virtual size_t	Get_WindowID ()
    {
-      return (size_t) win_; 
+      return (size_t) win_.get(); 
    } 
 
    //
    virtual void Show	(bool show)
    {
-   (show ? SDL_ShowWindow : SDL_HideWindow) (win_); 
+   (show ? SDL_ShowWindow : SDL_HideWindow) (win_.get()); 
    }
 
 	//
    virtual void SetPos (int x, int y)
    {
-      SDL_SetWindowPosition (win_, x, y); 
+      SDL_SetWindowPosition (win_.get(), x, y); 
    }
 
    //
 	virtual int setup_display ()
    {
-      gl_ =  ::SDL_GL_CreateContext(win_); 
+      gl_ =  ::SDL_GL_CreateContext(win_.get()); 
 
-      ::SDL_GL_MakeCurrent (win_, gl_); 
+      ::SDL_GL_MakeCurrent (win_.get(), gl_); 
 
       ::SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, k_GL_Major_version);
       ::SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, k_GL_Minor_version);
@@ -109,7 +107,7 @@ public:
 	
    virtual void Swap_buffers ()
    {
-      ::SDL_GL_SwapWindow (win_); 
+      ::SDL_GL_SwapWindow (win_.get()); 
    }
 }; 
 
@@ -175,7 +173,7 @@ public:
       
       SDL_window* syswnd_ = new SDL_window (s_title, ls, wd, ht, flags_); 
 
-      map_window_2_listener[syswnd_->win_] = ls; 
+      map_window_2_listener[syswnd_->win_.get()] = ls; 
 
       return syswnd_ ; 
    }

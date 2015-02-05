@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "stdio.h"
+#include "Dx/Utility.h"
 
 namespace sy
 {
@@ -18,6 +19,8 @@ namespace sy
    virtual ~OpenGL_system_impl (); 
    virtual GLuint Create_shader        (const GLchar* shaderSource, GLenum shaderType);
    virtual GLuint Build_shader_program (const GLuint* shaders);
+   virtual void   UseProgram           (GLuint progID);
+   virtual void   Clear                (GLbitfield clear_flags); 
    virtual void   Validate_GL_call     ();
    virtual void   other_opengl_shit    ();
   
@@ -52,49 +55,72 @@ namespace sy
 
    }
 
+   //
+   void OpenGL_system_impl::UseProgram (GLuint progID)
+   {
+      glUseProgram(progID); 
+   }
 
+   //
+   void OpenGL_system_impl::Clear (GLbitfield clear_flags)
+   {
+      glClear (clear_flags); 
+   }
+
+   //
    GLuint OpenGL_system_impl::Create_shader (const GLchar* shaderSource, GLenum shaderType)
    {
-   // BOOST_ASSERT (shaderSource); 
-   // BOOST_ASSERT (shaderType == GL_VERTEX_SHADER  || shaderType == GL_FRAGMENT_SHADER); 
+      const GLint valid_shader_types[] = { 
+         GL_VERTEX_SHADER  , 
+         GL_FRAGMENT_SHADER,
+         GL_TESS_CONTROL_SHADER, 
+         GL_TESS_EVALUATION_SHADER
+         }; 
 
-   GLuint shaderID = glCreateShader (shaderType); 
+      if (std::count (valid_shader_types, valid_shader_types + 4, shaderType)) 
+      {
 
-   const GLchar* source[] = {
-      shaderSource, 
-      0   
-      }; 
+         GLuint shaderID = glCreateShader (shaderType); 
 
-   GLint len_source[] = { 
-      strlen (shaderSource) - 1, 
-      0
-      }; 
+         const GLchar* source[] = {
+            shaderSource, 
+            0   
+            }; 
+
+         GLint len_source[] = { 
+            strlen (shaderSource) - 1, 
+            0
+            }; 
       
 
 
-   glShaderSource (shaderID, 1, source, len_source); 
+         glShaderSource (shaderID, 1, source, len_source); 
 
-   glCompileShader(shaderID); 
+         glCompileShader(shaderID); 
 
-   int compileStatus;
-   glGetShaderiv (shaderID, GL_COMPILE_STATUS, &compileStatus);
-   if (compileStatus != GL_TRUE) 
-   {
-	   GLchar err_buf[1024];
-	   GLsizei infolen;
-	   glGetShaderInfoLog (shaderID, 1024, &infolen, err_buf);
-	   //Debug ("Shader Error:\n %s", output);
-	   //BreakAssert (0, "shader compile fail");
-printf ("\ncompile failed: %s", err_buf); 
+         int compileStatus;
+         glGetShaderiv (shaderID, GL_COMPILE_STATUS, &compileStatus);
+         if (compileStatus != GL_TRUE) 
+         {
+	         GLchar err_buf[1024];
+	         GLsizei infolen;
+	         glGetShaderInfoLog (shaderID, 1024, &infolen, err_buf);
+	         //Debug ("Shader Error:\n %s", output);
+	         //BreakAssert (0, "shader compile fail");
 
-      glDeleteShader(shaderID); 
-   //      BOOST_ASSERT (0); 
-	   return 0;
+            DX_ASSERT (0, "\ncompile failed: %s", err_buf); 
+
+            glDeleteShader(shaderID); 
+         //      BOOST_ASSERT (0); 
+	         return 0;
+         }
+
+         return shaderID; 
+      }
+
+      return 0; 
    }
 
-   return shaderID; 
-
-   }
 
 
    GLuint OpenGL_system_impl::Build_shader_program (const GLuint* shaders)
@@ -120,6 +146,8 @@ printf ("\ncompile failed: %s", err_buf);
    {
 	   glGetProgramInfoLog (progID, 1024, &bufflen, outputbuffer);
 	   //Debug ( "\nGL Info Log :  \n\n %s\n", outputbuffer);
+      
+      printf ("\n%s", outputbuffer); 
 	   //Assert (0, "ShaderProg::Link () - Failed");
       glDeleteProgram (progID); 
 	   return 0;

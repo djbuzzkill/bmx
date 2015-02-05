@@ -18,12 +18,17 @@ layout(location=1) in vec2 attrib_texcoord;
 out vec2 txco;                                                   
 out vec4 gl_Position; 
 
-
 // 
 void main ()
 {
+	//vec4 pos	= vec4 (attrib_position, 1); 
+	//pos			= mat_Model * pos;                                                   
+	//pos			= mat_View * pos; 
+	//gl_Position = mat_Proj * pos; //gl_Position = vec4 (attrib_position, 1);
+	//txco		= attrib_texcoord;                                                   
+
 	gl_Position = vec4 (attrib_position, 1);
-	txco		   = attrib_texcoord;                                                   
+	txco		= attrib_texcoord;                                                   
 }
 
 

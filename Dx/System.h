@@ -241,8 +241,11 @@ namespace sy
 	class Window 
 		{
 	public: 
-      static unsigned int kDef_windowed_width    ;  
-      static unsigned int kDef_windowed_height   ; 
+
+      static unsigned int kDef_window_X_pos   ; 
+      static unsigned int kDef_window_Y_pos   ; 
+      static unsigned int kDef_windowed_width ;  
+      static unsigned int kDef_windowed_height; 
 
 		//
 		// funcs

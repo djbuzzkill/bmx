@@ -19,6 +19,22 @@
 
 namespace mars_terr
 {
+
+   const glm::dvec3 kPatch_verts[] = {
+      glm::dvec3 (0.0,      0.0,     0.0), 
+      glm::dvec3 (1000.0,   0.0,     0.0), 
+      glm::dvec3 (1000.0,   1000.0,  0.0), 
+      glm::dvec3 (0.0,      1000.0,  0.0), 
+      }; 
+
+   const glm::dvec2 kPatch_txcrd[] = {
+      glm::dvec2(0.0, 0.0), 
+      glm::dvec2(1.0, 0.0), 
+      glm::dvec2(1.0, 1.0), 
+      glm::dvec2(0.0, 1.0), 
+      }; 
+
+
    const char*    kFiles[] = {
       MARS_DRIVE "Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DRG.tif", 
       MARS_DRIVE "Quarantine/Mars/ESP_018065_1975_RED_ESP_019133_1975_RED-DEM.tif",  
@@ -159,17 +175,17 @@ class exper_alpha : public sy::RT_window_listener
    {
 public: 
 
-static void wat () 
-{
-   int i = 0; 
-   i++; 
-}
+   static void wat () 
+   {
+      int i = 0; 
+      i++; 
+   }
 
-static void die () 
-{
-   fprintf(stderr,  "\n....This is the end."); 
-   0[(int*)0] = 0;
-}
+   static void die () 
+   {
+      fprintf(stderr,  "\n....This is the end."); 
+      0[(int*)0] = 0;
+   }
 
    static const std::string kImagePath_height   ; //= L"C:/Quarantine/Textures/hgt/mountains512.png";
    static const std::string kImagePath_color    ; //= L"C:/Quarantine/Textures/hgt/mountains512.hgt.png";
@@ -189,6 +205,9 @@ static void die ()
 	virtual void   OnWindowActivate	(bool activate); 
 
 private: 
+
+   void update_input    (sy::System_context*); 
+   void update_render   (sy::System_context*); 
 
    typedef std::map<std::string, GLuint> ObjectMap;         
    ObjectMap                              objIDs; 
@@ -384,28 +403,34 @@ printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file);
    int ish = 0; 
    for (ObjectMap::const_iterator it = objIDs.begin(); it != objIDs.end(); it++) 
       mars_shaders[ish++] = it->second; 
+   
+   
+   
+   // 
       
-   GLuint mars_prog = gl->Build_shader_program (mars_shaders); 
+   objIDs["mars_terr_prog"] = gl->Build_shader_program (mars_shaders); 
 
    //glUseProgram (mars_prog); 
 
    GLchar attrib_position[] = "attrib_position"; 
    GLchar attrib_texcoord[] = "attrib_texcoord"; 
-
-   terr_attrib_map[attrib_position] = glGetAttribLocation (mars_prog, attrib_position), 
-   terr_attrib_map[attrib_texcoord] = glGetAttribLocation (mars_prog, attrib_texcoord), 
-
+   //
+   terr_attrib_map[attrib_position] = glGetAttribLocation (objIDs["mars_terr_prog"], attrib_position), 
+   terr_attrib_map[attrib_texcoord] = glGetAttribLocation (objIDs["mars_terr_prog"], attrib_texcoord), 
    // contants
-   terr_uniform_map["colorMap"]     = glGetUniformLocation (mars_prog , "colorMap"     );       
-   terr_uniform_map["heightMap"]    = glGetUniformLocation (mars_prog , "heightMap"    );       
-   terr_uniform_map["heightScale"]  = glGetUniformLocation (mars_prog , "heightScale"  );       
-   terr_uniform_map["mat_Model"]    = glGetUniformLocation (mars_prog , "mat_Model"    );      
-   terr_uniform_map["mat_View"]     = glGetUniformLocation (mars_prog , "mat_View"     );      
-   terr_uniform_map["mat_Proj"]     = glGetUniformLocation (mars_prog , "mat_Proj"     );      
+   terr_uniform_map["colorMap"]     = glGetUniformLocation (objIDs["mars_terr_prog"], "colorMap"     );       
+   terr_uniform_map["heightMap"]    = glGetUniformLocation (objIDs["mars_terr_prog"], "heightMap"    );       
+   terr_uniform_map["heightScale"]  = glGetUniformLocation (objIDs["mars_terr_prog"], "heightScale"  );       
+   terr_uniform_map["mat_Model"]    = glGetUniformLocation (objIDs["mars_terr_prog"], "mat_Model"    );      
+   terr_uniform_map["mat_View"]     = glGetUniformLocation (objIDs["mars_terr_prog"], "mat_View"     );      
+   terr_uniform_map["mat_Proj"]     = glGetUniformLocation (objIDs["mars_terr_prog"], "mat_Proj"     );      
+
+
+   size_t sizeOf_dmat4 = sizeof(glm::dmat4); 
+   size_t sizeOf_dvec3 = sizeof(glm::dvec3); 
+   //const glm::dvec3::value_type* pverts = 
 
    wat ();
-
-
    // !!!! Remember what to do with the sampler location !!!! 
    //
    //    -> glUniform1i (uniformLoc_map["heightMap"], texture_stage);
@@ -413,7 +438,6 @@ printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file);
 
    //
    // query attrib. and uniforms
-   
    // setup geometry
 
    return 0; 
@@ -426,15 +450,63 @@ int exper_alpha::Deinitialize(sy::System_context* sc)
    return 0; 
 }
 
+
+
+void exper_alpha::update_input (sy::System_context* sc)
+{
+   sy::Mouse_state ms; 
+   sy::Keyboard_state kb;
+
+   sc->Poll_input (ms, kb); 
+
+}
+
+
+void exper_alpha::update_render (sy::System_context* sc)
+{
+   // Eric C. ..
+   // Typically, cracked screens and water damage are considered out of warranty. 
+   // Sometimes the phone agents have options for you so you would need to call 
+   // 1-855-836-3987 and talk to one of them. They simply have more tools than 
+   // I do!
+ 
+
+   GLbitfield clear_flags =  
+         GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT; 
+
+   gl->Clear      (clear_flags ); 
+   gl->UseProgram (objIDs["mars_terr_prog"]); 
+
+   // gl->Uniform4d
+   // HR Workday 844 727 3375
+   // 1. Support GS financial goals, sales orders and gross margin.
+   // 2. Support IRTP financial goals, sales orders and gross margin.
+   // 3. Support inter-company activities by meeting with people outside IRTP, provide input to proposal/IRAD, L & L.
+   // 4. Make four signature document presentations with positive project manager feedback, provide document or presentation to customer. 
+   // 5. Produce two significant work products within schedule and budget.
+
+
+   glEnableVertexAttribArray (0); 
+   glEnableVertexAttribArray (1); 
+   glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, glm::value_ptr(*mars_terr::kPatch_verts)); 
+   glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, glm::value_ptr(*mars_terr::kPatch_txcrd)); 
+   glDrawArrays(GL_PATCHES, 0, 4); 
+
+
+
+   windo->Swap_buffers (); 
+}
 //
 //
 int exper_alpha::Update (sy::System_context* sc) 
 {
    // process input
+   update_input (sc); 
 
    // update states
 
    // render 
+   update_render (sc); 
 
    return 0; 
 }
