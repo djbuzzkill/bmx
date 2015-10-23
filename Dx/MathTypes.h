@@ -2,6 +2,7 @@
 #define include_MathTypes
 
 #include <math.h>
+#include <search.h>
 
 // #ifdef __cplusplus
 // extern "C" { 

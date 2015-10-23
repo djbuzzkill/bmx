@@ -26,6 +26,9 @@ void _debug_break_ ()
 size_t ut::SizeOf_file (const std::string& fname)
 {
 	std::shared_ptr<FILE> f ( fopen (fname.c_str (), "rb"), fclose );  
+   if (!f)
+      return 0; 
+
 
 	fseek (f.get(), 0, SEEK_END);  
 	long sizeOf_file = ftell (f.get()); 

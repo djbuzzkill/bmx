@@ -624,8 +624,6 @@ void Rn::Draw_sphere (
    const float dPhi = Ma::Pi / 12; 
    const float dTheta = Ma::Pi / 12; 
 
-
-   
 	glColor3fv (col3f.ptr ()); 
 
    for (int i_phi = 0; i_phi < 6; i_phi++)

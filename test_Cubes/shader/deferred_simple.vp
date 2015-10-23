@@ -1,0 +1,39 @@
+#version 420
+
+uniform mat4      mat_Model   ;                                               
+uniform mat4      mat_View    ;                                               
+uniform mat4      mat_Proj    ;                                               
+
+in vec3      vert_pos;                                                        
+in vec3      vert_nrm;                                                        
+in vec2      vert_tc0;                                                        
+                                                                                       
+out vec2     frag_posi;                                                   
+out vec2     frag_norm;                                                   
+out vec2     frag_txcd;                                                   
+out vec2     frag_depth;                                                   
+
+void main ()                                                                  
+{                                                                             
+  
+  vec4  posi           = vec4 (vert_pos.x, vert_pos.y, vert_pos.z, 1.0);   
+
+  // output
+
+  //  tx cd
+  frag_txcd   = vert_tc0;
+
+  // h pos
+  posi = mat_Model * posi;                                                   
+  posi = mat_View * posi;                                                    
+  frag_pos = mat_Proj * posi;
+
+   // norm
+   mat33 matModelRot (mat_Model); 
+   frag_norm = mat_Model * matModelRot; 
+
+   // depth
+   frag_depth = frag_posi.z; 
+}                                                                             
+
+

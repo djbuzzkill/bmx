@@ -16,8 +16,8 @@
 
 #include <Dx/Utility.h>
 
-#define MARS_DRIVE "C:/" 
-
+#define MARS_DRIVE "E:/" 
+#define SHADER_DRIVE "C:/"
 
 namespace mars_terr
 {

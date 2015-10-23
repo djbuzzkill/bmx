@@ -19,19 +19,21 @@
 
 namespace mars_terr
 {
+	using namespace glm; 
 
-   const glm::dvec3 kPatch_verts[] = {
-      glm::dvec3 (0.0,      0.0,     0.0), 
-      glm::dvec3 (1000.0,   0.0,     0.0), 
-      glm::dvec3 (1000.0,   1000.0,  0.0), 
-      glm::dvec3 (0.0,      1000.0,  0.0), 
-      }; 
+	//
+	const dvec3 kPatch_verts[] = {
+		dvec3 (0.0,      0.0,     0.0), 
+		dvec3 (1000.0,   0.0,     0.0), 
+		dvec3 (1000.0,   1000.0,  0.0), 
+		dvec3 (0.0,      1000.0,  0.0), 
+		}; 
 
-   const glm::dvec2 kPatch_txcrd[] = {
-      glm::dvec2(0.0, 0.0), 
-      glm::dvec2(1.0, 0.0), 
-      glm::dvec2(1.0, 1.0), 
-      glm::dvec2(0.0, 1.0), 
+   const dvec2 kPatch_txcrd[] = {
+      dvec2 (0.0, 0.0), 
+      dvec2 (1.0, 0.0), 
+      dvec2 (1.0, 1.0), 
+      dvec2 (0.0, 1.0), 
       }; 
 
 
@@ -266,6 +268,8 @@ exper_alpha::exper_alpha ()
 //// 
 int exper_alpha::Initialize (sy::System_context* sc) 
 { 
+   using namespace glm; 
+
    char some_abcs[] = "ABCDEFG"; 
 
       void; 
@@ -369,7 +373,7 @@ int exper_alpha::Initialize (sy::System_context* sc)
    for (int ish = 0; ish < 4; ish++) 
    {
       std::ostringstream oss;    
-      oss   << mars_terr::kBase_path 
+      oss   << SHADER_DRIVE
             << mars_terr::kShader_subp
             << mars_terr::kShader_name 
             << mars_terr::kShader_ext[ish];  
@@ -426,9 +430,9 @@ printf ("\nshader: %s == %i bytes", shader_name.c_str(), sizeOf_file);
    terr_uniform_map["mat_Proj"]     = glGetUniformLocation (objIDs["mars_terr_prog"], "mat_Proj"     );      
 
 
-   size_t sizeOf_dmat4 = sizeof(glm::dmat4); 
-   size_t sizeOf_dvec3 = sizeof(glm::dvec3); 
-   //const glm::dvec3::value_type* pverts = 
+   size_t sizeOf_dmat4 = sizeof(dmat4); 
+   size_t sizeOf_dvec3 = sizeof(dvec3); 
+   
 
    wat ();
    // !!!! Remember what to do with the sampler location !!!! 
@@ -464,6 +468,7 @@ void exper_alpha::update_input (sy::System_context* sc)
 
 void exper_alpha::update_render (sy::System_context* sc)
 {
+   using namespace glm; 
    // Eric C. ..
    // Typically, cracked screens and water damage are considered out of warranty. 
    // Sometimes the phone agents have options for you so you would need to call 
@@ -488,8 +493,8 @@ void exper_alpha::update_render (sy::System_context* sc)
 
    glEnableVertexAttribArray (0); 
    glEnableVertexAttribArray (1); 
-   glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, glm::value_ptr(*mars_terr::kPatch_verts)); 
-   glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, glm::value_ptr(*mars_terr::kPatch_txcrd)); 
+   glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, value_ptr(*mars_terr::kPatch_verts)); 
+   glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, value_ptr(*mars_terr::kPatch_txcrd)); 
 
 
    glDrawArrays(GL_PATCHES, 0, 4); 

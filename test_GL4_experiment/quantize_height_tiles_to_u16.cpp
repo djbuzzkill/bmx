@@ -95,7 +95,6 @@ printf (" : %s --> %s", src_ss.str().c_str (), dst_ss.str().c_str ());
             usbuf.get(), 
             [&] (float f) { return unsigned short(range_multiplier * (f - min_val)); }
             ); 
-
          fwrite (usbuf.get(), sizeof (unsigned short), ntilepxls, dstf.get()); 
          tile_count++;
 

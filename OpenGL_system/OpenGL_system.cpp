@@ -1,17 +1,16 @@
-
 #include "OpenGL_system.h"
-
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "stdio.h"
 #include "Dx/Utility.h"
+#include <thread>
 
 namespace sy
 {
    //
-   class OpenGL_system_impl : public OpenGL_system
+   class OpenGL_system_impl : public OpenGL_system 
       { 
    public: 
       //
@@ -29,15 +28,18 @@ namespace sy
    virtual void   UniformMatrix4fv     (GLint loc, GLsizei count, GLboolean transpose, const GLfloat* dat); 
    virtual void   Uniform1i            (GLint location, GLint i); 
    virtual void   Uniform4fv           (GLint location, GLsizei count, const GLfloat* value); 
+      };
 
-};
+
 
 
    OpenGL_system_impl::OpenGL_system_impl ()
-   {}
+   {
+   }
 
    OpenGL_system_impl::~OpenGL_system_impl ()
-   {}
+   {
+   }
 
    void OpenGL_system_impl::Validate_GL_call ()
    {
@@ -48,6 +50,7 @@ namespace sy
    err = glGetError ();
    if (err != GL_NO_ERROR )
    {
+       
       error_s_  = glewGetErrorString (err);
       // BOOST_ASSERT (0); 
    }
@@ -140,35 +143,35 @@ namespace sy
 
    GLuint OpenGL_system_impl::Build_shader_program (const GLuint* shaders)
    {
-   GLuint progID = glCreateProgram (); 
+	   GLuint progID = glCreateProgram (); 
 
-   int count_shaders = 0; 
-   while (shaders[count_shaders]) 
-   {
-      glAttachShader (progID, shaders[count_shaders]); 
-      count_shaders++;
-   }   
+	   int count_shaders = 0; 
+	   while (shaders[count_shaders]) 
+	   {
+		  glAttachShader (progID, shaders[count_shaders]); 
+		  count_shaders++;
+	   }   
 
-   // 
-   // 
-   glLinkProgram (progID);
+	   // 
+	   // 
+	   glLinkProgram (progID);
 
-   GLint    linkRes;
-   GLsizei  bufflen;
-   char     outputbuffer[1024];
-   glGetProgramiv (progID, GL_LINK_STATUS, &linkRes);
-   if (linkRes == GL_FALSE)
-   {
-	   glGetProgramInfoLog (progID, 1024, &bufflen, outputbuffer);
-	   //Debug ( "\nGL Info Log :  \n\n %s\n", outputbuffer);
+	   GLint    linkRes;
+	   GLsizei  bufflen;
+	   char     outputbuffer[1024];
+	   glGetProgramiv (progID, GL_LINK_STATUS, &linkRes);
+	   if (linkRes == GL_FALSE)
+	   {
+		   glGetProgramInfoLog (progID, 1024, &bufflen, outputbuffer);
+		   //Debug ( "\nGL Info Log :  \n\n %s\n", outputbuffer);
       
-      printf ("\n%s", outputbuffer); 
-	   //Assert (0, "ShaderProg::Link () - Failed");
-      glDeleteProgram (progID); 
-	   return 0;
-   }
+		  printf ("\n%s", outputbuffer); 
+		   //Assert (0, "ShaderProg::Link () - Failed");
+		  glDeleteProgram (progID); 
+		   return 0;
+	   }
 
-   return progID; 
+	   return progID; 
    }
 
    //
@@ -197,3 +200,4 @@ namespace sy
    } 
 
 }
+

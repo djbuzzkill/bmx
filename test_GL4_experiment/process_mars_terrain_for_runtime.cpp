@@ -12,15 +12,15 @@
 void process_mars_terrain_for_runtime ()
 {
    printf ("\nbegin processing"); 
-   //
-   ("Saturn arch NITF framing camera", "get Cincotta IDL working on aces data"); 
+
    //
    std::map<FREE_IMAGE_TYPE, int> sizeOf_FI_component; 
-   std::map<FREE_IMAGE_TYPE, int> numberOf_FI_components; 
+   std::map<FREE_IMAGE_TYPE, int> numberOf_FI_components;
+ 
    {
-      sizeOf_FI_component[FIT_UNKNOWN]       = -1; 
-      sizeOf_FI_component[FIT_BITMAP]        = -1; 
-      sizeOf_FI_component[FIT_UINT16]        = 2;
+      sizeOf_FI_component[FIT_UNKNOWN]       = -1;
+      sizeOf_FI_component[FIT_BITMAP]        = -1;
+      sizeOf_FI_component[FIT_UINT16]        = 2; 
       sizeOf_FI_component[FIT_INT16]         = 2; 
       sizeOf_FI_component[FIT_UINT32]        = 4; 
       sizeOf_FI_component[FIT_INT32]         = 4; 
@@ -30,11 +30,11 @@ void process_mars_terrain_for_runtime ()
       sizeOf_FI_component[FIT_RGB16]         = 2; 
       sizeOf_FI_component[FIT_RGBA16]        = 2; 
       sizeOf_FI_component[FIT_RGBF]          = 4; 
-      sizeOf_FI_component[FIT_RGBAF]         = 4; 
+      sizeOf_FI_component[FIT_RGBAF]         = 4;  
    
       numberOf_FI_components[FIT_UNKNOWN]    = -1;
       numberOf_FI_components[FIT_BITMAP]     = -1;
-      numberOf_FI_components[FIT_UINT16]     = 1;  
+      numberOf_FI_components[FIT_UINT16]     = 1; 
       numberOf_FI_components[FIT_INT16]      = 1; 
       numberOf_FI_components[FIT_UINT32]     = 1; 
       numberOf_FI_components[FIT_INT32]      = 1; 

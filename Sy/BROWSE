@@ -1,0 +1,163 @@
+[ebrowse-hs "ebrowse 5.0" " -x" () ()][ebrowse-ts [ebrowse-cs "Time_tracker" "sy" 0"System.h" "   struct Time_tracker {" 4063"System.h" ]
+()([ebrowse-ms "acc_ticks" () 0 () "      u64      acc_ticks;" 4224 0  () () 0]
+[ebrowse-ms "freq_Hz" () 0 () "      double   freq_Hz;" 4249 0  () () 0]
+[ebrowse-ms "freq_ticks" () 0 () "      u64      freq_ticks    ;" 4166 0  () () 0]
+[ebrowse-ms "prev_ticks" () 0 () "      u64      prev_ticks    ;" 4197 0  () () 0]
+[ebrowse-ms "start_ticks" () 0 () "      u64      start_ticks   ;" 4135 0  () () 0]
+)
+([ebrowse-ms "GetDt" () 0 () "      double GetDt (sy" 4559 0  () "      double GetDt (sy" 4559]
+[ebrowse-ms "Reset" () 0 () "      bool Reset (sy" 4273 0  () "      bool Reset (sy" 4273]
+)
+()
+()
+()
+([ebrowse-ms "u64" () 0 () "      typedef unsigned long long u64;" 4103 0  () () 0]
+)
+()()
+][ebrowse-ts [ebrowse-cs "sy" "sy" 0() () 0() ]
+()()
+()
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "GraphicsDisplay" "sy" 0"System.h" "	class GraphicsDisplay
+		{" 5326"System.h" ]
+([ebrowse-ts [ebrowse-cs "GraphicsWindow" "sy" 0"System.h" "   class GraphicsWindow :" 5498"System.h" ]
+()()
+([ebrowse-ms "GraphicsWindow" () 0 () "      GraphicsWindow () {" 5583 1  () "      GraphicsWindow () {" 5583]
+)
+()
+()
+()
+()
+()()
+])()
+([ebrowse-ms "GraphicsDisplay" () 0 () "		GraphicsDisplay () {" 5451 1  () "		GraphicsDisplay () {" 5451]
+[ebrowse-ms "Setup_display" () 9 () "		virtual int		Setup_display  ()" 5370 0  () () 0]
+[ebrowse-ms "Swap_buffers" () 9 () "		virtual void	Swap_buffers   ()" 5409 0  () () 0]
+)
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "RT_Task" "sy" 0"Task.h" "      {" 752"Task.h" ]
+()()
+([ebrowse-ms "Deinitialize" () 9 () "   virtual void Deinitialize  (SystemContext" 924 0  () () 0]
+[ebrowse-ms "Initialize" () 9 () "	virtual void Initialize    (SystemContext" 808 0  () () 0]
+[ebrowse-ms "RT_Task" () 0 () "		RT_Task () {" 977 1  () "		RT_Task () {" 977]
+[ebrowse-ms "Update" () 9 () "   virtual void Update		   (double" 854 0  () () 0]
+)
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "WindowListener" "sy" 0"System.h" "	class WindowListener
+	{" 4818"System.h" ]
+()()
+([ebrowse-ms "OnWindowActivate" () 9 () "		virtual void OnWindowActivate	(bool" 5000 0  () () 0]
+[ebrowse-ms "OnWindowClose" () 9 () "		virtual void OnWindowClose		()" 4956 0  () () 0]
+[ebrowse-ms "OnWindowResize" () 9 () "		virtual void OnWindowResize		(int" 4905 0  () () 0]
+[ebrowse-ms "WindowListener" () 0 () "		WindowListener () {" 4851 1  () "		WindowListener () {" 4851]
+)
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "Window" "sy" 0"System.h" "	class Window 
+		{" 5060"System.h" ]
+([ebrowse-ts [ebrowse-cs "GraphicsWindow" "sy" 0"System.h" "   class GraphicsWindow :" 5498"System.h" ]
+()()
+([ebrowse-ms "GraphicsWindow" () 0 () "      GraphicsWindow () {" 5583 1  () "      GraphicsWindow () {" 5583]
+)
+()
+()
+()
+()
+()()
+])()
+([ebrowse-ms "Get_WindowID" () 9 () "		virtual size_t	Get_WindowID ()" 5120 0  () () 0]
+[ebrowse-ms "SetPos" () 9 () "		virtual void	SetPos	(int" 5192 0  () () 0]
+[ebrowse-ms "Show" () 9 () "		virtual void	Show	(bool" 5152 0  () () 0]
+[ebrowse-ms "Window" () 0 () "		Window () {" 5234 1  () "		Window () {" 5234]
+)
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "Keyboard_state" "sy" 0"System.h" "   struct Keyboard_state {" 631() ]
+()([ebrowse-ms "mod_Alt" () 0 () "      bool                 mod_Alt ;" 745 0  () () 0]
+[ebrowse-ms "mod_Ctrl" () 0 () "      bool                 mod_Ctrl;" 708 0  () () 0]
+[ebrowse-ms "mod_Shift" () 0 () "      bool                 mod_Shift;" 783 0  () () 0]
+[ebrowse-ms "scan_code" () 0 () "      const unsigned char* scan_code;" 670 0  () () 0]
+)
+()
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "Destructor" "sy" 0"System.h" "      {" 265"System.h" ]
+()()
+([ebrowse-ms "Destructor" () 0 () "      Destructor  (){" 354 1  () "      Destructor  (){" 354]
+[ebrowse-ms "~Destructor" () 9 () "      virtual ~Destructor ()" 307 0  () "      virtual ~Destructor ()" 307]
+)
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "SystemContext" "sy" 0"System.h" "	class SystemContext 
+		{" 3192"System.h" ]
+()()
+([ebrowse-ms "Create_GraphicsWindow" () 9 () "sWindow*   Create_GraphicsWindow (WindowListener" 3445 0  () () 0]
+[ebrowse-ms "Create_window" () 9 () "sy::Window*				   Create_window		(WindowListener" 3344 0  () () 0]
+[ebrowse-ms "DispatchEvents" () 9 () "		virtual bool	   DispatchEvents	()" 3780 0  () () 0]
+[ebrowse-ms "GetTimerFrequencyHz" () 9 () "al  unsigned long long   GetTimerFrequencyHz  ()" 3928 0  () () 0]
+[ebrowse-ms "GetTimerTicks" () 9 () "al  unsigned long long   GetTimerTicks        ()" 3862 0  () () 0]
+[ebrowse-ms "Poll_input" () 9 () "               Poll_input           (Mouse_state" 3575 0  () () 0]
+[ebrowse-ms "SysReq" () 9 () "		virtual void	   SysReq			(SystemRequest" 4000 0  () () 0]
+[ebrowse-ms "SystemContext" () 0 () "		SystemContext () {" 3226 1  () "		SystemContext () {" 3226]
+)
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "Mouse_state" "sy" 0"System.h" "   struct Mouse_state {" 446() ]
+()([ebrowse-ms "butt" () 0 () "      int butt[3];" 577 0  () () 0]
+[ebrowse-ms "zAbs" () 0 () "      int xAbs, yAbs, zAbs;" 526 0  () () 0]
+[ebrowse-ms "zRel" () 0 () "      int xRel, yRel, zRel;" 496 0  () () 0]
+)
+()
+()
+()
+()
+()
+()()
+][ebrowse-ts [ebrowse-cs "*Globals*" () 0() () 0"System.cpp" ]
+()()
+([ebrowse-ms "Create_context" () 0 "System.h" "   SystemContext* Create_context ()" 6116 0  () () 0]
+[ebrowse-ms "Destroy" () 0 "System.cpp" "   void Destroy (Destructor" 88 0  () "   void Destroy (Destructor" 88]
+[ebrowse-ms "Is_keydown" () 2 "System.h" "   inline bool Is_keydown (KB_scan_code" 2854 0  "System.h" "   inline bool Is_keydown (KB_scan_code" 2854]
+[ebrowse-ms "Run_realtime_task" () 0 "System.cpp" "   int Run_realtime_task (sy" 166 0  () "   int Run_realtime_task (sy" 166]
+[ebrowse-ms "dumb" () 0 "Task.cpp" "	int dumb ()" 67 0  "Task.cpp" "	int dumb ()" 67]
+)
+([ebrowse-ms "wat" () 0 () () 0 0  "Task.cpp" "	static int wat = 0;" 53]
+)
+()
+([ebrowse-ms "INTRODUCING_SYSTEM_H" () 512 () () 0 0  "System.h" "#define INTRODUCING_SYSTEM_H
+" 58]
+[ebrowse-ms "_Task_incl_" () 512 () () 0 0  "Task.h" "#define _Task_incl_
+" 40]
+)
+([ebrowse-ms "KB_scan_code" () 0 () () 0 0  "System.h" "   enum KB_scan_code {" 824]
+[ebrowse-ms "SystemRequest" () 0 () () 0 0  "System.h" "		enum SystemRequest {" 3140]
+)
+()()
+]

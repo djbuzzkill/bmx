@@ -44,25 +44,12 @@ link_directories (
 	$ENV{FREEIMAGE_ROOT}/lib/${FREEIMAGE_LIB_DIR}
 	)
 
-# target_link_libraries (
-# 	)
-#  
-# set (BG_SOURCES
-# 	BG_renderer.cpp
-# 	)
-# 
-# set (BG_HEADERS
-# 	BG_renderer.h
-# 	)
-# 
-# add_library (BG_renderer
-# 	${BG_SOURCES}
-# 	${BG_HEADERS}
-# 	)
-
 
 add_subdirectory (Dx)
 add_subdirectory (SDL2_platform)
 add_subdirectory (OpenGL_system)
+add_subdirectory (Terrain_renderer)
 
 add_subdirectory (test_GL4_experiment)
+add_subdirectory (test_Mars)
+add_subdirectory (test_Cubes)

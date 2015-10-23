@@ -1,0 +1,58 @@
+#version 420
+
+
+layout (vertices = 4) out;
+
+
+
+uniform mat4      mat_Model   ;                                               
+uniform mat4      mat_View    ;                                               
+uniform mat4      mat_Proj    ;                                               
+uniform sampler2D heightMap;                                                  
+uniform vec4      patch_Scale ;                                               
+
+uniform float tessInner; 
+uniform float tessOuter; 
+
+in vec3    v_vpos[];
+in vec2    v_txcd[];
+
+out vec3    tc_vpos[];
+out vec2    tc_txcd[];
+
+//
+void main ()                                                                  
+{  
+   vec3 viewpoint = mat_View[3].xyz; 
+   float dist = 1.0; 
+
+
+   if (gl_InvocationID == 3)
+   {
+      vec3 midpoint   = 0.5 * (v_vpos[0]  - v_vpos[gl_InvocationID]);
+      
+      dist = distance (viewpoint, midpoint); 
+   }
+   else
+   {
+      vec3 midpoint = 0.5 * (v_vpos[gl_InvocationID+1] - v_vpos[gl_InvocationID]);
+      dist = distance (viewpoint, midpoint); 
+   }
+
+   if (dist < 1.0)
+      dist = 1.0 ; 
+
+   gl_TessLevelInner[0] = tessInner;
+   gl_TessLevelInner[1] = tessInner;
+   
+   gl_TessLevelOuter[0] = tessOuter;
+   gl_TessLevelOuter[1] = tessOuter;
+   gl_TessLevelOuter[2] = tessOuter;
+   gl_TessLevelOuter[3] = tessOuter;
+
+   tc_vpos[gl_InvocationID] = v_vpos[gl_InvocationID];
+   tc_txcd[gl_InvocationID] = v_txcd[gl_InvocationID];
+
+}                                                                             
+
+
