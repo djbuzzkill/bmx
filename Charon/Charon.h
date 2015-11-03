@@ -16,9 +16,13 @@
 
 #include <GL/glew.h>
 
+#include <glm/glm.hpp>  
+#include <glm/ext.hpp>
+
 #include "FreeImage.h"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/shared_array.hpp>
 
 //#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 //#include <windows.h>
@@ -48,9 +52,28 @@ typedef double                f64;
 typedef long long             s64;
 typedef unsigned long long    u64;
 
-struct mass_armature; 
-struct ik_armature; 
-struct articulation_armature;    
+
+#define MARS_DRIVE "E:/" 
+#define SHADER_DRIVE "C:/"
+
+namespace mars_terr
+{
+   extern const char                kBase_path[]; 
+   extern const char                kTile_subp[]; 
+   extern const char                kShader_subp[]; 
+   extern const char                kShader_name[];
+   extern const char*               kShader_ext[];
+   extern const GLuint              kShader_types[];
+   extern const char*               kFiles[];
+   extern const std::string         kType[];
+   extern const FREE_IMAGE_FORMAT   kFIF_fmt[];
+   extern const size_t              kNum_files; 
+   extern const int                 kTexture_dim; 
+   extern const int                 kNum_X_tiles;  
+   extern const int                 kNum_Y_tiles;  
+   extern const unsigned            kWd; 
+   extern const unsigned            kHt; 
+}
 
 namespace Humanoid
 {
@@ -94,7 +117,7 @@ namespace Humanoid
 }
 
 
-union ptr {
+union ptru {
    void*             v; 
    char*             c; 
    unsigned char*    uc; 

@@ -1,6 +1,7 @@
 
-#include "test_Deferred.h"
-#include "Dx/VecMath.h"
+#include "Cubes.h"
+#include "Charon.h"
+
 
 const int kInitial_window_width  = 1024;
 const int kInitial_window_height = 768;
@@ -77,14 +78,6 @@ void wat ()
       }
 
 
-//
-//
-union ptru 
-   {
-void* v;  float* f;  double* d;  unsigned char* uc;  char* c;  unsigned short* us;  short* s; EN_coord* en;  
-   }; 
-
-
 
  
 
@@ -101,7 +94,7 @@ struct Simple_obj : public Renderable
    virtual GLuint       Bin_ID() { return 0; } 
    virtual GLuint       ROp_ID() { return 0; } 
 
-   virtual void         Setup_RS (const TerrainRenderer::UniformMap& uniformMap, const TerrainRenderer::AttributeMap& attribMap)
+   virtual void         Setup_RS(const Terrain_renderer::UniformMap& uniformMap, const Terrain_renderer::AttributeMap& attribMap)
    {}
 
    glm::dvec3                 pos; 
@@ -131,7 +124,7 @@ struct Light_obj : public Renderable
    virtual GLuint       Bin_ID() { return 0; } 
    virtual GLuint       ROp_ID() { return 0; } 
 
-   virtual void         Setup_RS (const TerrainRenderer::UniformMap& uniformMap, const TerrainRenderer::AttributeMap& attribMap)
+   virtual void         Setup_RS(const Terrain_renderer::UniformMap& uniformMap, const Terrain_renderer::AttributeMap& attribMap)
    {}
       
    Type                       type; 

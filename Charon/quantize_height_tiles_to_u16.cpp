@@ -1,9 +1,7 @@
 #include "quantize_height_tiles_to_u16.h"
-#include <map>
-#include <list>
-#include <vector>
-#include <string>
+#include "Charon.h"
 #include <boost/shared_array.hpp>
+
 
 void quantize_height_tiles_to_u16 ()
 {
@@ -30,7 +28,7 @@ void quantize_height_tiles_to_u16 ()
  printf ("\nopen tif: %s", mars_terr::kFiles[ity]);
      FIBITMAP* img = FreeImage_Load (mars_terr::kFIF_fmt[ity], mars_terr::kFiles[ity]);
 
-      ut::ptru dat; 
+      ptru dat; 
       if (img) 
          dat.v = FreeImage_GetBits (img) ; 
       else 

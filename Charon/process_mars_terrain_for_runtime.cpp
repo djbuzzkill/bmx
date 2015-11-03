@@ -1,13 +1,10 @@
 #include "process_mars_terrain_for_runtime.h"
 
-#include <map>
-#include <list>
-#include <vector>
-#include <string>
 
-#include <boost/shared_array.hpp>
 
 #include <FreeImage.h>
+#include "Charon.h"
+
 
 void process_mars_terrain_for_runtime ()
 {
@@ -78,11 +75,11 @@ void process_mars_terrain_for_runtime ()
       {
          size_t      sizeOf_pixel = mars_terr::kWd * 4;
          FIBITMAP*   img          = FreeImage_Load (mars_terr::kFIF_fmt[itx], mars_terr::kFiles[itx]);  
-         ut::ptru        src          = { FreeImage_GetBits (img) }; 
+         ptru        src          = { FreeImage_GetBits (img) }; 
 
          if (linebuff.size () < (sizeOf_pixel * mars_terr::kTexture_dim))
             linebuff.resize (sizeOf_pixel * mars_terr::kTexture_dim);
-         ut::ptru ptr = { linebuff.data() }; 
+         ptru ptr = { linebuff.data() }; 
 
          //case 0: // color txr
          //case 1: // height txr

@@ -16,26 +16,5 @@
 
 #include <Dx/Utility.h>
 
-#define MARS_DRIVE "E:/" 
-#define SHADER_DRIVE "C:/"
-
-namespace mars_terr
-{
-   extern const char                kBase_path[]; 
-   extern const char                kTile_subp[]; 
-   extern const char                kShader_subp[]; 
-   extern const char                kShader_name[];
-   extern const char*               kShader_ext[];
-   extern const GLuint              kShader_types[];
-   extern const char*               kFiles[];
-   extern const std::string         kType[];
-   extern const FREE_IMAGE_FORMAT   kFIF_fmt[];
-   extern const size_t              kNum_files; 
-   extern const int                 kTexture_dim; 
-   extern const int                 kNum_X_tiles;  
-   extern const int                 kNum_Y_tiles;  
-   extern const unsigned            kWd; 
-   extern const unsigned            kHt; 
-}
 
 #endif
