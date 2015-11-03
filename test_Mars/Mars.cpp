@@ -400,6 +400,7 @@ void Mars_test::init_graphics (sy::System_context* sys)
 {
    glewInit (); 
 
+
    bg_renderer->Initialize_draw_context (); 
 }
 
@@ -420,25 +421,28 @@ Mars_test::~Mars_test ()
    Deinitialize (0); 
 }
 
+//const std::string MARS_TILE_PATH = "F:/Quarantine/Mars/";
+const std::string MARS_TILE_PATH = "C:/Quarantine/awsum/Mars/tile/";
 
-std::string igm_tile_name (int Y, int X)
+
+std::string igm_tile_name(int Y, int X)
 {
    std::stringstream oss; 
-   oss << "F:/Quarantine/Mars/" << "mars_tile_2f32_" << Y << "_" << X << ".igm"; 
+   oss << MARS_TILE_PATH << "mars_tile_2f32_" << Y << "_" << X << ".igm";
    return oss.str ();    
 }
 
 std::string height_tile_name (int Y, int X)
 {
    std::stringstream oss; 
-   oss << "F:/Quarantine/Mars/" << "mars_tile_f32_" << Y << "_" << X << ".hgt"; 
+   oss << MARS_TILE_PATH << "mars_tile_f32_" << Y << "_" << X << ".hgt";
    return oss.str(); 
 }
 
 std::string color_tile_name (int Y, int X) 
 {
    std::stringstream oss; 
-   oss << "F:/Quarantine/Mars/" << "mars_tile_f32_" << Y << "_" << X << ".col"; 
+   oss << MARS_TILE_PATH << "mars_tile_f32_" << Y << "_" << X << ".col";
    return oss.str(); 
 }
 
@@ -451,6 +455,28 @@ std::string normal_tile_name (int Y, int X)
 }
 
 //
+void Make_tiles_from_image ()
+{
+   // tile dim: 7x17
+   const int kXdim = 10; 
+   const int kYdim = 10; 
+
+   FreeImage_Initialise();
+
+   for (int iY = 0; iY < kYdim; iY++)
+   { 
+      for (int iX = 0; iX < kXdim; iX++)
+      {
+         std::string fname_hgt = height_tile_name(iY, iX);
+         std::string fname_col = color_tile_name (iY, iX);
+      }
+   }
+
+   FreeImage_DeInitialise();
+}
+
+
+//
 int Mars_test::Initialize (sy::System_context* sys)
 {
    // Make_Mars_tiles (); 
@@ -459,6 +485,7 @@ int Mars_test::Initialize (sy::System_context* sys)
 
    init_graphics (sys); 
 
+   FreeImage_Initialise();
 
 
    //
@@ -763,6 +790,7 @@ int Mars_test::Deinitialize (sy::System_context*)
       v.push_back (mars.patch[i].hgt_ID); 
    }
    glDeleteTextures (num_tx_ids, v.data()); 
+
 
    return 0;
 }

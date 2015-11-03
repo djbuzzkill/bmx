@@ -313,12 +313,13 @@ void GL_HWT_renderer::Tesselation_factors (float inner, float outer)
    tessOuter = outer; 
 }
 
-#define HWTESS_ROOT "C:/Quarantine/hardcore/hwtess_Mars/shader/"
+
+const std::string HWTESS_SHADER_PATH = "C:/Quarantine/awsum/Mars/shader/";
 GL_HWT_renderer::GL_HWT_renderer ()  
-   : vp_fname(HWTESS_ROOT "bg_hwtess.vp")
-   , te_fname(HWTESS_ROOT "bg_hwtess.te")
-   , tc_fname(HWTESS_ROOT "bg_hwtess.tc")
-   , fp_fname(HWTESS_ROOT "bg_hwtess.fp")
+   : vp_fname(HWTESS_SHADER_PATH + "bg_hwtess.vp")
+   , te_fname(HWTESS_SHADER_PATH + "bg_hwtess.te")
+   , tc_fname(HWTESS_SHADER_PATH + "bg_hwtess.tc")
+   , fp_fname(HWTESS_SHADER_PATH + "bg_hwtess.fp")
 
    , shader_Table    ()
    , uniformLoc_map  ()

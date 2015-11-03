@@ -7,15 +7,11 @@ project (test_GL4_experiment)
 set (TEST_GL4_HEADER_FILES
    "mars_terr.h"
 	"test_GL4_experiment.h"
-   "process_mars_terrain_for_runtime.h"
-   "quantize_height_tiles_to_u16.h"
 	)
 	
 	
 set (TEST_GL4_SOURCE_FILES
 	"test_GL4_experiment.cpp"
-   "process_mars_terrain_for_runtime.cpp"
-   "quantize_height_tiles_to_u16.cpp"
 	)
 
 add_executable (test_GL4_experiment

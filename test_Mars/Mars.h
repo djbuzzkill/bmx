@@ -26,6 +26,9 @@
 #include <algorithm>
 #include <sstream>
 
+#include <boost/gil/gil_all.hpp>
+
+#include "FreeImage.h"
 #include <boost/shared_array.hpp>
 //#include "resource.h"
 

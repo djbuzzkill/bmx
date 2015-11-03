@@ -17,7 +17,7 @@
 #include <Dx/Utility.h>
 
 #include <SDL2_platform/SDL2_platform.h>
-#include <BG_renderer/BG_renderer.h>
+#include <Terrain_renderer/Terrain_renderer.h>
 
 //#include <SDL2/SDL_opengl.h>
 #include <GL/glew.h>
