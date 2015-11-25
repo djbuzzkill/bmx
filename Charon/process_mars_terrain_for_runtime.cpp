@@ -1,8 +1,4 @@
 #include "process_mars_terrain_for_runtime.h"
-
-
-
-#include <FreeImage.h>
 #include "Charon.h"
 
 

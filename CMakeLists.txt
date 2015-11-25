@@ -4,7 +4,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project (Hardcore)
 
 
-
 if (CMAKE_CL_64)
 	set (FREEIMAGE_LIB_DIR "x64")
 	set (SDL2_PLATFORM_LIB_DIR "x64")
@@ -45,13 +44,13 @@ link_directories (
 	$ENV{FREETYPE2_ROOT}/lib/
 	)
 
+# add_subdirectory (test_GL4_experiment)
 
 add_subdirectory (Dx)
 add_subdirectory (SDL2_platform)
 add_subdirectory (OpenGL_system)
 add_subdirectory (Terrain_renderer)
+add_subdirectory (Charon)
 
-add_subdirectory (test_GL4_experiment)
 add_subdirectory (test_Mars)
 add_subdirectory (test_Cubes)
-add_subdirectory (Charon)

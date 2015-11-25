@@ -31,6 +31,7 @@ target_link_libraries (test_Mars
 	SDL2main
 	SDL2_platform
 	FreeImage
+	Charon
 	Terrain_renderer
 	)
 

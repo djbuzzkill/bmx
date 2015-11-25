@@ -45,7 +45,6 @@ public:
    SDL_window (const std::string& title, sy::Window_listener* ls, int wd, int ht, uint32_t flags_) 
       : win_ (SDL_CreateWindow (title.c_str(), sy::Window::kDef_window_X_pos, sy::Window::kDef_window_Y_pos, wd, ht, flags_), SDL_DestroyWindow) 
    {
-
       //SDL_Rect rect; 
       //SDL_GetDisplayBounds (0, &rect); 
       SDL_assert (win_); 
@@ -79,17 +78,14 @@ public:
    //
 	virtual int setup_display ()
    {
-      gl_ =  ::SDL_GL_CreateContext(win_.get()); 
+      gl_ = ::SDL_GL_CreateContext(win_.get());
 
       ::SDL_GL_MakeCurrent (win_.get(), gl_); 
-
       ::SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, k_GL_Major_version);
       ::SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, k_GL_Minor_version);
-
       ::SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
       ::SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-      
-
+      ::SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
       int supportec_extensions[] = { 
 

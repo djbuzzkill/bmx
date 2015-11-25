@@ -1,6 +1,6 @@
 #include "quantize_height_tiles_to_u16.h"
 #include "Charon.h"
-#include <boost/shared_array.hpp>
+
 
 
 void quantize_height_tiles_to_u16 ()
@@ -14,7 +14,8 @@ void quantize_height_tiles_to_u16 ()
    const size_t npxls = mars_terr::kWd * mars_terr::kHt; 
 
    std::vector<float> v (npxls, 0.0f); 
-   size_t ntiles = mars_terr::kNum_Y_tiles * mars_terr::kNum_X_tiles; 
+   const size_t ntiles = 
+         mars_terr::kNum_Y_tiles * mars_terr::kNum_X_tiles; 
 
    const size_t sizeOf_src = npxls * sizeof(float) ; 
    const size_t sizeOf_dst = npxls * sizeof(unsigned short) ; 

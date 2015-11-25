@@ -17,29 +17,23 @@
 #include <boost/assert.hpp>
 #include <boost/shared_array.hpp>
 
-
+#include <Dx/Render.h>
 //
-//
-template<typename Ty>
-   struct Plane { Ty A, B, C, D; 
-   }; 
-
-typedef Plane<double> Planed; 
 //
 
 struct View_params
 {
-   glm::dvec3 pos;
-   glm::dvec3 rot; 
+   glm::fvec3 pos;
+   glm::fvec3 rot; 
 
-   double FoV; 
-   double Asp_ratio;
-   double dist_Near;
-   double dist_Far; 
+   float FoV; 
+   float Asp_ratio;
+   float dist_Near;
+   float dist_Far; 
 }; 
 
-void Validate_GL_call (); 
-GLenum GL_TEXTURE_stage (int stage); 
+void     Validate_GL_call (); 
+GLenum   GL_TEXTURE_stage (int stage); 
 
 namespace BG_tile
 {
@@ -299,17 +293,15 @@ unsigned short* Generate_tri_grid_indices_u16 (
 
 
 
+
+
 struct Renderable; 
 // BackgroundRenderer
 
 struct Terrain_renderer 
 {
-
    struct   tx_ID_pair { GLuint c, h; }; 
-   typedef std::map<BG_tile::Key, tx_ID_pair, BG_tile::less_than> TextureIDMap; 
-   typedef std::map<std::string, GLint>                           AttributeMap; 
-   typedef std::map<std::string, GLint>                           UniformMap; 
-   typedef std::map<std::string, GLuint>                          ShaderTable; 
+   typedef std::map<BG_tile::Key, tx_ID_pair, BG_tile::less_than> TextureIDMap;
 
    static Terrain_renderer* Create(std::string& rtype);
 
@@ -351,7 +343,7 @@ struct Renderable
    virtual GLuint       Bin_ID() = 0; 
    virtual GLuint       ROp_ID() = 0; 
 
-   virtual void         Setup_RS(const Terrain_renderer::UniformMap& uniformMap, const Terrain_renderer::AttributeMap& attribMap) = 0;
+   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap) = 0;
                                    
 protected: 
    Renderable () { }

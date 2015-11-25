@@ -1,85 +1,21 @@
 
 #include "Cubes.h"
-#include "Charon.h"
 
+const int kInitial_window_width     = 1024;
+const int kInitial_window_height    = 768;
 
-const int kInitial_window_width  = 1024;
-const int kInitial_window_height = 768;
-
-static double  kNear_plane_dist    = 200.0;
-static double  kFar_plane_dist     = 30000.0;
-static double  kPerspective_FoV    = 60.0; 
+static double  kNear_plane_dist     = 200.0;
+static double  kFar_plane_dist      = 30000.0;
+static double  kPerspective_FoV     = 60.0; 
 const float    kMaskVal             = -2553.0f;
 
 void Make_Mars_tiles       ();
 void Make_Mars_normal_map  (float height_scale); 
 
-template<typename Ty> 
-struct sh_arr : public boost::shared_array<Ty> {
-   sh_arr (Ty* p) : boost::shared_array<Ty> (p) { 
-   }
-   sh_arr () : boost::shared_array<Ty> () { 
-   }
 
-}; 
-
-void wat ()
-{
+void wat () {
    int i = 0; i++; 
-}
-
-   struct EN_coord 
-      { 
-   double e; double n; 
-      }; 
-
-   template<typename Ty> struct minmax 
-      { 
-   Ty mn, mx; 
-      };
-
-
-   EN_coord& EN_incr (EN_coord& a, const EN_coord& b)
-      {
-   a.e += b.e;
-   a.n += b.n;
-   return a; 
-      }
-
-   EN_coord EN_add (const EN_coord& a, const EN_coord& b)
-      {
-   EN_coord coord = { a.e + b.e, a.n + b.n }; 
-   return coord; 
-      } 
-
-   EN_coord EN_sub (const EN_coord& a, const EN_coord& b)
-      {
-   EN_coord EN = { a.e - b.e, a.n - b.n }; 
-   return EN; 
-      } 
-
-   double EN_dot (const EN_coord& a, const EN_coord& b)
-      {
-   return a.e * b.e + a.n * b.n; 
-      }
-
-   double EN_dist (const EN_coord& a, const EN_coord& b)
-      {
-   EN_coord v = EN_sub (b, a);
-   return sqrt (EN_dot (v, v)); 
-      }
-
-   EN_coord EN_dir (const EN_coord& a)
-      {
-   EN_coord v0 = {0.0, 0.0}; 
-   double l = 1.0 / EN_dist (a, v0); 
-   EN_coord v = { a.e*l, a.n*l }; 
-   return v; 
-      }
-
-
-
- 
+   }
 
 //
 //
@@ -91,17 +27,16 @@ struct Simple_obj : public Renderable
 
    virtual glm::dvec3&  Get_pos  () { return pos; } 
    virtual glm::dvec3&  Get_rot  () { return rot; } 
-   virtual GLuint       Bin_ID() { return 0; } 
-   virtual GLuint       ROp_ID() { return 0; } 
+   virtual GLuint       Bin_ID   () { return 0; } 
+   virtual GLuint       ROp_ID   () { return 0; } 
 
-   virtual void         Setup_RS(const Terrain_renderer::UniformMap& uniformMap, const Terrain_renderer::AttributeMap& attribMap)
+   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
    {}
 
-   glm::dvec3                 pos; 
-   glm::dvec3                 rot; 
-   glm::dvec3                 scl; 
-
-   GLuint                     txrID; 
+   glm::dvec3           pos; 
+   glm::dvec3           rot; 
+   glm::dvec3           scl; 
+   GLuint               txrID; 
    }; 
 
 //
@@ -119,12 +54,12 @@ struct Light_obj : public Renderable
    Light_obj () { 
       }
 
-   virtual glm::dvec3&  Get_pos  () { return pos; } 
-   virtual glm::dvec3&  Get_rot  () { return rot; } 
+   virtual glm::dvec3&  Pos   () { return pos; } 
+   virtual glm::dvec3&  Rot   () { return rot; } 
    virtual GLuint       Bin_ID() { return 0; } 
    virtual GLuint       ROp_ID() { return 0; } 
 
-   virtual void         Setup_RS(const Terrain_renderer::UniformMap& uniformMap, const Terrain_renderer::AttributeMap& attribMap)
+   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
    {}
       
    Type                       type; 
@@ -143,11 +78,11 @@ struct Light_obj : public Renderable
 //
 // FUNC Update_view_transform 
 void Update_view_transform (
-	glm::dvec3&				view_Pos, 
-	glm::dvec3&				view_Rot, 
-	double 					   move_Rate,
-	const sy::Keyboard_state& kb,    
-	const sy::Mouse_state&    ms)
+	glm::fvec3&				      view_Pos, 
+	glm::fvec3&				      view_Rot, 
+	float					         move_Rate,
+	const sy::Keyboard_state&  kb,    
+	const sy::Mouse_state&     ms)
 {
 
    const double kDeg2Pi = Ma::Pi / 180.0f; 
@@ -183,15 +118,15 @@ void Update_view_transform (
    
    // view movement
    {
-      const glm::dvec3 kX_axis (1.0, 0.0, 0.0); 
-      const glm::dvec3 kY_axis (0.0, 1.0, 0.0); 
-      const glm::dvec3 kZ_axis (0.0, 0.0, 1.0); 
+      const glm::fvec3 kX_axis (1.0f, 0.0f, 0.0f); 
+      const glm::fvec3 kY_axis (0.0f, 1.0f, 0.0f); 
+      const glm::fvec3 kZ_axis (0.0f, 0.0f, 1.0f); 
 
 
-      glm::dvec3 dirForward  = glm::rotateY (kZ_axis, view_Rot[1] ); 
-      glm::dvec3 dirRight    = glm::rotateY (kX_axis, view_Rot[1] ); 
+      glm::fvec3 dirForward  = glm::rotateY (kZ_axis, view_Rot[1] ); 
+      glm::fvec3 dirRight    = glm::rotateY (kX_axis, view_Rot[1] ); 
           
-      Ma::Vec3d v  ;
+      Ma::Vec3f v  ;
 
       //
       if (sy::Is_keydown (sy::SC_F, kb)) 
@@ -457,7 +392,7 @@ private:
    
 
    MRT_frame_buffer              framebuffer;
-   View_params                   view_Params;
+   View_params                   viewparams;
 
    struct DeferDat {
       std::vector<Light_obj>     lights; 
@@ -513,8 +448,7 @@ void Defer_test::init_graphics (sy::System_context* sys)
 {
    glewInit (); 
 
-   ilInit (); 
-
+   
 }
 
 void Defer_test::initialize_graphics_objects () 
@@ -544,12 +478,12 @@ int Defer_test::Initialize (sy::System_context* sys)
    init_graphics (sys); 
 
    
-   view_Params.pos[0] = 0.0; 
-   view_Params.pos[1] = 9.0;
-   view_Params.pos[2] = 0.0; 
+   viewparams.pos[0] = 0.0; 
+   viewparams.pos[1] = 9.0;
+   viewparams.pos[2] = 0.0; 
 
-   view_Params.rot[0] = glm::pi<double>(); 
-   view_Params.rot[1] = glm::pi<double>(); 
+   viewparams.rot[0] = glm::pi<double>(); 
+   viewparams.rot[1] = glm::pi<double>(); 
 
    //
    initialize_graphics_objects (); 
@@ -619,13 +553,13 @@ void Defer_test::update_input (sy::System_context* sys)
 //      bg_renderer->Patch_scale (mars.patchScale.x, mars.patchScale.y, mars.patchScale.z); 
 
       double camera_y_asp = double (view_dim[0]) / double(view_dim[1]); 
-      view_Params.FoV = Ma::Pi * kPerspective_FoV / 180.0;
-      view_Params.Asp_ratio = camera_y_asp ; 
-      view_Params.dist_Near = kNear_plane_dist; 
-      view_Params.dist_Far =  kFar_plane_dist; 
+      viewparams.FoV = Ma::Pi * kPerspective_FoV / 180.0;
+      viewparams.Asp_ratio = camera_y_asp ; 
+      viewparams.dist_Near = kNear_plane_dist; 
+      viewparams.dist_Far =  kFar_plane_dist; 
       static double Dt = 20.0;
       // -> is a quat mars.view_Rot, not euler
-      Update_view_transform (view_Params.pos, view_Params.rot, Dt , kb, ms); 
+      Update_view_transform (viewparams.pos, viewparams.rot, Dt , kb, ms); 
    } 
      
 }

@@ -1,40 +1,34 @@
 #ifndef CHARON_INCLUDE
 #define CHARON_INCLUDE
 
-#include <memory>
-#include <memory.h>
 
 // C RunTime Header Files
 #include <cstdlib>
-#include <malloc.h>
+#include <memory>
+#include <numeric>
+#include <utility>
+#include <algorithm>
 #include <string>
-
 #include <sstream>
 #include <iomanip>
+#include <vector>
 #include <list>
 #include <map>
+#include <tuple>
 
-#include <GL/glew.h>
-
+#include "GL/glew.h"
 #include <glm/glm.hpp>  
 #include <glm/ext.hpp>
 
 #include "FreeImage.h"
 
+#include <Dx/System.h>
+#include <Dx/Utility.h>
+#include <Dx/VecMath.h>
+
 #include <boost/lexical_cast.hpp>
 #include <boost/shared_array.hpp>
-
-//#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-//#include <windows.h>
-//#include "OIS.h"
-//#include "btBulletCollisionCommon.h"
-
-#include <Dx/VecMath.h>
-#include <Dx/System.h>
-
-// C++11
-#include<iterator>
-
+#include <boost/assert.hpp>
 
 #include "process_mars_terrain_for_runtime.h"
 #include "quantize_height_tiles_to_u16.h"
@@ -56,6 +50,35 @@ typedef unsigned long long    u64;
 #define MARS_DRIVE "E:/" 
 #define SHADER_DRIVE "C:/"
 
+
+void wat();
+
+template<typename Ty> 
+   Ty* As(void* v) {
+   return static_cast<Ty*>(v);
+   }
+
+template<typename Ty> 
+struct sh_arr : public boost::shared_array<Ty> {
+   sh_arr (Ty* p) : boost::shared_array<Ty> (p) { 
+   }
+   sh_arr () : boost::shared_array<Ty> () { 
+   }
+}; 
+
+//
+// FUNC Update_view_transform 
+void Update_view_transform (
+   glm::fvec3&				      view_Pos,
+   glm::fvec3&				      view_Rot,
+   float                      move_Rate,
+   const sy::Keyboard_state&  kb,
+   const sy::Mouse_state&     ms
+   );
+
+
+//
+//
 namespace mars_terr
 {
    extern const char                kBase_path[]; 
@@ -75,6 +98,43 @@ namespace mars_terr
    extern const unsigned            kHt; 
 }
 
+
+std::string index_2_str (int X, int Y);
+bool        str_2_index (int &X, int& Y, const std::string& s);
+
+void generate_height_tiles (
+   std::string fname,
+   std::string basename,
+   int         in_width,
+   int         in_height,
+   std::string outpath,
+   int         numxtiles,
+   int         numytiles,
+   double      scale
+   );
+
+void generate_color_tiles (
+   std::string fname,
+   std::string basename,
+   int         in_width,
+   int         in_height,
+   std::string outpath,
+   int         numxtiles,
+   int         numytiles
+   );
+
+void generate_normal_tiles (
+   std::string fname          ,
+   std::string basename       ,
+   int         in_width,
+   int         in_height,
+   std::string outpath,
+   int         numxtiles,
+   int         numytiles
+   );
+
+
+//
 namespace Humanoid
 {
    enum ActionState
@@ -136,9 +196,9 @@ inline Ty str_to(const std::string& str) {
    return boost::lexical_cast<Ty>(str);
    }
 
-template<typename _Ty>
-inline void DontCare(_Ty& x) {
-   (void)x;
+template<typename Ty>
+inline void DontCare(Ty& x) {
+   (void) x;
    }
 
 

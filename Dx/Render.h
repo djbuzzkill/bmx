@@ -7,6 +7,32 @@ namespace Rn
 {
 	class Renderer; 
 
+   typedef std::map<std::string, int>           AttributeMap;
+   typedef std::map<std::string, int>           UniformMap;
+   typedef std::map<std::string, unsigned int>  ShaderTable;
+
+   union vecptru {
+      float*  f;
+      double* d;
+
+      Ma::Vec2f*  f2;
+      Ma::Vec2d*  d2;
+
+      Ma::Vec3f*  f3;
+      Ma::Vec3d*  d3;
+
+      Ma::Vec4f*  f4;
+      Ma::Vec4d*  d4;
+
+      Ma::Vec4i*  i4;
+      Ma::Vec4ui* ui4;
+
+      Ma::Vec4s*  s4;
+      Ma::Vec4us* us4;
+
+   };
+   struct Shader_constant {};
+
 	//
 	// ProjectionState - load perspective GL projection 
 	void ProjectionState (
@@ -97,8 +123,6 @@ namespace Rn
 	typedef std::list<std::string>		StringList; 
 	typedef std::vector<std::string>	StringArray; 
 
-	typedef std::map<std::string, unsigned int>	AttributeMap; 
-	typedef std::map<std::string, int>	UniformMap; 
 
 
 	// abstract GL enums

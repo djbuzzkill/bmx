@@ -1,92 +1,41 @@
 
 #include "Mars.h"
-#include "Dx/VecMath.h"
-
-
-
 
 const int kInitial_window_width  = 1024;
 const int kInitial_window_height = 768;
 
-static double  kNear_plane_dist    = 200.0;
-static double  kFar_plane_dist     = 30000.0;
+static double  kNear_plane_dist    = 10.0;
+static double  kFar_plane_dist     = 8000.0;
 static double  kPerspective_FoV    = 60.0; 
 const float    kMaskVal             = -2553.0f;
 
 void Make_Mars_tiles       ();
 void Make_Mars_normal_map  (float height_scale); 
 
-template<typename Ty> 
-struct sh_arr : public boost::shared_array<Ty> {
-   sh_arr (Ty* p) : boost::shared_array<Ty> (p) { 
-   }
-   sh_arr () : boost::shared_array<Ty> () { 
-   }
 
-}; 
+//
+//
 
-void wat ()
+
+std::string igm_tile_name(int X, int Y)
 {
-   int i = 0; i++; 
+   return ("mars_tile_2f32_" + index_2_str (Y, X) + ".igm");
 }
 
-   struct EN_coord 
-      { 
-   double e; double n; 
-      }; 
+std::string height_tile_name (int Y, int X)
+{
+   return ("mars_tile_f32_" + index_2_str(Y, X) + ".hgt");
+}
 
-   template<typename Ty> struct minmax 
-      { 
-   Ty mn, mx; 
-      };
+std::string color_tile_name (int Y, int X)
+{
+   return ("mars_tile_f32_" + index_2_str(Y, X) + ".col");
+}
 
-
-   EN_coord& EN_incr (EN_coord& a, const EN_coord& b)
-      {
-   a.e += b.e;
-   a.n += b.n;
-   return a; 
-      }
-
-   EN_coord EN_add (const EN_coord& a, const EN_coord& b)
-      {
-   EN_coord coord = { a.e + b.e, a.n + b.n }; 
-   return coord; 
-      } 
-
-   EN_coord EN_sub (const EN_coord& a, const EN_coord& b)
-      {
-   EN_coord EN = { a.e - b.e, a.n - b.n }; 
-   return EN; 
-      } 
-
-   double EN_dot (const EN_coord& a, const EN_coord& b)
-      {
-   return a.e * b.e + a.n * b.n; 
-      }
-
-   double EN_dist (const EN_coord& a, const EN_coord& b)
-      {
-   EN_coord v = EN_sub (b, a);
-   return sqrt (EN_dot (v, v)); 
-      }
-
-   EN_coord EN_dir (const EN_coord& a)
-      {
-   EN_coord v0 = {0.0, 0.0}; 
-   double l = 1.0 / EN_dist (a, v0); 
-   EN_coord v = { a.e*l, a.n*l }; 
-   return v; 
-      }
-
-
-//
-//
-union ptru 
-   {
-void* v;  float* f;  double* d;  unsigned char* uc;  char* c;  unsigned short* us;  short* s; EN_coord* en;  
-   }; 
-
+std::string normal_tile_name (int Y, int X)
+{
+   return ("F:/Quarantine/Mars/" + index_2_str (Y, X) + ".nrm");
+}
 
 
 
@@ -153,14 +102,15 @@ void* v;  float* f;  double* d;  unsigned char* uc;  char* c;  unsigned short* u
 // };
 // 
 // 
-// STRUCT Mars_patch 
-struct Mars_patch : public Renderable 
+// STRUCT Terrain_patch 
+struct Terrain_patch : public Renderable
    {
+   
 
-   Mars_patch () : pos(), rot(), col_ID(0), hgt_ID(0) {
+   Terrain_patch() : pos(), rot(), col_ID(0), hgt_ID(0) {
       } 
    
-   Mars_patch (  
+   Terrain_patch(
       const glm::dvec3& p, 
       const glm::dvec3& r)  
    : pos(p), rot(r) , col_ID(0), hgt_ID(0) {
@@ -171,7 +121,7 @@ struct Mars_patch : public Renderable
    virtual GLuint       Bin_ID() { return 0; } 
    virtual GLuint       ROp_ID() { return 0; } 
    
-   virtual void Setup_RS(const Terrain_renderer::UniformMap& uniformMap, const Terrain_renderer::AttributeMap& attribMap)
+   virtual void Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
    {
       bool  use_height_texture   = true; 
       int   texture_stage        = 0;
@@ -179,8 +129,8 @@ struct Mars_patch : public Renderable
       BOOST_ASSERT (uniformMap.count ("heightMap")   ); 
       BOOST_ASSERT (uniformMap.count ("colorMap")    ); 
 
-      Terrain_renderer::UniformMap::const_iterator hgt_It    = uniformMap.find ("heightMap"); 
-      Terrain_renderer::UniformMap::const_iterator col_It    = uniformMap.find ("colorMap"); 
+      Rn::UniformMap::const_iterator hgt_It    = uniformMap.find ("heightMap"); 
+      Rn::UniformMap::const_iterator col_It    = uniformMap.find ("colorMap"); 
       
       // setup height texture
       if (use_height_texture)
@@ -219,102 +169,15 @@ struct Mars_patch : public Renderable
 
    } 
 
-   glm::dvec3                 pos; 
-   glm::dvec3                 rot; 
-   GLuint                     col_ID; 
-   GLuint                     hgt_ID; 
+   glm::dvec3  pos; 
+   glm::dvec3  rot; 
+   GLuint      col_ID; 
+   GLuint      hgt_ID;
+   GLuint      nrm_ID;
 
 protected: 
 
    }; 
-
-
-//
-// FUNC Update_view_transform 
-void Update_view_transform (
-	glm::dvec3&				view_Pos, 
-	glm::dvec3&				view_Rot, 
-	double 					   move_Rate,
-	const sy::Keyboard_state& kb,    
-	const sy::Mouse_state&    ms)
-{
-
-   const double kDeg2Pi = Ma::Pi / 180.0f; 
-   const double fHalfPi = Ma::HalfPi;
-
-
-   static float dYdx = 0.75f; 
-   static float dXdy = 0.75f; 
-   
-   Ma::Vec3d dir_Fwd, dir_Right, dir_Up; 
-
-   Ma::Set (dir_Up, 0.0, 1.0, 0.0); 
-
-   {
-      if (ms.yRel || ms.yRel)
-      {
-         wat (); 
-      }
-
-      view_Rot[0] -= kDeg2Pi * (ms.yRel * dYdx);
-      view_Rot[1] -= kDeg2Pi * (ms.xRel * dXdy);
-      view_Rot.z = 0.0; 
-
-      Ma::Vec3f v_t;
-      // (\ spherical.theta(0).phi(0)) => <1, 0, 0>
-      Ma::Spherical (v_t, 0.0f, 0.0f);
-      Ma::Spherical (dir_Fwd,    kDeg2Pi * view_Rot[1] - Ma::HalfPi, 0.0);
-      Ma::Spherical (dir_Right,  kDeg2Pi * view_Rot[1], 0.0); 
-      Ma::X (dir_Right);
-   }
-   
-   
-   
-   // view movement
-   {
-      const glm::dvec3 kX_axis (1.0, 0.0, 0.0); 
-      const glm::dvec3 kY_axis (0.0, 1.0, 0.0); 
-      const glm::dvec3 kZ_axis (0.0, 0.0, 1.0); 
-
-
-      glm::dvec3 dirForward  = glm::rotateY (kZ_axis, view_Rot[1] ); 
-      glm::dvec3 dirRight    = glm::rotateY (kX_axis, view_Rot[1] ); 
-          
-      Ma::Vec3d v  ;
-
-      //
-      if (sy::Is_keydown (sy::SC_F, kb)) 
-         {
-         view_Pos -= move_Rate * dirForward; 
-   	   }
-      else 
-      if (sy::Is_keydown (sy::SC_V, kb)) 
-         {
-         view_Pos += move_Rate * dirForward; 
-   	   }
-   
-      //
-      if (sy::Is_keydown (sy::SC_D, kb)) {
-         view_Pos -= move_Rate * dirRight; 
-   	   }
-      else 
-      if (sy::Is_keydown (sy::SC_G, kb)) {
-         view_Pos += move_Rate * dirRight; 
-   	   }
-
-      //
-      if (sy::Is_keydown (sy::SC_A, kb)) {
-         view_Pos.y += move_Rate; 
-   	   }
-      else
-      if (sy::Is_keydown (sy::SC_Z, kb)) {
-         view_Pos.y -= move_Rate; 
-   	   }
-
-
-   }   
-
-}
 
 
 
@@ -340,14 +203,13 @@ class Mars_test : public sy::RT_Task, public sy::Window_listener, public cx::Des
    static const int img_X_dim;
    static const int img_Y_dim; 
 
-
-
    // 
    std::shared_ptr<Terrain_renderer>      bg_renderer; 
    std::shared_ptr<sy::Graphics_window>   windo; 
    bool                                   init_; 
    glm::ivec2                             view_dim; 
-   
+   View_params                            viewparams;
+
    float tessFactor; 
 
    struct MarsDat
@@ -356,13 +218,14 @@ class Mars_test : public sy::RT_Task, public sy::Window_listener, public cx::Des
       // sh_arr<float>                    height_Tiles; 
       // sh_arr<unsigned char>            color_Tiles; 
       // sh_arr<GLuint>                   txr_IDs; 
-      View_params                      view_Params;
-      Terrain_params                   terrain; 
-      std::vector<Mars_patch>          patch;                       
-      std::vector<Renderable*>         robjs; 
-      glm::fvec3                       patchScale; 
+      Terrain_params             terrain; 
+      std::vector<Terrain_patch> patch;                       
+      std::vector<Renderable*>   robjs; 
+      glm::fvec3                 patchScale; 
    } mars; 
 
+
+   void init_terrain    (sy::System_context* sys);
    void init_graphics   (sy::System_context* sys);
    void update_input    (sy::System_context* sys); 
    void render          (sy::System_context* sys);
@@ -398,8 +261,8 @@ const std::string Mars_test::kBase_fname        = "/ESP_018065_1975_RED_ESP_0191
 
 void Mars_test::init_graphics (sy::System_context* sys)
 {
+   
    glewInit (); 
-
 
    bg_renderer->Initialize_draw_context (); 
 }
@@ -425,34 +288,104 @@ Mars_test::~Mars_test ()
 const std::string MARS_TILE_PATH = "C:/Quarantine/awsum/Mars/tile/";
 
 
-std::string igm_tile_name(int Y, int X)
+
+
+void make_tiles_from_programmer_art ()
 {
-   std::stringstream oss; 
-   oss << MARS_TILE_PATH << "mars_tile_2f32_" << Y << "_" << X << ".igm";
-   return oss.str ();    
+   
+   bool generate_tiles = false; 
+   
+   FreeImage_Initialise();
+   static bool generate_colors = generate_tiles;
+   if (generate_colors)
+   { // color
+      const std::string fname = "C:/Quarantine/awsum/rando/color_main_00.bin";
+      const std::string basename = "rando_col_";
+      const std::string outpath  = "C:/Quarantine/awsum/rando/tile";
+      generate_color_tiles (fname, basename, 1280, 1280, outpath, 10, 10);
+   }
+   else
+   {
+      const std::string basename = "rando_col_";
+      const std::string outpath  = "C:/Quarantine/awsum/rando/tile";
+      for (int ity = 0; ity < 10; ity++)
+      {
+         for (int itx = 0; itx < 10; itx++)
+         {
+            std::string fcurr = outpath + "/" + basename + index_2_str(ity, itx) + "_3uc.col";
+            std::shared_ptr<FILE> rs(fopen(fcurr.c_str(), "rb"), fclose);
+            std::vector<glm::u8vec3> nrmtile(128 * 128);
+
+            fread(nrmtile.data(), sizeof(glm::u8vec3), 128 * 128, rs.get());
+            nrmtile.size();
+
+         }
+      }
+   }
+
+   static bool generate_height = generate_tiles;
+   if (generate_height)
+   { // height
+      const std::string fname    = "C:/Quarantine/awsum/rando/height_main.bin";
+      const std::string basename = "rando_hgt_";
+      const std::string outpath  = "C:/Quarantine/awsum/rando/tile";
+      float             scale    = 100.0f / 255.0f;
+      generate_height_tiles(fname, basename, 2560, 2560, outpath, 10, 10, scale);
+   }
+   else
+   {
+      const std::string basename = "rando_hgt_";
+      const std::string outpath = "C:/Quarantine/awsum/rando/tile";
+      for (int ity = 0; ity < 10; ity++)
+      {
+         for (int itx = 0; itx < 10; itx++)
+         {
+            std::string fcurr = outpath + "/" + basename + index_2_str(ity, itx) + "_1f.hgt";
+            std::shared_ptr<FILE> rs(fopen(fcurr.c_str(), "rb"), fclose);
+            std::vector<float> nrmtile(256 * 256);
+
+            fread(nrmtile.data(), sizeof(float), 256 * 256, rs.get());
+            nrmtile.size();
+
+         }
+      }
+   }
+
+   static bool generate_normals = generate_tiles;
+   if (generate_normals)
+   {
+      const std::string fname    = "C:/Quarantine/awsum/rando/height_main.bin";
+      const std::string basename = "rando_nrm_";
+      const std::string outpath  = "C:/Quarantine/awsum/rando/tile";
+      float             scale    = 100.0f / 255.0f;
+      generate_normal_tiles (fname, basename, 2560, 2560, outpath, 10, 10);
+   }
+   else
+   {  // examine normal tiles
+      //fname, basename, 2560, 2560, outpath, 10, 10);
+      const std::string basename = "rando_nrm_";
+      const std::string outpath  = "C:/Quarantine/awsum/rando/tile";
+      for (int ity = 0; ity < 10; ity++)
+      {
+         for (int itx = 0; itx < 10; itx++)
+         {
+            std::string fcurr    = outpath + "/" + basename + index_2_str(ity, itx) + "_3f.nrm";
+            std::shared_ptr<FILE> rs(fopen(fcurr.c_str(), "rb"), fclose);
+            std::vector<glm::fvec3> nrmtile(256 * 256);
+
+            fread(nrmtile.data(), sizeof(glm::fvec3), 256 * 256, rs.get());
+            nrmtile.size();
+         }
+      }
+   }
+
+   const std::string root  = "C:/Quarantine/awsum/Mars";
+   const std::string height= "height_main.png"  ;
+   const std::string color = "color_main.00.png";
+
+   FreeImage_DeInitialise();
 }
 
-std::string height_tile_name (int Y, int X)
-{
-   std::stringstream oss; 
-   oss << MARS_TILE_PATH << "mars_tile_f32_" << Y << "_" << X << ".hgt";
-   return oss.str(); 
-}
-
-std::string color_tile_name (int Y, int X) 
-{
-   std::stringstream oss; 
-   oss << MARS_TILE_PATH << "mars_tile_f32_" << Y << "_" << X << ".col";
-   return oss.str(); 
-}
-
-std::string normal_tile_name (int Y, int X)
-{
-   std::stringstream oss; 
-   oss << "F:/Quarantine/Mars/" << "mars_tile_f32_" << Y << "_" << X << ".nrm"; 
-   return oss.str(); 
-
-}
 
 //
 void Make_tiles_from_image ()
@@ -475,19 +408,138 @@ void Make_tiles_from_image ()
    FreeImage_DeInitialise();
 }
 
+double Height_at (double xpos, double zpos)
+{
+   return 0; 
+}
 
+typedef std::tuple<double, double> minmax;
+double& mn(minmax& ext) { return std::get<0>(ext); }
+double& mx(minmax& ext) { return std::get<1>(ext); }
+
+const double& mn(const minmax& ext) { return std::get<0>(ext); }
+const double& mx(const minmax& ext) { return std::get<1>(ext); }
 //
-int Mars_test::Initialize (sy::System_context* sys)
+void Mars_test::init_terrain(sy::System_context* sys)
+{
+   using namespace glm; 
+
+   const int col_dim = 128;
+   const int hgt_dim = 256;
+   const int nrm_dim = 256;
+
+   const int num_col_pxls = col_dim * col_dim;
+   const int num_hgt_pxls = hgt_dim * hgt_dim;
+   const int num_nrm_pxls = nrm_dim * nrm_dim;
+
+   mars.terrain.num_X_tiles         = 10;
+   mars.terrain.num_Y_tiles         = 10;
+   mars.terrain.easting_Tile_step   = 256.0;
+   mars.terrain.northing_Tile_step  = 256.0;
+   mars.terrain.height_offset       = 0.0;
+   mars.terrain.height_range        = 100.0;
+   
+   const std::string tile_root = "C:/Quarantine/awsum/rando/tile";
+
+   const int total_num_tiles = mars.terrain.num_X_tiles * mars.terrain.num_Y_tiles;
+
+   //
+   // prepare terrain/tiles + opengl specific things 
+   int total_tiles = mars.terrain.num_X_tiles * mars.terrain.num_Y_tiles;
+   mars.patch.resize(total_tiles);
+   mars.robjs.resize(total_tiles);
+
+   std::vector<GLuint> txrIDs(3 * total_tiles);
+   glGenTextures(3 * total_tiles, txrIDs.data());
+   for (int i = 0; i < total_tiles; i++)
+   {
+      mars.robjs[i] = &mars.patch[i];
+      mars.patch[i].col_ID = txrIDs[3 * i + 0];
+      mars.patch[i].hgt_ID = txrIDs[3 * i + 1];
+      mars.patch[i].nrm_ID = txrIDs[3 * i + 2];
+   }
+
+   // because imagery is reverse the offsets start on opposite corner
+   double total_Northing_dist = mars.terrain.northing_Tile_step * mars.terrain.num_Y_tiles;
+   double total_Easting_dist = mars.terrain.easting_Tile_step * mars.terrain.num_X_tiles;
+
+   std::vector<u8vec3>  coldat (num_col_pxls);
+   std::vector<float>   hgtdat (num_hgt_pxls);
+   std::vector<fvec3>   nrmdat (num_nrm_pxls);
+
+   // init patch/terrain vars + bind/upload textures 
+   for (int iY = 0; iY < mars.terrain.num_Y_tiles; iY++)
+   {
+      for (int iX = 0; iX < mars.terrain.num_X_tiles; iX++)
+      {
+         int tile_ind = iY * mars.terrain.num_X_tiles + iX;
+
+         const std::string colt = tile_root + "/rando_col_" + index_2_str(iY, iX) + "_3uc.col"; 
+         const std::string hgtt = tile_root + "/rando_hgt_" + index_2_str(iY, iX) + "_1f.hgt"; 
+         const std::string nrmt = tile_root + "/rando_nrm_" + index_2_str(iY, iX) + "_3f.nrm"; 
+
+         std::shared_ptr<FILE> c_(fopen(colt.c_str(), "rb"), fclose);
+         std::shared_ptr<FILE> h_(fopen(hgtt.c_str(), "rb"), fclose);
+         std::shared_ptr<FILE> n_(fopen(nrmt.c_str(), "rb"), fclose);
+
+         fread(coldat.data(), sizeof(u8vec3), num_col_pxls, c_.get());
+         fread(hgtdat.data(), sizeof(float), num_hgt_pxls, h_.get());
+         fread(nrmdat.data(), sizeof(fvec3), num_nrm_pxls, n_.get());
+         // color
+         glBindTexture(GL_TEXTURE_2D, mars.patch[tile_ind].col_ID);
+         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, col_dim, col_dim, 0, GL_RGB, GL_UNSIGNED_BYTE, coldat.data());
+         Validate_GL_call();
+         // height
+         glBindTexture(GL_TEXTURE_2D, mars.patch[tile_ind].hgt_ID);
+         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, hgt_dim, hgt_dim, 0, GL_RED, GL_FLOAT, hgtdat.data());
+         Validate_GL_call();
+         // normal
+         glBindTexture(GL_TEXTURE_2D, mars.patch[tile_ind].nrm_ID);
+         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, nrm_dim, nrm_dim, 0, GL_RED, GL_FLOAT, nrmdat.data());
+         Validate_GL_call();
+
+         // the pos doesnt change
+         mars.patch[tile_ind].pos = glm::dvec3(iX * mars.terrain.easting_Tile_step, 0.0, total_Northing_dist - iY * mars.terrain.northing_Tile_step);
+
+         // always 0 for now
+         mars.patch[tile_ind].rot = glm::dvec3(0.0, 0.0, 0.0);
+      }
+   }
+
+   float ht_range = 100.0;
+
+   mars.patchScale.x = mars.terrain.easting_Tile_step;
+   mars.patchScale.y = 1.0;
+   mars.patchScale.z = mars.terrain.northing_Tile_step;
+
+   bg_renderer->Patch_scale(mars.patchScale.x, mars.patchScale.y, mars.patchScale.z);
+   viewparams.pos[0] = 1000.0;
+   viewparams.pos[1] = Height_at(viewparams.pos[0], viewparams.pos[2]) + 100.0;
+   viewparams.pos[2] = 1000.0;;
+
+   viewparams.rot[0] = 0.5* glm::pi<double>();
+   viewparams.rot[1] = glm::pi<double>();
+
+
+}
+
+int Mars_test::Initialize(sy::System_context* sys)
 {
    // Make_Mars_tiles (); 
+   void* saddr = &sys; 
+   printf ("\naddr: %p", &sys);
 
    windo.reset (sys->Create_GraphicsWindow (this, "hello Mars", kInitial_window_width, kInitial_window_height, false)); 
 
-   init_graphics (sys); 
-
-   FreeImage_Initialise();
+   init_graphics(sys);
 
 
+   minmax colext (0.0, 0.0);
+   mn(colext) = 1.0; 
+   mx(colext) = 1.0; 
+
+
+#ifdef USE_ORIGINAL_MARS_DATA
    //
    // all images are the same dimensions: 6900x17177
    (Mars_test::img_X_dim, Mars_test::img_Y_dim);         
@@ -757,20 +809,25 @@ int Mars_test::Initialize (sy::System_context* sys)
          mars.patch[tile_ind].rot = glm::dvec3 (0.0, 0.0, 0.0); 
       }
    }
-   
-   float ht_range = hgtexts.mx - hgtexts.mn; 
 
-   mars.patchScale.x = mars.terrain.easting_Tile_step ;
-   mars.patchScale.y = 5.0;
+   float ht_range = hgtexts.mx - hgtexts.mn;
+
+   mars.patchScale.x = mars.terrain.easting_Tile_step;
+   mars.patchScale.y = 1.0;
    mars.patchScale.z = mars.terrain.northing_Tile_step ;
 
    bg_renderer->Patch_scale (mars.patchScale.x, mars.patchScale.y, mars.patchScale.z); 
-   mars.view_Params.pos[0] = 0.5 * total_Easting_dist; 
-   mars.view_Params.pos[1] = hgtexts.mx + 100.0;
-   mars.view_Params.pos[2] = 0.5 * total_Northing_dist; 
+   viewparams.pos[0] = 0.0; 
+   viewparams.pos[1] = Height_at (viewparams.pos[0], viewparams.pos[2]) + 2.0;
+   viewparams.pos[2] = 0.0;;
 
-   mars.view_Params.rot[0] = glm::pi<double>(); 
-   mars.view_Params.rot[1] = glm::pi<double>(); 
+   viewparams.rot[0] = glm::pi<double>(); 
+   viewparams.rot[1] = glm::pi<double>(); 
+#else 
+
+   init_terrain (sys);
+
+#endif // USE_ORIGINAL_MARS_DATA   
 
    return 0;
 }
@@ -779,7 +836,7 @@ int Mars_test::Initialize (sy::System_context* sys)
 int Mars_test::Deinitialize (sy::System_context*)
 {
    int num_tiles  = mars.terrain.num_X_tiles * mars.terrain.num_Y_tiles;
-   int num_tx_ids = 2 * num_tiles;
+   int num_tx_ids = 3 * num_tiles;
 
    std::vector<GLuint> v ; 
    v.reserve (num_tx_ids);
@@ -811,17 +868,7 @@ void Mars_test::update_input (sy::System_context* sys)
 {
    sy::Keyboard_state   kb; 
    sy::Mouse_state      ms;
-   sys->Poll_input (ms, kb); 
-
-   if (sy::Is_keydown (sy::SC_LEFTBRACKET, kb))
-      tessFactor -= 0.321f;
-
-   if (sy::Is_keydown (sy::SC_RIGHTBRACKET, kb))
-      tessFactor += 0.321f;
-
-   // clamp
-   tessFactor = glm::clamp (tessFactor , 1.0f, 200.0f); 
-
+   sys->Poll_input(ms, kb);
 
    //
    //
@@ -830,23 +877,34 @@ void Mars_test::update_input (sy::System_context* sys)
       sys->SysReq (sy::SR_Exit); 
    }
    else
-   {
+   {   
+
+      if (sy::Is_keydown (sy::SC_LEFTBRACKET, kb))
+         tessFactor -= 0.0567;
+
+      if (sy::Is_keydown (sy::SC_RIGHTBRACKET, kb))
+         tessFactor += 0.0567;
+
+      // clamp
+      tessFactor = glm::clamp (tessFactor , 1.0f, 200.0f); 
+
+
       if (sy::Is_keydown (sy::SC_H, kb))
-         mars.patchScale.y += 0.2; 
+         mars.patchScale.y += 0.032; 
 
       if (sy::Is_keydown (sy::SC_N, kb))
-         mars.patchScale.y -= 0.2; 
+         mars.patchScale.y -= 0.032;
 
       bg_renderer->Patch_scale (mars.patchScale.x, mars.patchScale.y, mars.patchScale.z); 
 
       double camera_y_asp = double (view_dim[0]) / double(view_dim[1]); 
-      mars.view_Params.FoV = Ma::Pi * kPerspective_FoV / 180.0;
-      mars.view_Params.Asp_ratio = camera_y_asp ; 
-      mars.view_Params.dist_Near = kNear_plane_dist; 
-      mars.view_Params.dist_Far =  kFar_plane_dist; 
-      static double Dt = 20.0;
+      viewparams.FoV = Ma::Pi * kPerspective_FoV / 180.0;
+      viewparams.Asp_ratio = camera_y_asp ; 
+      viewparams.dist_Near = kNear_plane_dist; 
+      viewparams.dist_Far =  kFar_plane_dist; 
+      static float Dt = 0.56;
       // -> is a quat mars.view_Rot, not euler
-      Update_view_transform (mars.view_Params.pos, mars.view_Params.rot, Dt , kb, ms); 
+      Update_view_transform (viewparams.pos, viewparams.rot, Dt, kb, ms);
    } 
      
 }
@@ -864,13 +922,13 @@ void Mars_test::render (sy::System_context* sys)
 
 
 
-   glClearColor (0.2f, 0.15f, 0.1f, 1.0f); 
+   glClearColor (0.0f, 0.05f, 0.3f, 1.0f); 
 
    //
    
    bg_renderer->Tesselation_factors (tessFactor, tessFactor);
    
-   bg_renderer->Draw (mars.view_Params, mars.robjs); 
+   bg_renderer->Draw (viewparams, mars.robjs); 
 
    //
    windo->Swap_buffers (); 
@@ -910,10 +968,11 @@ Mars_test* Create_Mars_test (sy::System_context* sys)
 }
 
 
-// $tarbucks&R3dbull
+
 void Make_Mars_normal_map (float height_scale)
 {
-   using namespace glm; 
+#ifdef USE_ORIGINAL_MARS_DATA
+   using namespace glm;
    const int img_X_dim  = 6900;          
    const int img_Y_dim  = 17177;          
    const int num_pxls   = img_X_dim * img_Y_dim; 
@@ -1065,16 +1124,14 @@ void Make_Mars_normal_map (float height_scale)
    }
 
 
-
-
-
+#endif
 }
 
 //
 // FUNC Make_Mars_tiles 
 void Make_Mars_tiles ()
 {
-
+#ifdef USE_ORIGINAL_MARS_DATA
    const int         kTile_txr_dim     = 1024; 
    const int         kMars_img_X_dim   = 6900;          
    const int         kMars_img_Y_dim   = 17177;          
@@ -1312,6 +1369,8 @@ void Make_Mars_tiles ()
       }
    }
 
+#endif
+
 }
 
 
@@ -1320,7 +1379,10 @@ void Make_Mars_tiles ()
 // main entry
 int main (int argv, char** argc)
    {
-   // Make_Mars_normal_map (1.0f);       
+
+   make_tiles_from_programmer_art();
+
+
 std::shared_ptr<sy::System_context>  sys   (sy::Create_context ()); 
 std::shared_ptr<Mars_test>          mars  (Create_Mars_test (sys.get())); 
 return sy::Run_realtime_task (sys.get(), mars.get()); 

@@ -67,6 +67,9 @@ GLuint Create_shader (const GLchar* shaderSource, GLenum shaderType)
 {
    BOOST_ASSERT (shaderSource); 
  
+   printf("\n Create_shader ()\n\n%s", shaderSource);
+
+
    bool valid_res = false;
 
       const int valid_shader_tpes[] = {   
@@ -122,16 +125,19 @@ GLuint Build_shader_program (const GLuint* shaders)
 {
    GLuint progID = glCreateProgram (); 
 
+
    int count_shaders = 0; 
    while (shaders[count_shaders]) 
    {
-      glAttachShader (progID, shaders[count_shaders]); 
+      Validate_GL_call();
+      glAttachShader(progID, shaders[count_shaders]);
       count_shaders++;
    }   
 
    // 
    // 
    glLinkProgram (progID);
+   Validate_GL_call();
 
 	GLint    linkRes;
 	GLsizei  bufflen;
@@ -141,7 +147,7 @@ GLuint Build_shader_program (const GLuint* shaders)
 	{
 		glGetProgramInfoLog (progID, 1024, &bufflen, outputbuffer);
 
-      printf ("\n%s : Shader Linking Failed: %s\n", __FUNCTIONW__, outputbuffer); 
+      printf ("\nBuild_shader_program() : Shader Linking Failed: %s\n", outputbuffer); 
       //Debug ( "\nGL Info Log :  \n\n %s\n", outputbuffer);
 		//Assert (0, "ShaderProg::Link () - Failed");
       glDeleteProgram (progID); 
@@ -288,9 +294,9 @@ struct GL_HWT_renderer : public Terrain_renderer
    std::string    tc_fname;
    std::string    fp_fname;   
 
-   ShaderTable    shader_Table; 
-   UniformMap     uniformLoc_map; 
-   AttributeMap   attribLoc_map; 
+   Rn::ShaderTable    shader_Table; 
+   Rn::UniformMap     uniformLoc_map; 
+   Rn::AttributeMap   attribLoc_map; 
 
    std::array<glm::dvec3, 4> patch_verts;
    std::array<glm::dvec2, 4> patch_txcds;
@@ -324,7 +330,7 @@ GL_HWT_renderer::GL_HWT_renderer ()
    , shader_Table    ()
    , uniformLoc_map  ()
    , attribLoc_map   ()
-   , patch_Scale     (1000.0f, 1.0f, 1000.0f, 0.0f)
+   , patch_Scale     (1.0f, 1.0f, 1.0f, 0.0f)
    , patch_Offset    (0.0f, 0.0f, 0.0f, 0.0f)
    , tessInner       (1.0f)
    , tessOuter       (1.0f)
@@ -381,23 +387,28 @@ int GL_HWT_renderer::Initialize_draw_context ()
       GLboolean ver_avail_43 = GLEW_VERSION_4_3  ;
       GLboolean ver_avail_44 = GLEW_VERSION_4_4  ;
 
-         // vp_fname
-         // te_fname
-         // tc_fname
-         // fp_fname
+      // vp_fname
+      // te_fname
+      // tc_fname
+      // fp_fname
       std::string vert_shader_source; 
-      From_file (vert_shader_source, vp_fname); 
+
+      printf("\nshadername file: %s\n", vp_fname.c_str());
+      From_file(vert_shader_source, vp_fname);
       shader_Table["BG_vs"] = Create_shader (vert_shader_source.c_str(), GL_VERTEX_SHADER);  
 
-      std::string tess_contr_shader_source; 
+      printf("\nshadername file: %s\n", tc_fname.c_str());
+      std::string tess_contr_shader_source;
       From_file (tess_contr_shader_source, tc_fname); 
       shader_Table["BG_tc"] = Create_shader (tess_contr_shader_source.c_str(), GL_TESS_CONTROL_SHADER); 
          
-      std::string tess_eval_source; 
+      printf("\nshadername file: %s\n", te_fname.c_str());
+      std::string tess_eval_source;
       From_file (tess_eval_source, te_fname); 
       shader_Table["BG_te"] = Create_shader (tess_eval_source.c_str(), GL_TESS_EVALUATION_SHADER); 
 
-      std::string frag_shader_source; 
+      printf("\nshadername file: %s\n", fp_fname.c_str());
+      std::string frag_shader_source;
       From_file (frag_shader_source, fp_fname); 
       shader_Table["BG_fs"] = Create_shader (frag_shader_source.c_str(), GL_FRAGMENT_SHADER); 
 
@@ -411,7 +422,12 @@ int GL_HWT_renderer::Initialize_draw_context ()
       } ; 
 
       shader_Table["BG_prog"] = Build_shader_program (shaders); 
-      
+
+      if(!shader_Table["BG_prog"] )
+      {
+         BOOST_ASSERT(0);
+      }
+
       if (shader_Table["BG_prog"]) 
       {
       glUseProgram (shader_Table["BG_prog"]); 
@@ -441,16 +457,18 @@ int GL_HWT_renderer::Initialize_draw_context ()
       uniformLoc_map["mat_View"]    = glGetUniformLocation (shader_Table["BG_prog"], "mat_View" );
       uniformLoc_map["mat_Proj"]    = glGetUniformLocation (shader_Table["BG_prog"], "mat_Proj" ); 
 
-      for (ShaderTable::const_iterator i =  shader_Table.begin(); i != shader_Table.end(); i++) 
+      for (Rn::ShaderTable::const_iterator i =  shader_Table.begin(); i != shader_Table.end(); i++) 
          BOOST_ASSERT (i->second > 0); 
 
-      for (UniformMap::const_iterator i =  uniformLoc_map.begin(); i != uniformLoc_map.end(); i++) 
+      for (Rn::UniformMap::const_iterator i = uniformLoc_map.begin(); i != uniformLoc_map.end(); i++)
          BOOST_ASSERT (i->second >= 0); 
    
-      for (AttributeMap::const_iterator i =  attribLoc_map.begin(); i != attribLoc_map.end(); i++) 
+      for (Rn::AttributeMap::const_iterator i = attribLoc_map.begin(); i != attribLoc_map.end(); i++)
          BOOST_ASSERT (i->second >= 0); 
 
       }
+
+
       glUseProgram (0); 
 
       return 0; 
@@ -545,17 +563,17 @@ int GL_HWT_renderer::Draw (const View_params& params, std::vector<Renderable*> o
       // projection 
       {
 
-      glm::dmat4 mat_Proj = glm::perspective (
-         params.FoV,       //kPerspective_FoV,  
-         params.Asp_ratio, //camera_y_asp,
-         params.dist_Near, //kNear_plane_dist,  
-         params.dist_Far   //kFar_plane_dist  
+      glm::fmat4 matproj = glm::perspective (
+         (float)params.FoV,       //kPerspective_FoV,  
+         (float)params.Asp_ratio, //camera_y_asp,
+         (float)params.dist_Near, //kNear_plane_dist,  
+         (float)params.dist_Far   //kFar_plane_dist  
          ); 
 
 
-      float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
-      std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
-      glUniformMatrix4fv (uniformLoc_map["mat_Proj"], 1, GL_FALSE, fMat_proj); 
+      // float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
+      // std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
+      glUniformMatrix4fv (uniformLoc_map["mat_Proj"], 1, GL_FALSE, glm::value_ptr(matproj));
       Validate_GL_call (); 
       }
 
@@ -621,9 +639,9 @@ struct GL_BackgroundRenderer : public Terrain_renderer
    //HGLRC             glrc; 
    //GLEWContext*      glew_Context; 
    
-   ShaderTable    shader_Table; 
-   UniformMap     uniformLoc_map; 
-   AttributeMap   attribLoc_map; 
+   Rn::ShaderTable    shader_Table; 
+   Rn::UniformMap     uniformLoc_map; 
+   Rn::AttributeMap   attribLoc_map; 
 
 
    GLuint Create_shader          (const char* shaderSource, GLenum shaderType); 
@@ -635,8 +653,8 @@ struct GL_BackgroundRenderer : public Terrain_renderer
    virtual ~GL_BackgroundRenderer (); 
 
    int Initialize ();
-   virtual int Initialize_draw_context (); 
-   virtual int Deinitialize_draw_context ();
+   virtual int    Initialize_draw_context (); 
+   virtual int    Deinitialize_draw_context ();
    virtual void   Patch_scale (double xscale, double yscale, double zscale); 
    virtual void   Patch_offset (double xoffs, double yoffs, double zoffs)  ; 
    virtual void   Tesselation_factors (float inner, float outer); 
@@ -879,16 +897,16 @@ glPolygonMode (GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
       //
       // projection 
       {
-      glm::dmat4 mat_Proj = glm::perspective (
+      glm::fmat4 matproj = glm::perspective (
          params.FoV,       //kPerspective_FoV,  
          params.Asp_ratio, //camera_y_asp,
          params.dist_Near, //kNear_plane_dist,  
          params.dist_Far   //kFar_plane_dist  
          ); 
 
-      float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
-      std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
-      glUniformMatrix4fv (uniformLoc_map["mat_Proj"], 1, GL_FALSE, fMat_proj); 
+      //float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
+      //std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
+      glUniformMatrix4fv(uniformLoc_map["mat_Proj"], 1, GL_FALSE, glm::value_ptr(matproj));
       Validate_GL_call (); 
       }
 
@@ -1031,3 +1049,151 @@ Terrain_renderer* Terrain_renderer::Create(std::string& rtype)
    BOOST_ASSERT(0); 
    return nullptr; 
 }
+
+
+
+
+//
+//
+//
+void TessTile_input_streams_UM (
+   const Rn::UniformMap&     uniformLoc_map,
+   const Rn::AttributeMap&   attribLoc_map,
+   const glm::dvec3* patchverts,
+   const glm::dvec2* patchtxcds)
+{
+   //
+   // geometry streams  
+   glEnableVertexAttribArray(attribLoc_map.at("patch_coord"));
+   glVertexAttribPointer(attribLoc_map.at("patch_coord"), 3, GL_DOUBLE, GL_FALSE, 0, patchverts);
+   Validate_GL_call();
+   glEnableVertexAttribArray(attribLoc_map.at("tex_coord"));
+   glVertexAttribPointer(attribLoc_map.at("tex_coord"), 2, GL_DOUBLE, GL_FALSE, 0, patchtxcds);
+   Validate_GL_call();
+
+}
+
+//
+//
+void TessTile_parameters (
+   const Rn::ShaderTable&  shader_Table  ,
+   const Rn::UniformMap&   uniformLoc_map,
+   const Rn::AttributeMap& attribLoc_map ,
+   const glm::fvec4&       patchscale,
+   float                   tessinner, 
+   float                   tessouter)
+{
+   glUseProgram(shader_Table.at("BG_prog"));
+   Validate_GL_call();
+
+   glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+   // face cull
+   static bool enable_culling = true;
+   (enable_culling ? glEnable : glDisable) (GL_CULL_FACE);
+   glFrontFace(GL_CCW);
+
+   // polygon mode   
+   static int DBG_polygon_mode = 2;
+   GLenum polygon_Mode[] = { GL_POINT, GL_LINE, GL_FILL };
+   glPolygonMode(GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
+   Validate_GL_call();
+
+   glEnable(GL_TEXTURE_2D);
+   Validate_GL_call();
+
+   //
+   // patch scaling (glUniform4dv not available)
+   glUniform4fv(uniformLoc_map.at("patch_Scale"), 1, glm::value_ptr(patchscale));
+   Validate_GL_call();
+
+   // tesselation factor
+   glUniform1f(uniformLoc_map.at("tessInner"), tessinner);
+   glUniform1f(uniformLoc_map.at("tessOuter"), tessouter);
+}
+
+
+
+//
+int TessTile_Draw (const View_params& params, 
+   const Rn::UniformMap&      uniformLoc_map,
+   const Rn::AttributeMap&    attribLoc_map,
+   std::vector<Renderable*>   objs)
+{
+   glMatrixMode(GL_MODELVIEW);
+   glPushMatrix();
+
+
+   //typedef std::map<BG_tile::Key, tx_ID_pair, BG_tile::less_than> TextureIDMap;
+
+   //
+   // projection 
+   {
+      glm::fmat4 matproj = glm::perspective(
+         (float)params.FoV,       //kPerspective_FoV,  
+         (float)params.Asp_ratio, //camera_y_asp,
+         (float)params.dist_Near, //kNear_plane_dist,  
+         (float)params.dist_Far   //kFar_plane_dist  
+         );
+
+
+      // float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
+      // std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
+      glUniformMatrix4fv(uniformLoc_map.at("mat_Proj"), 1, GL_FALSE, glm::value_ptr(matproj));
+      Validate_GL_call();
+   }
+
+
+   //
+   // view matrix 
+   glm::dmat4 mat_View;
+   {
+      const glm::dvec3  v_right(1.0, 0.0, 0.0),
+         v_up(0.0, 1.0, 0.0),
+         v_fwd(0.0, 0.0, 1.0);
+
+      mat_View = glm::translate(params.pos) * glm::eulerAngleYX(params.rot[1], params.rot[0]);
+      mat_View = glm::inverse(mat_View);
+
+      float fMat_view[16]; // double precision (glUniformMatrix4dv) not available
+      std::copy(glm::value_ptr(mat_View), glm::value_ptr(mat_View) + 16, fMat_view);
+      glUniformMatrix4fv(uniformLoc_map.at("mat_View"), 1, GL_FALSE, fMat_view);
+
+      Validate_GL_call();
+
+   }
+
+
+   //
+   for (int i = 0; i < objs.size(); i++)
+   {
+      // this is draw loop 
+      // set up grid first  // abstract data set into interface?   
+      Validate_GL_call();
+
+      const glm::dvec3& dPos = objs[i]->Get_pos();
+
+      glm::fvec3 model_pos(dPos.x, dPos.y, dPos.z);
+      glm::fmat4 mat_Model = glm::translate(model_pos);
+      glUniformMatrix4fv(uniformLoc_map.at("mat_Model"), 1, GL_FALSE, glm::value_ptr(mat_Model));
+      Validate_GL_call();
+
+      //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
+      objs[i]->Setup_RS(uniformLoc_map, attribLoc_map);
+      glDrawArrays(GL_PATCHES, 0, 4);
+      Validate_GL_call();
+   }
+
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+   glUseProgram(0);
+
+   glEnable(GL_DEPTH_TEST);
+   glDisableVertexAttribArray(attribLoc_map.at("patch_coord"));
+   glDisableVertexAttribArray(attribLoc_map.at("tex_coord"));
+   glMatrixMode(GL_MODELVIEW);
+   glPopMatrix();
+
+   return 0;
+}
+

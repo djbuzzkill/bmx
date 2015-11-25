@@ -2,8 +2,9 @@
 
 #include "stdafx.h"
 #include "test_GL4_experiment.h"
-#include "quantize_height_tiles_to_u16.h"
-#include "process_mars_terrain_for_runtime.h"
+#include "Charon/Charon.h"
+//#include "quantize_height_tiles_to_u16.h"
+//#include "process_mars_terrain_for_runtime.h"
 
 #include <boost/shared_array.hpp>
 #include <Dx/VecMath.h>
@@ -425,8 +426,8 @@ void exper_alpha::update_render (sy::System_context* sc)
 
    glEnableVertexAttribArray (0); 
    glEnableVertexAttribArray (1); 
-   glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, value_ptr(*mars_terr::kPatch_verts)); 
-   glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, value_ptr(*mars_terr::kPatch_txcrd)); 
+   glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, value_ptr(mars_terr::kPatch_verts)); 
+   glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 0, value_ptr(mars_terr::kPatch_txcrd)); 
 
 
    glDrawArrays(GL_PATCHES, 0, 4); 
