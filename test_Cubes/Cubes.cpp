@@ -69,94 +69,6 @@ struct Light_obj : public Renderable
    GLuint                     hgt_ID; 
    }; 
 
-// 
-//
-// FUNC Update_view_transform 
-void _Update_view_transform (
-	glm::fvec3&				      view_Pos, 
-	glm::fvec3&				      view_Rot, 
-	float					         move_Rate,
-	const sy::Keyboard_state&  kb,    
-	const sy::Mouse_state&     ms)
-{
-   // old version; works differently at work
-
-   const double kDeg2Pi = Ma::Pi / 180.0f; 
-   const double fHalfPi = Ma::HalfPi;
-
-
-   static float dYdx = 0.75f; 
-   static float dXdy = 0.75f; 
-   
-   Ma::Vec3d dir_Fwd, dir_Right, dir_Up; 
-
-   Ma::Set (dir_Up, 0.0, 1.0, 0.0); 
-
-   {
-      if (ms.yRel || ms.yRel)
-      {
-         wat (); 
-      }
-
-      view_Rot[0] -= kDeg2Pi * (ms.yRel * dYdx);
-      view_Rot[1] -= kDeg2Pi * (ms.xRel * dXdy);
-      view_Rot.z = 0.0; 
-
-      Ma::Vec3f v_t;
-      // (\ spherical.theta(0).phi(0)) => <1, 0, 0>
-      Ma::Spherical (v_t, 0.0f, 0.0f);
-      Ma::Spherical (dir_Fwd,    kDeg2Pi * view_Rot[1] - Ma::HalfPi, 0.0);
-      Ma::Spherical (dir_Right,  kDeg2Pi * view_Rot[1], 0.0); 
-      Ma::X (dir_Right);
-   }
-   
-   
-   
-   // view movement
-   {
-      const glm::fvec3 kX_axis (1.0f, 0.0f, 0.0f); 
-      const glm::fvec3 kY_axis (0.0f, 1.0f, 0.0f); 
-      const glm::fvec3 kZ_axis (0.0f, 0.0f, 1.0f); 
-
-
-      glm::fvec3 dirForward  = glm::rotateY (kZ_axis, view_Rot[1] ); 
-      glm::fvec3 dirRight    = glm::rotateY (kX_axis, view_Rot[1] ); 
-          
-      Ma::Vec3f v  ;
-
-      //
-      if (sy::Is_keydown (sy::SC_F, kb)) 
-         {
-         view_Pos -= move_Rate * dirForward; 
-   	   }
-      else 
-      if (sy::Is_keydown (sy::SC_V, kb)) 
-         {
-         view_Pos += move_Rate * dirForward; 
-   	   }
-   
-      //
-      if (sy::Is_keydown (sy::SC_D, kb)) {
-         view_Pos -= move_Rate * dirRight; 
-   	   }
-      else 
-      if (sy::Is_keydown (sy::SC_G, kb)) {
-         view_Pos += move_Rate * dirRight; 
-   	   }
-
-      //
-      if (sy::Is_keydown (sy::SC_A, kb)) {
-         view_Pos.y += move_Rate; 
-   	   }
-      else
-      if (sy::Is_keydown (sy::SC_Z, kb)) {
-         view_Pos.y -= move_Rate; 
-   	   }
-
-
-   }   
-
-}
 
 static glm::fvec3 cube_norm[] = {
    // front
@@ -636,3 +548,92 @@ return sy::Run_realtime_task (sys.get(), test.get());
    }
 
 
+
+// 
+//
+// FUNC Update_view_transform 
+// void _Update_view_transform(
+//    glm::fvec3&				      view_Pos,
+//    glm::fvec3&				      view_Rot,
+//    float					         move_Rate,
+//    const sy::Keyboard_state&  kb,
+//    const sy::Mouse_state&     ms)
+// {
+//    // old version; works differently at work
+// 
+//    const double kDeg2Pi = Ma::Pi / 180.0f;
+//    const double fHalfPi = Ma::HalfPi;
+// 
+// 
+//    static float dYdx = 0.75f;
+//    static float dXdy = 0.75f;
+// 
+//    Ma::Vec3d dir_Fwd, dir_Right, dir_Up;
+// 
+//    Ma::Set(dir_Up, 0.0, 1.0, 0.0);
+// 
+//    {
+//       if (ms.yRel || ms.yRel)
+//       {
+//          wat();
+//       }
+// 
+//       view_Rot[0] -= kDeg2Pi * (ms.yRel * dYdx);
+//       view_Rot[1] -= kDeg2Pi * (ms.xRel * dXdy);
+//       view_Rot.z = 0.0;
+// 
+//       Ma::Vec3f v_t;
+//       // (\ spherical.theta(0).phi(0)) => <1, 0, 0>
+//       Ma::Spherical(v_t, 0.0f, 0.0f);
+//       Ma::Spherical(dir_Fwd, kDeg2Pi * view_Rot[1] - Ma::HalfPi, 0.0);
+//       Ma::Spherical(dir_Right, kDeg2Pi * view_Rot[1], 0.0);
+//       Ma::X(dir_Right);
+//    }
+// 
+// 
+// 
+//    // view movement
+//    {
+//       const glm::fvec3 kX_axis(1.0f, 0.0f, 0.0f);
+//       const glm::fvec3 kY_axis(0.0f, 1.0f, 0.0f);
+//       const glm::fvec3 kZ_axis(0.0f, 0.0f, 1.0f);
+// 
+// 
+//       glm::fvec3 dirForward = glm::rotateY(kZ_axis, view_Rot[1]);
+//       glm::fvec3 dirRight = glm::rotateY(kX_axis, view_Rot[1]);
+// 
+//       Ma::Vec3f v;
+// 
+//       //
+//       if (sy::Is_keydown(sy::SC_F, kb))
+//       {
+//          view_Pos -= move_Rate * dirForward;
+//       }
+//       else
+//          if (sy::Is_keydown(sy::SC_V, kb))
+//          {
+//             view_Pos += move_Rate * dirForward;
+//          }
+// 
+//       //
+//       if (sy::Is_keydown(sy::SC_D, kb)) {
+//          view_Pos -= move_Rate * dirRight;
+//       }
+//       else
+//          if (sy::Is_keydown(sy::SC_G, kb)) {
+//             view_Pos += move_Rate * dirRight;
+//          }
+// 
+//       //
+//       if (sy::Is_keydown(sy::SC_A, kb)) {
+//          view_Pos.y += move_Rate;
+//       }
+//       else
+//          if (sy::Is_keydown(sy::SC_Z, kb)) {
+//             view_Pos.y -= move_Rate;
+//          }
+// 
+// 
+//    }
+// 
+// }
