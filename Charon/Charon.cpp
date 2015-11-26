@@ -44,6 +44,24 @@ void lolwut()
 }
 
 //
+void Validate_GL_call()
+{
+   int wat = 0;
+   GLenum         err = 0;
+   const GLubyte* error_s_ = 0;
+
+   err = glGetError();
+   if (err != GL_NO_ERROR)
+   {
+      error_s_ = glewGetErrorString(err);
+      BOOST_ASSERT(0);
+   }
+
+
+   wat++;
+}
+
+//
 //
 void xp::Update_view_transform (
 	Ma::Vec3f&				view_Pos, 

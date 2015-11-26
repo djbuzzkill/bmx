@@ -12,11 +12,6 @@ const float    kMaskVal             = -2553.0f;
 void Make_Mars_tiles       ();
 void Make_Mars_normal_map  (float height_scale); 
 
-
-void wat () {
-   int i = 0; i++; 
-   }
-
 //
 //
 struct Simple_obj : public Renderable 
@@ -77,13 +72,14 @@ struct Light_obj : public Renderable
 // 
 //
 // FUNC Update_view_transform 
-void Update_view_transform (
+void _Update_view_transform (
 	glm::fvec3&				      view_Pos, 
 	glm::fvec3&				      view_Rot, 
 	float					         move_Rate,
 	const sy::Keyboard_state&  kb,    
 	const sy::Mouse_state&     ms)
 {
+   // old version; works differently at work
 
    const double kDeg2Pi = Ma::Pi / 180.0f; 
    const double fHalfPi = Ma::HalfPi;
@@ -305,7 +301,7 @@ struct MRT_frame_buffer
 
    enum Type {
       RT_Color = 0, 
-      RT_Depth, 
+      RT_Position,
       RT_Norm, 
       Num_RT_types
    }; 
@@ -320,6 +316,9 @@ struct MRT_frame_buffer
 //
 void MRT_Initialize (MRT_frame_buffer& mrt, int wd, int ht)
 {
+
+   mrt.width   = wd;
+   mrt.height  = ht; 
    glGenFramebuffers (1, &mrt.ID); 
 
    glBindFramebuffer (GL_FRAMEBUFFER, mrt.ID); 
@@ -327,35 +326,41 @@ void MRT_Initialize (MRT_frame_buffer& mrt, int wd, int ht)
    glGenTextures (MRT_frame_buffer::Num_RT_types, mrt.rt_IDs); 
 
 
-   for (int i = 0; i < MRT_frame_buffer::Num_RT_types; i++) 
+   for (int i = 0; i < MRT_frame_buffer::Num_RT_types; i++)
    {
-      glBindTexture (GL_TEXTURE_3D, mrt.rt_IDs[i]); 
+      glBindTexture (GL_TEXTURE_2D, mrt.rt_IDs[i]); 
       switch (i)
       {
       case MRT_frame_buffer::RT_Color:
-         glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB32F, mrt.width, mrt.height, 0, GL_RGB32F, GL_RGB32F, 0);  
+         glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGB, mrt.width, mrt.height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
          glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mrt.rt_IDs[i], 0); 
          break; 
 
-      case MRT_frame_buffer::RT_Depth:
-         glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB32F, mrt.width, mrt.height, 0, GL_RGB32F, GL_RGB32F, 0);  
+      case MRT_frame_buffer::RT_Position:
+         glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGB32F, mrt.width, mrt.height, 0, GL_RGB, GL_FLOAT, 0);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
          glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mrt.rt_IDs[i], 0); 
          break; 
       case MRT_frame_buffer::RT_Norm:
-         glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB32F, mrt.width, mrt.height, 0, GL_RGB32F, GL_RGB32F, 0);  
+         glTexImage2D   (GL_TEXTURE_2D, 0, GL_RGB16F, mrt.width, mrt.height, 0, GL_RGB, GL_FLOAT, 0);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
          glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mrt.rt_IDs[i], 0); 
          break; 
       }
-
-
-
+      Validate_GL_call (); 
    }
+
+
+
+   GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+   if (Status != GL_FRAMEBUFFER_COMPLETE) {
+      printf("FB error, status: 0x%x\n", Status);
+      }
 
    // reset to default
    glBindFramebuffer (GL_FRAMEBUFFER, 0); 

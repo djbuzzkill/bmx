@@ -27,6 +27,7 @@ target_link_libraries (test_Cubes
 	SDL2main
 	SDL2_platform
 	FreeImage
+	Charon
 	)
 
 

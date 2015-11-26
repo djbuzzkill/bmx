@@ -46,22 +46,6 @@ std::string& From_file (std::string& out, const std::string& fname)
 	return out; 
 }
 
-void Validate_GL_call ()
-{
-   int wat = 0; 
-   GLenum         err      = 0; 
-   const GLubyte* error_s_ = 0; 
-      
-   err = glGetError ();
-   if (err != GL_NO_ERROR )
-   {
-      error_s_  = glewGetErrorString (err);
-      BOOST_ASSERT (0); 
-   }
-
-
-   wat++; 
-}
 
 GLuint Create_shader (const GLchar* shaderSource, GLenum shaderType)
 {

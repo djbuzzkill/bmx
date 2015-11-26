@@ -50,7 +50,7 @@ typedef unsigned long long    u64;
 #define MARS_DRIVE "E:/" 
 #define SHADER_DRIVE "C:/"
 
-
+void Validate_GL_call();
 void wat();
 
 template<typename Ty> 
