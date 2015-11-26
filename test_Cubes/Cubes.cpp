@@ -305,6 +305,11 @@ private:
    void init_scene_objects    (); 
    
    // 
+   Rn::ShaderTable    shader_Table;
+   Rn::UniformMap     uniformLoc_map;
+   Rn::AttributeMap   attribLoc_map;
+
+
    std::shared_ptr<sy::Graphics_window>   windo; 
    bool                                   init_; 
    glm::ivec2                             view_dim; 
@@ -379,19 +384,25 @@ void Defer_test::init_graphics_objects ()
 
    MRT_Initialize(framebuffer, kInitial_window_width, kInitial_window_height);
 
-   std::vector<char> vs, fs;
-
-   ut::Load_text_file(vs, "C:/Quarantine/awsum/Cubes/shader/basic_shader.vp");
-   ut::Load_text_file(fs, "C:/Quarantine/awsum/Cubes/shader/basic_shader.fp");
+   {  // basic shader
+      std::vector<char> vs, fs;
+      ut::Load_text_file(vs, "C:/Quarantine/hardcore/shader/Cubes/basic_shader.vp");
+      ut::Load_text_file(fs, "C:/Quarantine/hardcore/shader/Cubes/basic_shader.fp");
    
-   GLuint shaders[3] = {
-      Create_shader((GLchar*)vs.data(), GL_VERTEX_SHADER),
-      Create_shader((GLchar*)fs.data(), GL_FRAGMENT_SHADER), 
-      0
-      };
+      shader_Table["basic_vp"] = Create_shader((GLchar*)vs.data(), GL_VERTEX_SHADER)   ;
+      shader_Table["basic_fp"] = Create_shader((GLchar*)fs.data(), GL_FRAGMENT_SHADER) ;
+      GLuint shaders[3] = {
+         shader_Table["basic_vp"], 
+         shader_Table["basic_fp"], 
+         0
+         };
+   
+      shader_Table["basic_prog"] = Build_shader_program(shaders);
+   }
 
-   GLuint prog = Build_shader_program (shaders);
    wat ();
+
+   
 
 }
 

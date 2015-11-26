@@ -1,0 +1,30 @@
+#version 420
+
+
+uniform mat4      mat_Model   ;                                               
+uniform mat4      mat_View    ;                                               
+uniform mat4      mat_Proj    ;                                               
+                                                                                       
+in vec3      vPosi;                                                        
+in vec2      vTxcd;                                                        
+                                                                                       
+varying out vec2     frag_txcd;                                                   
+
+void main ()                                                                  
+{                                                                             
+  
+  vec4  posi           = vec4 (vPosi, 1.0);   
+
+  // output
+
+  //  tx cd
+  frag_txcd   = vTxcd;                                                    
+
+  // h pos
+  posi = mat_Model * posi;                                                   
+  posi = mat_View * posi;                                                    
+  gl_Position = mat_Proj * posi;
+
+}                                                                             
+
+
