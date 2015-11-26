@@ -7,6 +7,7 @@
 
 //#include "GL/glew.h"
 #include "Charon/Charon.h"
+#include "Charon/Shader.h"
 
 
 #include <boost/assert.hpp>

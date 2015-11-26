@@ -1,6 +1,8 @@
 
 #include "Cubes.h"
 
+
+
 const int kInitial_window_width     = 1024;
 const int kInitial_window_height    = 768;
 
@@ -68,6 +70,9 @@ struct Light_obj : public Renderable
    GLuint                     col_ID; 
    GLuint                     hgt_ID; 
    }; 
+
+
+
 
 
 static glm::fvec3 cube_norm[] = {
@@ -296,12 +301,9 @@ class Defer_test : public sy::RT_Task, public sy::Window_listener, public cx::De
 {
 private: 
 
-   void initialize_graphics_objects (); 
-   void initialize_scene_objects    (); 
+   void init_graphics_objects (); 
+   void init_scene_objects    (); 
    
-   
-
-
    // 
    std::shared_ptr<sy::Graphics_window>   windo; 
    bool                                   init_; 
@@ -328,7 +330,7 @@ public:
    Defer_test (sy::System_context* sys);
    virtual ~Defer_test ();
 
-   // app loop 
+   // task
 	virtual int Initialize	      (sy::System_context*);  
 	virtual int Deinitialize      (sy::System_context*);  
 	virtual int Update	         (sy::System_context*);  
@@ -360,53 +362,94 @@ Defer_test::~Defer_test ()
 }
 
 
-
+ 
 void Defer_test::init_graphics (sy::System_context* sys)
 {
    glewInit (); 
-
-   
 }
 
-void Defer_test::initialize_graphics_objects () 
+void Defer_test::init_graphics_objects () 
 {
+   viewparams.pos[0] = 0.0;
+   viewparams.pos[1] = 9.0;
+   viewparams.pos[2] = 0.0;
+
+   viewparams.rot[0] = glm::pi<double>();
+   viewparams.rot[1] = glm::pi<double>();
+
+   MRT_Initialize(framebuffer, kInitial_window_width, kInitial_window_height);
+
+   std::vector<char> vs, fs;
+
+   ut::Load_text_file(vs, "C:/Quarantine/awsum/Cubes/shader/basic_shader.vp");
+   ut::Load_text_file(fs, "C:/Quarantine/awsum/Cubes/shader/basic_shader.fp");
    
+   GLuint shaders[3] = {
+      Create_shader((GLchar*)vs.data(), GL_VERTEX_SHADER),
+      Create_shader((GLchar*)fs.data(), GL_FRAGMENT_SHADER), 
+      0
+      };
+
+   GLuint prog = Build_shader_program (shaders);
+   wat ();
+
 }
 
-void Defer_test::initialize_scene_objects () 
+void Defer_test::init_scene_objects () 
 {
+   const std::string rgbroot = "C:/Quarantine/awsum/Cubes/rgb/";
+      
+   int wd = 512;
+   int ht = 512;
+   int numpixels = wd * ht;
 
+   const char* files[]= {
+      "tex_0",
+      "tex_1",
+      "tex_2",
+      "tex_3",
+      "tex_4",
+      "tex_5",
+      "tex_6",
+      "tex_7",
+      };
+   int numfiles = El_count (files); 
+   
 
+   std::vector<unsigned char> imgbuf (numpixels * 3);
+   std::vector<GLuint> txIDs (numfiles); 
+   glGenTextures(numfiles, txIDs.data()); 
+   for(int i = 0; i < numfiles; i++) 
+   {
+      std::string currfile = rgbroot + files[i]; 
+      std::shared_ptr<FILE> rs(fopen(currfile.c_str(), "rb"), fclose); 
+      fread(imgbuf.data(), 1, numpixels * 3, rs.get()); 
+      glBindTexture (GL_TEXTURE_2D, txIDs[i]); 
+      
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, wd, ht, 0, GL_RGB, GL_UNSIGNED_BYTE, imgbuf.data());
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      Validate_GL_call(); 
+   }
 
-   MRT_Initialize (framebuffer, kInitial_window_width, kInitial_window_height); 
-
+   wat (); 
 
 
 }
 
 
+//void make_cube_textures();
 //
 int Defer_test::Initialize (sy::System_context* sys)
 {
-   // Make_Mars_tiles (); 
-
+//   make_cube_textures (); 
    windo.reset (sys->Create_GraphicsWindow (this, "hello Mars", kInitial_window_width, kInitial_window_height, false)); 
-
-   init_graphics (sys); 
-
-   
-   viewparams.pos[0] = 0.0; 
-   viewparams.pos[1] = 9.0;
-   viewparams.pos[2] = 0.0; 
-
-   viewparams.rot[0] = glm::pi<double>(); 
-   viewparams.rot[1] = glm::pi<double>(); 
-
    //
-   initialize_graphics_objects (); 
-
-   initialize_scene_objects (); 
-
+   init_graphics (sys); 
+   //
+   init_graphics_objects (); 
+   //
+   init_scene_objects (); 
    //
 
 
@@ -445,13 +488,6 @@ void Defer_test::update_input (sy::System_context* sys)
    sy::Mouse_state      ms;
    sys->Poll_input (ms, kb); 
 
-//   if (sy::Is_keydown (sy::SC_LEFTBRACKET, kb))
-//      tessFactor -= 0.321f;
-//
-//   if (sy::Is_keydown (sy::SC_RIGHTBRACKET, kb))
-//      tessFactor += 0.321f;
-//    // clamp
-//   tessFactor = glm::clamp (tessFactor , 1.0f, 200.0f); 
 
 
    //
@@ -462,12 +498,6 @@ void Defer_test::update_input (sy::System_context* sys)
    }
    else
    {
-//      if (sy::Is_keydown (sy::SC_H, kb))
-//         mars.patchScale.y += 0.2; 
-//
-//      if (sy::Is_keydown (sy::SC_N, kb))
-//         mars.patchScale.y -= 0.2; 
-//      bg_renderer->Patch_scale (mars.patchScale.x, mars.patchScale.y, mars.patchScale.z); 
 
       double camera_y_asp = double (view_dim[0]) / double(view_dim[1]); 
       viewparams.FoV = Ma::Pi * kPerspective_FoV / 180.0;
@@ -549,91 +579,80 @@ return sy::Run_realtime_task (sys.get(), test.get());
 
 
 
-// 
-//
-// FUNC Update_view_transform 
-// void _Update_view_transform(
-//    glm::fvec3&				      view_Pos,
-//    glm::fvec3&				      view_Rot,
-//    float					         move_Rate,
-//    const sy::Keyboard_state&  kb,
-//    const sy::Mouse_state&     ms)
-// {
-//    // old version; works differently at work
-// 
-//    const double kDeg2Pi = Ma::Pi / 180.0f;
-//    const double fHalfPi = Ma::HalfPi;
-// 
-// 
-//    static float dYdx = 0.75f;
-//    static float dXdy = 0.75f;
-// 
-//    Ma::Vec3d dir_Fwd, dir_Right, dir_Up;
-// 
-//    Ma::Set(dir_Up, 0.0, 1.0, 0.0);
-// 
-//    {
-//       if (ms.yRel || ms.yRel)
-//       {
-//          wat();
-//       }
-// 
-//       view_Rot[0] -= kDeg2Pi * (ms.yRel * dYdx);
-//       view_Rot[1] -= kDeg2Pi * (ms.xRel * dXdy);
-//       view_Rot.z = 0.0;
-// 
-//       Ma::Vec3f v_t;
-//       // (\ spherical.theta(0).phi(0)) => <1, 0, 0>
-//       Ma::Spherical(v_t, 0.0f, 0.0f);
-//       Ma::Spherical(dir_Fwd, kDeg2Pi * view_Rot[1] - Ma::HalfPi, 0.0);
-//       Ma::Spherical(dir_Right, kDeg2Pi * view_Rot[1], 0.0);
-//       Ma::X(dir_Right);
-//    }
-// 
-// 
-// 
-//    // view movement
-//    {
-//       const glm::fvec3 kX_axis(1.0f, 0.0f, 0.0f);
-//       const glm::fvec3 kY_axis(0.0f, 1.0f, 0.0f);
-//       const glm::fvec3 kZ_axis(0.0f, 0.0f, 1.0f);
-// 
-// 
-//       glm::fvec3 dirForward = glm::rotateY(kZ_axis, view_Rot[1]);
-//       glm::fvec3 dirRight = glm::rotateY(kX_axis, view_Rot[1]);
-// 
-//       Ma::Vec3f v;
-// 
-//       //
-//       if (sy::Is_keydown(sy::SC_F, kb))
-//       {
-//          view_Pos -= move_Rate * dirForward;
-//       }
-//       else
-//          if (sy::Is_keydown(sy::SC_V, kb))
-//          {
-//             view_Pos += move_Rate * dirForward;
-//          }
-// 
-//       //
-//       if (sy::Is_keydown(sy::SC_D, kb)) {
-//          view_Pos -= move_Rate * dirRight;
-//       }
-//       else
-//          if (sy::Is_keydown(sy::SC_G, kb)) {
-//             view_Pos += move_Rate * dirRight;
-//          }
-// 
-//       //
-//       if (sy::Is_keydown(sy::SC_A, kb)) {
-//          view_Pos.y += move_Rate;
-//       }
-//       else
-//          if (sy::Is_keydown(sy::SC_Z, kb)) {
-//             view_Pos.y -= move_Rate;
-//          }
-// 
-// 
-//    }
-// 
-// }
+
+
+void make_cube_textures()
+{
+   FreeImage_Initialise();
+   const std::string imgroot = "C:/Quarantine/awsum/Cubes/";
+   const std::string rgbroot = "C:/Quarantine/awsum/Cubes/rgb/";
+
+   const char* files[] = {
+      "169cover.jpg",
+      "22cbf28a6a79cb48d46629c24907a470.jpg",
+      "abstract_colorful_textures_widescreen_desktop_background_picture - 318.jpg",
+      "abstract_colorful_textures_widescreen_desktop_background_picture.jpg",
+      "blue - square - pattern.jpg",
+      "cloud_texture_by_nos2002.jpg",
+      "colorful - textures - high - resolution - 1024x576.jpg",
+      "colorful - textures - stock - images1 - 1024x640.jpg",
+      "colorful - textures - wide - awesome - 1024x640.jpg",
+      "digital_art_texture_68_by_mercurycode - d713utv.jpg",
+      "fountain_water_texture_2_by_fantasystock.jpg",
+      "images.jpg",
+      "manhole_texture_4250873.JPG",
+      "nbnGLL0.jpg",
+      "space_texture_by_extince.jpg",
+      "squares - texture - wallpaper - 15899.jpg",
+      "textures_131_by_inthename_stock.jpg",
+      "texture_102_by_sirius_sdz - d1rlzx7.jpg",
+      "texture_304_by_sirius_sdz - d5l8pu6.jpg",
+      "texture_326_by_sirius_sdz - d65gs3s.jpg",
+      "watercolor_painting_texture_by_enchantedgal_stock.jpg",
+
+   };
+
+   size_t numfiles = El_count(files);
+
+   int imgcount = 0;
+
+   RGBQUAD rgb;
+   for (int i = 0; i < numfiles; i++)
+   {
+      std::string currfile = imgroot + files[i];
+      if (FIBITMAP* img = FreeImage_Load(FIF_JPEG, currfile.c_str()))
+      {
+         ptru        dat = { FreeImage_GetBits(img) };
+         glm::ivec2  dim(FreeImage_GetWidth(img), FreeImage_GetHeight(img));
+         int         bpp = FreeImage_GetBPP(img);
+         FREE_IMAGE_COLOR_TYPE ctyp = FreeImage_GetColorType(img);
+         BITMAPINFOHEADER* info = FreeImage_GetInfoHeader(img);
+         FREE_IMAGE_TYPE ityp = FreeImage_GetImageType(img);
+
+         if (dim.x >= 512 && dim.y >= 512)
+         {
+            const std::string fname = rgbroot + "tex_" + boost::lexical_cast<std::string> (imgcount);
+            std::shared_ptr<FILE> ws(fopen(fname.c_str(), "wb"), fclose);
+
+            for (int iy = 0; iy < 512; iy++)
+            {
+               for (int ix = 0; ix < 512; ix++)
+               {
+                  FreeImage_GetPixelColor(img, ix, iy, &rgb);
+                  fwrite(&rgb, 1, 3, ws.get());
+               }
+            }
+            imgcount++;
+         }
+
+         FreeImage_Unload(img);
+      }
+      else
+      {
+         printf("\n Failed loading: %s", currfile.c_str());
+      }
+
+   }
+
+   FreeImage_DeInitialise();
+}

@@ -10,6 +10,7 @@ include_directories (
 
 set (CHARON_HEADERS
 	Charon.h
+	Shader.h
    process_mars_terrain_for_runtime.h
    quantize_height_tiles_to_u16.h
 	)
@@ -17,8 +18,9 @@ set (CHARON_HEADERS
 
 set (CHARON_SOURCES
 	Charon.cpp
-   process_mars_terrain_for_runtime.cpp
-   quantize_height_tiles_to_u16.cpp
+	Shader.cpp
+	process_mars_terrain_for_runtime.cpp
+	quantize_height_tiles_to_u16.cpp
 	)
 
 
