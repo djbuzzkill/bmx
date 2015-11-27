@@ -1,6 +1,7 @@
 
 
 #include "Terrain_renderer.h"
+#include <Charon/Shader.h>
 
 
 // #include <FileReader.h>
@@ -39,7 +40,7 @@ std::string& From_file (std::string& out, const std::string& fname)
 	return out; 
 }
 
-
+#if 0
 GLuint Create_shader (const GLchar* shaderSource, GLenum shaderType)
 {
    BOOST_ASSERT (shaderSource); 
@@ -134,6 +135,7 @@ GLuint Build_shader_program (const GLuint* shaders)
    return progID; 
 }
 
+#endif 
 
 //
 // Generate_tri_grid_indices - starts bottom left 
@@ -271,10 +273,10 @@ struct GL_HWT_renderer : public Terrain_renderer
    std::string    tc_fname;
    std::string    fp_fname;   
 
-   Rn::ShaderTable    shader_Table; 
-   Rn::UniformMap     uniformLoc_map; 
-   Rn::AttributeMap   attribLoc_map; 
-
+   Rn::ShaderTable      shader_Table; 
+   Rn::UniformMap       uniformLoc_map; 
+   Rn::AttributeMap     attribLoc_map; 
+   Rn::UniformValueMap  uniformVals;
    std::array<glm::dvec3, 4> patch_verts;
    std::array<glm::dvec2, 4> patch_txcds;
 
@@ -443,6 +445,11 @@ int GL_HWT_renderer::Initialize_draw_context ()
       for (Rn::AttributeMap::const_iterator i = attribLoc_map.begin(); i != attribLoc_map.end(); i++)
          BOOST_ASSERT (i->second >= 0); 
 
+      
+      //uniformVals["colorMap"].i = uniformLoc_map["colorMap"];
+      //uniformVals["heightMap"].i = uniformLoc_map["heightMap"];
+      uniformVals["colorMap"].i  = 1;
+      uniformVals["heightMap"].i = 0;
       }
 
 
@@ -569,7 +576,7 @@ int GL_HWT_renderer::Draw (const View_params& params, std::vector<Renderable*> o
          Validate_GL_call (); 
 
 //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
-         objs[i]->Setup_RS (uniformLoc_map, attribLoc_map); 
+         objs[i]->Setup_RS (uniformLoc_map, uniformVals, attribLoc_map); 
          glDrawArrays (GL_PATCHES, 0, 4); 
          Validate_GL_call (); 
       }
@@ -619,7 +626,7 @@ struct GL_BackgroundRenderer : public Terrain_renderer
    Rn::ShaderTable    shader_Table; 
    Rn::UniformMap     uniformLoc_map; 
    Rn::AttributeMap   attribLoc_map; 
-
+   Rn::UniformValueMap uniformVals;
 
    GLuint Create_shader          (const char* shaderSource, GLenum shaderType); 
    GLuint Build_shader_program   (const GLuint* shaders); 
@@ -907,7 +914,7 @@ glPolygonMode (GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
 //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
 
 
-         objs[i]->Setup_RS (uniformLoc_map, attribLoc_map); 
+         objs[i]->Setup_RS (uniformLoc_map, uniformVals, attribLoc_map); 
 
          const int kNum_rows = GL_BackgroundRenderer::kVertex_Y_dim - 1; 
          const int kNum_cols = GL_BackgroundRenderer::kVertex_X_dim - 1; 
@@ -1100,6 +1107,8 @@ int TessTile_Draw (const View_params& params,
    glMatrixMode(GL_MODELVIEW);
    glPushMatrix();
 
+   Rn::UniformValueMap uniformVals;
+
 
    //typedef std::map<BG_tile::Key, tx_ID_pair, BG_tile::less_than> TextureIDMap;
 
@@ -1156,7 +1165,7 @@ int TessTile_Draw (const View_params& params,
       Validate_GL_call();
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
-      objs[i]->Setup_RS(uniformLoc_map, attribLoc_map);
+      objs[i]->Setup_RS(uniformLoc_map, uniformVals, attribLoc_map);
       glDrawArrays(GL_PATCHES, 0, 4);
       Validate_GL_call();
    }

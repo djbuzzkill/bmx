@@ -18,6 +18,7 @@
 #include <boost/shared_array.hpp>
 
 #include <Dx/Render.h>
+#include <Charon/Charon.h>
 //
 //
 
@@ -334,20 +335,6 @@ protected:
       }
 }; 
 
-struct Renderable 
-   {
-   virtual glm::fvec3&  Pos  () = 0; 
-   virtual glm::fvec3&  Rot  () = 0;
-   virtual glm::fvec3&  Scl  () = 0;
-
-   virtual GLuint       Bin_ID() = 0; 
-   virtual GLuint       ROp_ID() = 0; 
-
-   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap) = 0;
-                                   
-protected: 
-   Renderable () { }
-   }; 
 
 
 #if 0

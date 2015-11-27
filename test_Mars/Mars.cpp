@@ -103,10 +103,18 @@ std::string normal_tile_name (int Y, int X)
 // 
 // 
 // STRUCT Terrain_patch 
+#include <Charon/Shader.h>
+
+UniformDef HeightSampler   = { "heightMap", UT_SAMPLER, 1, 0 };
+UniformDef ColorSampler    = { "colorMap", UT_SAMPLER, 1, 0 };
+static UniformDef PatchUniforms[] = {
+   HeightSampler,
+   ColorSampler ,
+   };
+
 struct Terrain_patch : public Renderable
    {
    
-
    Terrain_patch() : pos(), rot(), col_ID(0), hgt_ID(0) {
       } 
    
@@ -123,7 +131,10 @@ struct Terrain_patch : public Renderable
    virtual GLuint       Bin_ID() { return 0; }
    virtual GLuint       ROp_ID() { return 0; } 
    
-   virtual void Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
+   virtual void Setup_RS(
+      const Rn::UniformMap&      uniformMap, 
+      const Rn::UniformValueMap& unifvalue,
+      const Rn::AttributeMap&    attribMap)
    {
       bool  use_height_texture   = true; 
       int   texture_stage        = 0;
@@ -144,9 +155,9 @@ struct Terrain_patch : public Renderable
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      
-         glUniform1i (hgt_It->second, texture_stage); 
-         Validate_GL_call (); 
+         Update_uniform (uniformMap, unifvalue, HeightSampler);  
+         //glUniform1i (hgt_It->second, texture_stage); 
+         //Validate_GL_call (); 
          texture_stage++; 
       }
 
@@ -162,8 +173,9 @@ struct Terrain_patch : public Renderable
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       Validate_GL_call (); 
       
-      glUniform1i (col_It->second, texture_stage); 
-      Validate_GL_call (); 
+      Update_uniform(uniformMap, unifvalue, ColorSampler);
+      //glUniform1i(col_It->second, texture_stage);
+      //Validate_GL_call (); 
       texture_stage++; 
 
       glEnable (GL_TEXTURE_2D); 

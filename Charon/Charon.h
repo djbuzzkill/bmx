@@ -25,6 +25,7 @@
 #include <Dx/System.h>
 #include <Dx/Utility.h>
 #include <Dx/VecMath.h>
+#include <Dx/Render.h>
 
 
 #include <boost/lexical_cast.hpp>
@@ -66,6 +67,24 @@ struct sh_arr : public boost::shared_array<Ty> {
    sh_arr () : boost::shared_array<Ty> () { 
    }
 }; 
+
+struct Renderable
+{
+   virtual glm::fvec3&  Pos() = 0;
+   virtual glm::fvec3&  Rot() = 0;
+   virtual glm::fvec3&  Scl() = 0;
+
+   virtual GLuint       Bin_ID() = 0;
+   virtual GLuint       ROp_ID() = 0;
+
+   virtual void Setup_RS (
+      const Rn::UniformMap&      uniformMap, 
+      const Rn::UniformValueMap& unifvalue,
+      const Rn::AttributeMap&    attribMap) = 0;
+
+protected:
+   Renderable() { }
+};
 
 //
 // FUNC Update_view_transform 

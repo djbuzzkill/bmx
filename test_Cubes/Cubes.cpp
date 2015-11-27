@@ -16,13 +16,15 @@ void Make_Mars_normal_map  (float height_scale);
 
 UniformDef ModelUniform = { "mat_Model", UT_MAT4F, 1, 0 }; 
 UniformDef ViewUniform  = { "mat_View", UT_MAT4F, 1, 0 }; 
-UniformDef ProjUniform = { "mat_Proj", UT_MAT4F, 1, 0 };
+UniformDef ProjUniform  = { "mat_Proj", UT_MAT4F, 1, 0 };
+UniformDef ColorMap     = { "colorMap", UT_SAMPLER, 1, 0 };
+
 UniformDef CubeUniforms[] = {
    ModelUniform , 
    ViewUniform  , 
    ProjUniform  , 
-   { "colorMap", UT_SAMPLER, 1, 0 },
-};
+   ColorMap 
+   };
 
 AttributeDef cube_attribs[] = {
    { "vPosi", AT_VEC3F, 0 },
@@ -44,7 +46,10 @@ struct Simple_obj : public Renderable
    virtual GLuint       Bin_ID   () { return 0; } 
    virtual GLuint       ROp_ID   () { return 0; } 
 
-   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap); 
+   virtual void Setup_RS(
+      const Rn::UniformMap& uniformMap, 
+      const Rn::UniformValueMap& uniformVals,
+      const Rn::AttributeMap& attribMap);
 
    glm::fvec3           pos; 
    glm::fvec3           rot; 
@@ -54,7 +59,8 @@ struct Simple_obj : public Renderable
 
 //
 void Simple_obj::Setup_RS (
-   const Rn::UniformMap& uniformMap, 
+   const Rn::UniformMap& uniformMap,
+   const Rn::UniformValueMap& uniformVals,
    const Rn::AttributeMap& attribMap)
 {
    int   texture_stage = 0;
@@ -75,8 +81,8 @@ void Simple_obj::Setup_RS (
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    Validate_GL_call();
-
-   glUniform1i(col_It->second, texture_stage);
+   Update_uniform(uniformMap, uniformVals, ColorMap); 
+   //glUniform1i(col_It->second, texture_stage);
    Validate_GL_call();
    texture_stage++;
 
@@ -106,9 +112,13 @@ struct Light_obj : public Renderable
    virtual GLuint       Bin_ID() { return 0; }
    virtual GLuint       ROp_ID() { return 0; } 
 
-   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
-   {}
-      
+   virtual void Setup_RS (
+      const Rn::UniformMap& uniformMap, 
+      const Rn::UniformValueMap& uniformVals,
+      const Rn::AttributeMap& attribMap)
+   {
+   }
+
    Type                       type; 
    glm::fvec3                 pos; 
    glm::fvec3                 rot;
@@ -463,7 +473,7 @@ void Defer_test::init_graphics_objects ()
    uniformValueMap["mat_Model"].p  = &matrices[0];
    uniformValueMap["mat_View"].p   = &matrices[1];
    uniformValueMap["mat_Proj"].p   = &matrices[2];
-   uniformValueMap["colorMap"].i   = uniformLoc_map["colorMap"];
+   uniformValueMap["colorMap"].i   = 0;
 
    wat ();
 
@@ -752,7 +762,7 @@ void Defer_test::draw_simple ()
 
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
-      objs[i]->Setup_RS(uniformLoc_map, attribLoc_map);
+      objs[i]->Setup_RS(uniformLoc_map, uniformValueMap, attribLoc_map);
       glDrawArrays(GL_TRIANGLES, 0, El_count(cube_geom));
 
       Validate_GL_call();
