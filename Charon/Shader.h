@@ -59,6 +59,20 @@ Rn::UniformMap& Uniform_locations(
    );
 
 
+//
+void Update_uniforms (
+   const Rn::UniformMap&       unifloc, 
+   const Rn::UniformValueMap&  values,
+   const UniformDef*       unifdef,
+   int                     unifcount
+   );
+
+void Update_uniform (
+   const Rn::UniformMap&       unifloc,
+   const Rn::UniformValueMap&  values,
+   const UniformDef&           unifdef
+   );
+
 GLuint Create_shader       (const GLchar* shaderSource, GLenum shaderType);
 GLuint Build_shader_program(const GLuint* shaders);
 

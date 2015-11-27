@@ -7,8 +7,10 @@ namespace Rn
 {
 	class Renderer; 
 
+   union UniformValue { void* p; int i; };
    typedef std::map<std::string, int>           AttributeMap;
    typedef std::map<std::string, int>           UniformMap;
+   typedef std::map<std::string, UniformValue>  UniformValueMap;
    typedef std::map<std::string, unsigned int>  ShaderTable;
 
 

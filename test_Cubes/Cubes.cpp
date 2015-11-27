@@ -14,6 +14,21 @@ const float    kMaskVal             = -2553.0f;
 void Make_Mars_tiles       ();
 void Make_Mars_normal_map  (float height_scale); 
 
+UniformDef ModelUniform = { "mat_Model", UT_MAT4F, 1, 0 }; 
+UniformDef ViewUniform  = { "mat_View", UT_MAT4F, 1, 0 }; 
+UniformDef ProjUniform = { "mat_Proj", UT_MAT4F, 1, 0 };
+UniformDef CubeUniforms[] = {
+   ModelUniform , 
+   ViewUniform  , 
+   ProjUniform  , 
+   { "colorMap", UT_SAMPLER, 1, 0 },
+};
+
+AttributeDef cube_attribs[] = {
+   { "vPosi", AT_VEC3F, 0 },
+   { "vTxcd", AT_VEC2F, 0 },
+};
+
 //
 //
 struct Simple_obj : public Renderable 
@@ -336,20 +351,24 @@ void MRT_BindForRendering (MRT_frame_buffer& mrt)
 class Defer_test : public sy::RT_Task, public sy::Window_listener, public cx::Destructor
 {
 private: 
-
+   
    void init_graphics_objects (); 
    void init_scene_objects    (); 
-   void draw_simple           (); 
-   // 
-   Rn::ShaderTable    shader_Table;
-   Rn::UniformMap     uniformLoc_map;
-   Rn::AttributeMap   attribLoc_map;
 
+
+   bool draw_simple_else_deferred; 
+   void draw_simple           (); 
+   void draw_deferred         (); 
+   // 
+   Rn::ShaderTable      shader_Table;
+   Rn::UniformMap       uniformLoc_map;
+   Rn::AttributeMap     attribLoc_map;
+   Rn::UniformValueMap  uniformValueMap;
 
    std::shared_ptr<sy::Graphics_window>   windo; 
    bool                                   init_; 
    glm::ivec2                             view_dim; 
-   
+   glm::fmat4                             matrices[3];
 
    MRT_frame_buffer              framebuffer;
    View_params                   viewparams;
@@ -392,7 +411,8 @@ Defer_test::Defer_test (sy::System_context* sys)
    : windo     ()
    , init_     (false)
    , view_dim  (kInitial_window_width, kInitial_window_height)
-   , dat      () 
+   , draw_simple_else_deferred (true)
+   , dat()
 {  
 
 }
@@ -404,18 +424,6 @@ Defer_test::~Defer_test ()
 }
 
 
-
-UniformDef cube_uniforms[] = {
-   { "mat_Model", UT_MAT4F, 1, 0 },
-   { "mat_View", UT_MAT4F, 1, 0 },
-   { "mat_Proj", UT_MAT4F, 1, 0 },
-   { "colorMap", UT_SAMPLER, 1, 0 },
-   };
-
-AttributeDef cube_attribs[] = {
-   { "vPosi", AT_VEC3F, 0 },
-   { "vTxcd", AT_VEC2F, 0 },
-   };
 
 void Defer_test::init_graphics (sy::System_context* sys)
 {
@@ -448,11 +456,14 @@ void Defer_test::init_graphics_objects ()
    
       shader_Table["basic_prog"] = Build_shader_program(shaders);
 
-      Uniform_locations  (uniformLoc_map, cube_uniforms, El_count(cube_uniforms), shader_Table["basic_prog"]);
+      Uniform_locations(uniformLoc_map, CubeUniforms, El_count(CubeUniforms), shader_Table["basic_prog"]);
       Attribute_locations(attribLoc_map, cube_attribs, El_count(cube_attribs), shader_Table["basic_prog"]);
    }
 
-
+   uniformValueMap["mat_Model"].p  = &matrices[0];
+   uniformValueMap["mat_View"].p   = &matrices[1];
+   uniformValueMap["mat_Proj"].p   = &matrices[2];
+   uniformValueMap["colorMap"].i   = uniformLoc_map["colorMap"];
 
    wat ();
 
@@ -501,10 +512,18 @@ void Defer_test::init_scene_objects ()
       Validate_GL_call(); 
    }
 
-   objs.clear();
    // setup objects
-   dat.cubes.resize (numfiles); 
-   float fRotMult= Ma::TwoPi * 0.01; 
+   objs.clear();
+   dat.cubes.resize(numfiles);
+
+   if (draw_simple_else_deferred)
+   {
+   }
+   else
+   {
+   }
+
+   float fRotMult = Ma::TwoPi * 0.01;
    for (int i = 0; i < dat.cubes.size(); i++)
    {
 
@@ -608,18 +627,17 @@ void Defer_test::update_input (sy::System_context* sys)
 void Defer_test::render (sy::System_context* sys)
 {   
    glViewport(0, 0, view_dim[0], view_dim[1]);
-   
-  
-   //
-   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
-   
-   
-   
-   glClearColor (0.7f, 0.8f, 0.9f, 1.0f); 
-   
-   //
 
-   draw_simple();
+   if (draw_simple_else_deferred)
+   {
+      glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
+      glClearColor (0.7f, 0.8f, 0.9f, 1.0f); 
+      draw_simple();
+   }
+   else
+   {
+      draw_deferred (); 
+   }
 
 //
 //
@@ -680,7 +698,6 @@ void Defer_test::draw_simple ()
    glEnable(GL_TEXTURE_2D);
    Validate_GL_call();
 
-   //
    // geometry streams  
    glEnableVertexAttribArray(attribLoc_map["vPosi"]);
    glVertexAttribPointer (attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
@@ -689,43 +706,25 @@ void Defer_test::draw_simple ()
    glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
    Validate_GL_call();
 
-
    //
-   // view matrix 
-   glm::dmat4 mat_View;
-   {
-      const glm::dvec3  v_right(1.0, 0.0, 0.0),
-         v_up(0.0, 1.0, 0.0),
-         v_fwd(0.0, 0.0, 1.0);
+   // view, proj 
 
+   {
+      glm::fmat4& mat_View = *(glm::fmat4*)uniformValueMap["mat_View"].p;
       mat_View = glm::translate(viewparams.pos) * glm::eulerAngleYX(viewparams.rot[1], viewparams.rot[0]);
       mat_View = glm::inverse(mat_View);
+      Update_uniform(uniformLoc_map, uniformValueMap, ViewUniform);
 
-      float fMat_view[16]; // double precision (glUniformMatrix4dv) not available
-      std::copy(glm::value_ptr(mat_View), glm::value_ptr(mat_View) + 16, fMat_view);
-      glUniformMatrix4fv(uniformLoc_map["mat_View"], 1, GL_FALSE, fMat_view);
-
-      Validate_GL_call();
-
-   }
-
-   //
-   // projection 
-   {
-
-      glm::fmat4 matproj = glm::perspective(
+      glm::fmat4& mat_Proj= *(glm::fmat4*)uniformValueMap["mat_Proj"].p;
+      mat_Proj = glm::perspective(
          (float)viewparams.FoV,       //kPerspective_FoV,  
          (float)viewparams.Asp_ratio, //camera_y_asp,
          (float)viewparams.dist_Near, //kNear_plane_dist,  
          (float)viewparams.dist_Far   //kFar_plane_dist  
          );
-
-
-      // float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
-      // std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
-      glUniformMatrix4fv(uniformLoc_map["mat_Proj"], 1, GL_FALSE, glm::value_ptr(matproj));
-      Validate_GL_call();
+      Update_uniform(uniformLoc_map, uniformValueMap, ProjUniform);
    }
+   
 
    //
    for (int i = 0; i < objs.size(); i++)
@@ -733,21 +732,24 @@ void Defer_test::draw_simple ()
       // this is draw loop 
       // set up grid first  // abstract data set into interface?   
       Validate_GL_call();
+      {
+         glm::fmat4& mat_Model = *(glm::fmat4*)uniformValueMap["mat_Model"].p;
+         const glm::fvec3& fPos = objs[i]->Pos();
+         const glm::fvec3& fRot = objs[i]->Rot();
+         const glm::fvec3& fScl = objs[i]->Scl();
 
-      const glm::fvec3& fPos = objs[i]->Pos();
-      const glm::fvec3& fRot = objs[i]->Rot();
-      const glm::fvec3& fScl = objs[i]->Scl();
+         glm::fmat4 matScale = glm::scale(fScl);
 
-      glm::fmat4 matScale = glm::scale(fScl);
+         glm::fmat4 matRot = glm::rotate(fRot.x, glm::fvec3(1.0f, 0.0f, 0.0f)) 
+                           * glm::rotate(fRot.y, glm::fvec3(0.0f, 1.0f, 0.0f)) 
+                           * glm::rotate(fRot.z, glm::fvec3(0.0f, 0.0f, 1.0f)); 
+         glm::fmat4 matPos = glm::translate(fPos);
 
-      glm::fmat4 matRot = glm::rotate(fRot.x, glm::fvec3(1.0f, 0.0f, 0.0f)) 
-                        * glm::rotate(fRot.y, glm::fvec3(0.0f, 1.0f, 0.0f)) 
-                        * glm::rotate(fRot.z, glm::fvec3(0.0f, 0.0f, 1.0f)); 
-      glm::fmat4 matPos = glm::translate(fPos);
+         mat_Model = matPos * matRot * matScale;
+      }
+      
+      Update_uniform (uniformLoc_map, uniformValueMap, ModelUniform);
 
-      glm::fmat4 mat_Model = matPos * matRot * matScale;
-      glUniformMatrix4fv(uniformLoc_map["mat_Model"], 1, GL_FALSE, glm::value_ptr(mat_Model));
-      Validate_GL_call();
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
       objs[i]->Setup_RS(uniformLoc_map, attribLoc_map);
@@ -756,15 +758,28 @@ void Defer_test::draw_simple ()
       Validate_GL_call();
    }
 
+
    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
    glUseProgram(0);
 
    glEnable(GL_DEPTH_TEST);
-   glDisableVertexAttribArray(attribLoc_map["patch_coord"]);
-   glDisableVertexAttribArray(attribLoc_map["tex_coord"]);
    glMatrixMode(GL_MODELVIEW);
    glPopMatrix();
+
+}
+
+void Defer_test::draw_deferred()
+{
+   MRT_BindForRendering(framebuffer);
+   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   glUseProgram(shader_Table["deferred_geom_prog"]);
+
+
+
+   // bind default
+   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+   glUseProgram(shader_Table["deferred_light_prog"]);
 
 }
 

@@ -40,6 +40,40 @@ UniformMap& Uniform_locations(
 }
 
 
+//
+void Update_uniforms(
+   const UniformMap&       unifloc,
+   const UniformValueMap&  values,
+   const UniformDef*       unifdef,
+   int                     unifcount)
+{
+   for (int i = 0; i < unifcount; i++) 
+   {
+      switch (unifdef[i].type)
+      {
+      case UT_VEC2F: 
+      case UT_VEC3F: 
+      case UT_VEC4F: 
+      case UT_MAT3F: 
+      case UT_MAT4F:
+         glUniformMatrix4fv(unifloc.at(unifdef[i].var), unifdef[i].count, GL_FALSE, (GLfloat*)values.at(unifdef[i].var).p);
+         break;
+      case UT_SAMPLER: 
+         glUniform1i (unifloc.at(unifdef[i].var), values.at(unifdef[i].var).i);
+         break;
+      }      
+   }
+}
+
+void Update_uniform (
+   const Rn::UniformMap&       unifloc,
+   const Rn::UniformValueMap&  values,
+   const UniformDef&           unifdef)
+{
+   Update_uniforms (unifloc, values, &unifdef, 1); 
+}
+
+
 GLuint Create_shader(const GLchar* shaderSource, GLenum shaderType)
 {
    BOOST_ASSERT(shaderSource);
