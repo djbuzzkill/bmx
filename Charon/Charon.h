@@ -77,6 +77,7 @@ void Update_view_transform (
    const sy::Mouse_state&     ms
    );
 
+GLenum   GL_TEXTURE_stage(int stage);
 
 //
 //

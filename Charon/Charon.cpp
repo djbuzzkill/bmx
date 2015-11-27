@@ -5,6 +5,14 @@ void wat()
    int i = 0; i++;
 }
 
+GLenum GL_TEXTURE_stage(int stage)
+{
+   BOOST_ASSERT(stage >= 0);
+   BOOST_ASSERT(stage < 16);
+
+   return GL_TEXTURE0 + stage;
+}
+
 std::string index_2_str (int Y, int X)
 {
    std::stringstream oss;

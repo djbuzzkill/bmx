@@ -5,13 +5,6 @@
 
 // #include <FileReader.h>
 
-GLenum GL_TEXTURE_stage (int stage)
-{
-   BOOST_ASSERT (stage >= 0); 
-   BOOST_ASSERT (stage < 16); 
-
-   return GL_TEXTURE0 + stage; 
-}
 
 // Temporary: for now we will only do this many
 const int k_MaxDetailLevelToBuild = 5;

@@ -16,6 +16,8 @@ enum UniformType
 
    UT_MAT3F,
    UT_MAT4F,
+
+   UT_SAMPLER
 };
 
 enum AttributeType

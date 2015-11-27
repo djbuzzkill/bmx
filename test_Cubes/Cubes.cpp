@@ -29,14 +29,46 @@ struct Simple_obj : public Renderable
    virtual GLuint       Bin_ID   () { return 0; } 
    virtual GLuint       ROp_ID   () { return 0; } 
 
-   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
-   {}
+   virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap); 
 
    glm::fvec3           pos; 
    glm::fvec3           rot; 
    glm::fvec3           scl; 
    GLuint               txrID; 
    }; 
+
+//
+void Simple_obj::Setup_RS (
+   const Rn::UniformMap& uniformMap, 
+   const Rn::AttributeMap& attribMap)
+{
+   int   texture_stage = 0;
+
+   BOOST_ASSERT(uniformMap.count("colorMap"));
+
+   Rn::UniformMap::const_iterator col_It = uniformMap.find("colorMap");
+
+
+   //
+   // setup color texture
+   glActiveTexture(GL_TEXTURE_stage(texture_stage));
+   glBindTexture(GL_TEXTURE_2D, txrID);
+   Validate_GL_call();
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   Validate_GL_call();
+
+   glUniform1i(col_It->second, texture_stage);
+   Validate_GL_call();
+   texture_stage++;
+
+   glEnable(GL_TEXTURE_2D);
+   Validate_GL_call();
+
+}
 
 //
 //
@@ -377,12 +409,13 @@ UniformDef cube_uniforms[] = {
    { "mat_Model", UT_MAT4F, 1, 0 },
    { "mat_View", UT_MAT4F, 1, 0 },
    { "mat_Proj", UT_MAT4F, 1, 0 },
-};
+   { "colorMap", UT_SAMPLER, 1, 0 },
+   };
 
 AttributeDef cube_attribs[] = {
    { "vPosi", AT_VEC3F, 0 },
    { "vTxcd", AT_VEC2F, 0 },
-};
+   };
 
 void Defer_test::init_graphics (sy::System_context* sys)
 {
@@ -435,18 +468,22 @@ void Defer_test::init_scene_objects ()
    int ht = 512;
    int numpixels = wd * ht;
 
-   const char* files[]= {
-      "tex_0",
-      "tex_1",
-      "tex_2",
+   char* files[]= {
       "tex_3",
-      "tex_4",
-      "tex_5",
       "tex_6",
+      "tex_0",
       "tex_7",
-      };
+      "tex_5",
+      "tex_1",
+      "tex_4",
+      "tex_2",
+   };
    int numfiles = El_count (files); 
-   
+
+   int randshuffle = rand () % 20; 
+
+   for (int i = 0; i < randshuffle; i++)
+      std::next_permutation (files, files + numfiles); 
 
    std::vector<unsigned char> imgbuf (numpixels * 3);
    std::vector<GLuint> txIDs (numfiles); 
@@ -464,8 +501,30 @@ void Defer_test::init_scene_objects ()
       Validate_GL_call(); 
    }
 
-   wat (); 
+   objs.clear();
+   // setup objects
+   dat.cubes.resize (numfiles); 
+   float fRotMult= Ma::TwoPi * 0.01; 
+   for (int i = 0; i < dat.cubes.size(); i++)
+   {
 
+      if (i) {
+         dat.cubes[i].pos = glm::fvec3(float(rand() % 2000) - 1000.0f, 100.0f + float(rand() % 100), float(rand() % 2000) - 1000.0f);
+         dat.cubes[i].scl = glm::fvec3(float(rand() % 100) + 20.0f, float(rand() % 100) + 20.0f, float(rand() % 100) + 20.0f);
+         dat.cubes[i].rot = glm::fvec3(fRotMult * float(rand() % 100), fRotMult * float(rand() % 100), fRotMult * float(rand() % 100));
+
+      }
+      else {  // we want this one to be the floor
+         dat.cubes[i].pos = glm::fvec3(0.0f, 0.0f, 0.0f);
+         dat.cubes[i].scl = glm::fvec3(1000.0f, 0.2f, 1000.0f);
+         dat.cubes[i].rot = glm::fvec3(0.0f, 0.0f, 0.0f);
+      }
+
+      dat.cubes[i].txrID = txIDs[i]; 
+
+
+      objs.push_back(&dat.cubes[i]); 
+   }
 
 }
 
@@ -536,7 +595,7 @@ void Defer_test::update_input (sy::System_context* sys)
       viewparams.Asp_ratio = camera_y_asp ; 
       viewparams.dist_Near = kNear_plane_dist; 
       viewparams.dist_Far =  kFar_plane_dist; 
-      static double Dt = 20.0;
+      static double Dt = 1.0;
       // -> is a quat mars.view_Rot, not euler
       Update_view_transform (viewparams.pos, viewparams.rot, Dt , kb, ms); 
    } 
@@ -548,22 +607,25 @@ void Defer_test::update_input (sy::System_context* sys)
 // 
 void Defer_test::render (sy::System_context* sys)
 {   
-   //
-   glViewport (0, 0, view_dim[0] , view_dim[1]); 
-
+   glViewport(0, 0, view_dim[0], view_dim[1]);
+   
+  
    //
    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
-
-
-
+   
+   
+   
    glClearColor (0.7f, 0.8f, 0.9f, 1.0f); 
-
+   
    //
 
+   draw_simple();
 
-   // draw stuff 
-
-   //
+//
+//
+//   // draw stuff 
+//
+//   //
    windo->Swap_buffers (); 
 }
 
@@ -602,7 +664,7 @@ void Defer_test::draw_simple ()
    glMatrixMode(GL_MODELVIEW);
    glPushMatrix();
 
-   glUseProgram(shader_Table["simple_prog"]);
+   glUseProgram(shader_Table["basic_prog"]);
 
    // face cull
    static bool enable_culling = true;
@@ -621,10 +683,10 @@ void Defer_test::draw_simple ()
    //
    // geometry streams  
    glEnableVertexAttribArray(attribLoc_map["vPosi"]);
-   glVertexAttribPointer (attribLoc_map["vPosi"], 3, GL_DOUBLE, GL_FALSE, 0, cube_geom);
+   glVertexAttribPointer (attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
    Validate_GL_call();
    glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
-   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_DOUBLE, GL_FALSE, 0, cube_txc0);
+   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
    Validate_GL_call();
 
 
@@ -672,20 +734,25 @@ void Defer_test::draw_simple ()
       // set up grid first  // abstract data set into interface?   
       Validate_GL_call();
 
-      const glm::dvec3& dPos = objs[i]->Pos();
-      
-      const glm::dvec3& dScl = objs[i]->Scl(); 
+      const glm::fvec3& fPos = objs[i]->Pos();
+      const glm::fvec3& fRot = objs[i]->Rot();
+      const glm::fvec3& fScl = objs[i]->Scl();
 
-      glm::scale(dScl); 
+      glm::fmat4 matScale = glm::scale(fScl);
 
-      glm::fvec3 model_pos(dPos.x, dPos.y, dPos.z);
-      glm::fmat4 mat_Model = glm::translate(model_pos);
+      glm::fmat4 matRot = glm::rotate(fRot.x, glm::fvec3(1.0f, 0.0f, 0.0f)) 
+                        * glm::rotate(fRot.y, glm::fvec3(0.0f, 1.0f, 0.0f)) 
+                        * glm::rotate(fRot.z, glm::fvec3(0.0f, 0.0f, 1.0f)); 
+      glm::fmat4 matPos = glm::translate(fPos);
+
+      glm::fmat4 mat_Model = matPos * matRot * matScale;
       glUniformMatrix4fv(uniformLoc_map["mat_Model"], 1, GL_FALSE, glm::value_ptr(mat_Model));
       Validate_GL_call();
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
       objs[i]->Setup_RS(uniformLoc_map, attribLoc_map);
-      glDrawArrays(GL_PATCHES, 0, 4);
+      glDrawArrays(GL_TRIANGLES, 0, El_count(cube_geom));
+
       Validate_GL_call();
    }
 
@@ -699,7 +766,6 @@ void Defer_test::draw_simple ()
    glMatrixMode(GL_MODELVIEW);
    glPopMatrix();
 
-   return 0;
 }
 
 

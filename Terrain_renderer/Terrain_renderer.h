@@ -33,7 +33,6 @@ struct View_params
 }; 
 
 void     Validate_GL_call (); 
-GLenum   GL_TEXTURE_stage (int stage); 
 
 namespace BG_tile
 {
