@@ -22,17 +22,19 @@ struct Simple_obj : public Renderable
    Simple_obj () { 
       }
 
-   virtual glm::dvec3&  Get_pos  () { return pos; } 
-   virtual glm::dvec3&  Get_rot  () { return rot; } 
+   virtual glm::fvec3&  Pos  () { return pos; } 
+   virtual glm::fvec3&  Rot  () { return rot; } 
+   virtual glm::fvec3&  Scl  () { return scl; }
+
    virtual GLuint       Bin_ID   () { return 0; } 
    virtual GLuint       ROp_ID   () { return 0; } 
 
    virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
    {}
 
-   glm::dvec3           pos; 
-   glm::dvec3           rot; 
-   glm::dvec3           scl; 
+   glm::fvec3           pos; 
+   glm::fvec3           rot; 
+   glm::fvec3           scl; 
    GLuint               txrID; 
    }; 
 
@@ -51,18 +53,20 @@ struct Light_obj : public Renderable
    Light_obj () { 
       }
 
-   virtual glm::dvec3&  Pos   () { return pos; } 
-   virtual glm::dvec3&  Rot   () { return rot; } 
-   virtual GLuint       Bin_ID() { return 0; } 
+   virtual glm::fvec3&  Pos   () { return pos; } 
+   virtual glm::fvec3&  Rot   () { return rot; }
+   virtual glm::fvec3&  Scl   () { return scl; }
+   virtual GLuint       Bin_ID() { return 0; }
    virtual GLuint       ROp_ID() { return 0; } 
 
    virtual void         Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
    {}
       
    Type                       type; 
-   glm::dvec3                 pos; 
-   glm::dvec3                 rot; 
-   glm::dvec3                 dir; 
+   glm::fvec3                 pos; 
+   glm::fvec3                 rot;
+   glm::fvec3                 scl;
+   glm::fvec3                 dir;
    double                     radius; 
 
    std::vector<glm::fvec3>    geom; 
@@ -303,7 +307,7 @@ private:
 
    void init_graphics_objects (); 
    void init_scene_objects    (); 
-   
+   void draw_simple           (); 
    // 
    Rn::ShaderTable    shader_Table;
    Rn::UniformMap     uniformLoc_map;
@@ -320,11 +324,12 @@ private:
 
    struct DeferDat {
       std::vector<Light_obj>     lights; 
-      std::vector<Simple_obj>    objs; 
+      std::vector<Simple_obj>    cubes; 
       std::vector<Renderable*>   rend_lit; 
       std::vector<Renderable*>   rend_obj; 
       } dat; 
 
+   std::vector<Renderable*>   objs;
 
    void init_graphics   (sy::System_context* sys);
    void update_input    (sy::System_context* sys); 
@@ -367,7 +372,18 @@ Defer_test::~Defer_test ()
 }
 
 
- 
+
+UniformDef cube_uniforms[] = {
+   { "mat_Model", UT_MAT4F, 1, 0 },
+   { "mat_View", UT_MAT4F, 1, 0 },
+   { "mat_Proj", UT_MAT4F, 1, 0 },
+};
+
+AttributeDef cube_attribs[] = {
+   { "vPosi", AT_VEC3F, 0 },
+   { "vTxcd", AT_VEC2F, 0 },
+};
+
 void Defer_test::init_graphics (sy::System_context* sys)
 {
    glewInit (); 
@@ -398,7 +414,12 @@ void Defer_test::init_graphics_objects ()
          };
    
       shader_Table["basic_prog"] = Build_shader_program(shaders);
+
+      Uniform_locations  (uniformLoc_map, cube_uniforms, El_count(cube_uniforms), shader_Table["basic_prog"]);
+      Attribute_locations(attribLoc_map, cube_attribs, El_count(cube_attribs), shader_Table["basic_prog"]);
    }
+
+
 
    wat ();
 
@@ -576,6 +597,110 @@ Defer_test* Create_Defer_test (sy::System_context* sys)
 }
 
 
+void Defer_test::draw_simple ()
+{
+   glMatrixMode(GL_MODELVIEW);
+   glPushMatrix();
+
+   glUseProgram(shader_Table["simple_prog"]);
+
+   // face cull
+   static bool enable_culling = true;
+   (enable_culling ? glEnable : glDisable) (GL_CULL_FACE);
+   glFrontFace(GL_CCW);
+
+   // polygon mode   
+   static int DBG_polygon_mode = 2;
+   GLenum polygon_Mode[] = { GL_POINT, GL_LINE, GL_FILL };
+   glPolygonMode(GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
+   Validate_GL_call();
+
+   glEnable(GL_TEXTURE_2D);
+   Validate_GL_call();
+
+   //
+   // geometry streams  
+   glEnableVertexAttribArray(attribLoc_map["vPosi"]);
+   glVertexAttribPointer (attribLoc_map["vPosi"], 3, GL_DOUBLE, GL_FALSE, 0, cube_geom);
+   Validate_GL_call();
+   glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
+   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_DOUBLE, GL_FALSE, 0, cube_txc0);
+   Validate_GL_call();
+
+
+   //
+   // view matrix 
+   glm::dmat4 mat_View;
+   {
+      const glm::dvec3  v_right(1.0, 0.0, 0.0),
+         v_up(0.0, 1.0, 0.0),
+         v_fwd(0.0, 0.0, 1.0);
+
+      mat_View = glm::translate(viewparams.pos) * glm::eulerAngleYX(viewparams.rot[1], viewparams.rot[0]);
+      mat_View = glm::inverse(mat_View);
+
+      float fMat_view[16]; // double precision (glUniformMatrix4dv) not available
+      std::copy(glm::value_ptr(mat_View), glm::value_ptr(mat_View) + 16, fMat_view);
+      glUniformMatrix4fv(uniformLoc_map["mat_View"], 1, GL_FALSE, fMat_view);
+
+      Validate_GL_call();
+
+   }
+
+   //
+   // projection 
+   {
+
+      glm::fmat4 matproj = glm::perspective(
+         (float)viewparams.FoV,       //kPerspective_FoV,  
+         (float)viewparams.Asp_ratio, //camera_y_asp,
+         (float)viewparams.dist_Near, //kNear_plane_dist,  
+         (float)viewparams.dist_Far   //kFar_plane_dist  
+         );
+
+
+      // float fMat_proj[16];// double precision (glUniformMatrix4dv) not available
+      // std::copy (glm::value_ptr (mat_Proj), glm::value_ptr (mat_Proj) + 16, fMat_proj); 
+      glUniformMatrix4fv(uniformLoc_map["mat_Proj"], 1, GL_FALSE, glm::value_ptr(matproj));
+      Validate_GL_call();
+   }
+
+   //
+   for (int i = 0; i < objs.size(); i++)
+   {
+      // this is draw loop 
+      // set up grid first  // abstract data set into interface?   
+      Validate_GL_call();
+
+      const glm::dvec3& dPos = objs[i]->Pos();
+      
+      const glm::dvec3& dScl = objs[i]->Scl(); 
+
+      glm::scale(dScl); 
+
+      glm::fvec3 model_pos(dPos.x, dPos.y, dPos.z);
+      glm::fmat4 mat_Model = glm::translate(model_pos);
+      glUniformMatrix4fv(uniformLoc_map["mat_Model"], 1, GL_FALSE, glm::value_ptr(mat_Model));
+      Validate_GL_call();
+
+      //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
+      objs[i]->Setup_RS(uniformLoc_map, attribLoc_map);
+      glDrawArrays(GL_PATCHES, 0, 4);
+      Validate_GL_call();
+   }
+
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+   glUseProgram(0);
+
+   glEnable(GL_DEPTH_TEST);
+   glDisableVertexAttribArray(attribLoc_map["patch_coord"]);
+   glDisableVertexAttribArray(attribLoc_map["tex_coord"]);
+   glMatrixMode(GL_MODELVIEW);
+   glPopMatrix();
+
+   return 0;
+}
 
 
 

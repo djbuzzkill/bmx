@@ -4,6 +4,42 @@
 #include <stdio.h>
 #include <string.h>
 
+
+using namespace Rn; 
+
+AttributeMap& Attribute_locations(
+   AttributeMap&  attrib,
+   AttributeDef*  defs,
+   size_t         count,
+   GLuint         progID)
+{
+   attrib.clear ();
+
+   for (int i = 0; i < count; i++)
+   {
+      attrib[defs[i].var] = glGetAttribLocation (progID, defs[i].var.c_str());
+   }
+
+   return attrib; 
+}
+
+UniformMap& Uniform_locations(
+   Rn::UniformMap&    uniforms,
+   UniformDef*    defs,
+   size_t         count,
+   GLuint         progID)
+{
+   uniforms.clear();
+
+
+   for (int i = 0; i < count; i++)
+   {  
+      uniforms[defs[i].var] = glGetUniformLocation(progID, defs[i].var.c_str());
+   }
+   return uniforms;
+}
+
+
 GLuint Create_shader(const GLchar* shaderSource, GLenum shaderType)
 {
    BOOST_ASSERT(shaderSource);

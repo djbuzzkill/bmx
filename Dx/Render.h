@@ -11,6 +11,8 @@ namespace Rn
    typedef std::map<std::string, int>           UniformMap;
    typedef std::map<std::string, unsigned int>  ShaderTable;
 
+
+
    union vecptru {
       float*  f;
       double* d;

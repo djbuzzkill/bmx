@@ -568,7 +568,7 @@ int GL_HWT_renderer::Draw (const View_params& params, std::vector<Renderable*> o
          // set up grid first  // abstract data set into interface?   
          Validate_GL_call (); 
 
-         const glm::dvec3& dPos = objs[i]->Get_pos (); 
+         const glm::dvec3& dPos = objs[i]->Pos (); 
 
          glm::fvec3 model_pos (dPos.x, dPos.y, dPos.z);  
          glm::fmat4 mat_Model = glm::translate (model_pos); 
@@ -902,7 +902,7 @@ glPolygonMode (GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
          // set up grid first  // abstract data set into interface?   
          Validate_GL_call (); 
 
-         const glm::dvec3& dPos = objs[i]->Get_pos (); 
+         const glm::dvec3& dPos = objs[i]->Pos (); 
          
          glm::fvec3 model_pos (dPos.x, dPos.y, dPos.z);  
 
@@ -1155,7 +1155,7 @@ int TessTile_Draw (const View_params& params,
       // set up grid first  // abstract data set into interface?   
       Validate_GL_call();
 
-      const glm::dvec3& dPos = objs[i]->Get_pos();
+      const glm::dvec3& dPos = objs[i]->Pos();
 
       glm::fvec3 model_pos(dPos.x, dPos.y, dPos.z);
       glm::fmat4 mat_Model = glm::translate(model_pos);

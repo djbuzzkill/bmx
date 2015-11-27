@@ -111,14 +111,16 @@ struct Terrain_patch : public Renderable
       } 
    
    Terrain_patch(
-      const glm::dvec3& p, 
-      const glm::dvec3& r)  
-   : pos(p), rot(r) , col_ID(0), hgt_ID(0) {
+      const glm::fvec3& p, 
+      const glm::fvec3& r,
+      const glm::fvec3& s)
+   : pos(p), rot(r) , scl(s), col_ID(0), hgt_ID(0) {
       } 
 
-   virtual glm::dvec3&  Get_pos  () { return pos; } 
-   virtual glm::dvec3&  Get_rot  () { return rot; } 
-   virtual GLuint       Bin_ID() { return 0; } 
+   virtual glm::fvec3&  Pos  () { return pos; } 
+   virtual glm::fvec3&  Rot()    { return rot; }
+   virtual glm::fvec3&  Scl()    { return scl; }
+   virtual GLuint       Bin_ID() { return 0; }
    virtual GLuint       ROp_ID() { return 0; } 
    
    virtual void Setup_RS(const Rn::UniformMap& uniformMap, const Rn::AttributeMap& attribMap)
@@ -169,8 +171,10 @@ struct Terrain_patch : public Renderable
 
    } 
 
-   glm::dvec3  pos; 
-   glm::dvec3  rot; 
+   glm::fvec3  pos; 
+   glm::fvec3  rot;
+   glm::fvec3  scl;
+
    GLuint      col_ID; 
    GLuint      hgt_ID;
    GLuint      nrm_ID;

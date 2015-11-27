@@ -337,8 +337,9 @@ protected:
 
 struct Renderable 
    {
-   virtual glm::dvec3&  Get_pos  () = 0; 
-   virtual glm::dvec3&  Get_rot  () = 0; 
+   virtual glm::fvec3&  Pos  () = 0; 
+   virtual glm::fvec3&  Rot  () = 0;
+   virtual glm::fvec3&  Scl  () = 0;
 
    virtual GLuint       Bin_ID() = 0; 
    virtual GLuint       ROp_ID() = 0; 
