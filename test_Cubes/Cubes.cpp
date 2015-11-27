@@ -6,8 +6,8 @@
 const int kInitial_window_width     = 1024;
 const int kInitial_window_height    = 768;
 
-static double  kNear_plane_dist     = 200.0;
-static double  kFar_plane_dist      = 30000.0;
+static double  kNear_plane_dist     = 100.0;
+static double  kFar_plane_dist      = 3000.0;
 static double  kPerspective_FoV     = 60.0; 
 const float    kMaskVal             = -2553.0f;
 
@@ -469,12 +469,12 @@ void Defer_test::init_scene_objects ()
    int numpixels = wd * ht;
 
    char* files[]= {
-      "tex_3",
       "tex_6",
-      "tex_0",
-      "tex_7",
+      "tex_3",
       "tex_5",
       "tex_1",
+      "tex_0",
+      "tex_7",
       "tex_4",
       "tex_2",
    };
@@ -516,7 +516,7 @@ void Defer_test::init_scene_objects ()
       }
       else {  // we want this one to be the floor
          dat.cubes[i].pos = glm::fvec3(0.0f, 0.0f, 0.0f);
-         dat.cubes[i].scl = glm::fvec3(1000.0f, 0.2f, 1000.0f);
+         dat.cubes[i].scl = glm::fvec3(1000.0f, 1.0f, 1000.0f);
          dat.cubes[i].rot = glm::fvec3(0.0f, 0.0f, 0.0f);
       }
 
