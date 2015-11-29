@@ -52,16 +52,25 @@ void Update_uniforms(
       switch (unifdef[i].type)
       {
       case UT_VEC2F: 
-      case UT_VEC3F: 
+         glUniform2fv (unifloc.at(unifdef[i].var), unifdef[i].count, (GLfloat*)values.at(unifdef[i].var).p);
+         break;
+      case UT_VEC3F:
+         glUniform3fv (unifloc.at(unifdef[i].var), unifdef[i].count, (GLfloat*)values.at(unifdef[i].var).p);
+         break; 
       case UT_VEC4F: 
-      case UT_MAT3F: 
+         glUniform4fv (unifloc.at(unifdef[i].var), unifdef[i].count, (GLfloat*)values.at(unifdef[i].var).p);
+         break; 
+     case UT_MAT3F:
+        glUniformMatrix3fv (unifloc.at(unifdef[i].var), unifdef[i].count, GL_FALSE, (GLfloat*)values.at(unifdef[i].var).p);
+         break;
       case UT_MAT4F:
-         glUniformMatrix4fv(unifloc.at(unifdef[i].var), unifdef[i].count, GL_FALSE, (GLfloat*)values.at(unifdef[i].var).p);
+         glUniformMatrix4fv (unifloc.at(unifdef[i].var), unifdef[i].count, GL_FALSE, (GLfloat*)values.at(unifdef[i].var).p);
          break;
       case UT_SAMPLER: 
          glUniform1i (unifloc.at(unifdef[i].var), values.at(unifdef[i].var).i);
          break;
       }      
+      Validate_GL_call();
    }
 }
 

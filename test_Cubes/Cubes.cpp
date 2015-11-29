@@ -6,133 +6,42 @@
 const int kInitial_window_width     = 1024;
 const int kInitial_window_height    = 768;
 
-static double  kNear_plane_dist     = 100.0;
-static double  kFar_plane_dist      = 3000.0;
+static double  kNear_plane_dist     = 50.0;
+static double  kFar_plane_dist      = 5000.0;
 static double  kPerspective_FoV     = 60.0; 
 const float    kMaskVal             = -2553.0f;
 
 void Make_Mars_tiles       ();
 void Make_Mars_normal_map  (float height_scale); 
 
-UniformDef ModelUniform = { "mat_Model", UT_MAT4F, 1, 0 }; 
+UniformDef ModelUniform = { "mat_Model", UT_MAT4F, 1, 0 };
 UniformDef ViewUniform  = { "mat_View", UT_MAT4F, 1, 0 }; 
 UniformDef ProjUniform  = { "mat_Proj", UT_MAT4F, 1, 0 };
 UniformDef ColorMap     = { "colorMap", UT_SAMPLER, 1, 0 };
+UniformDef LightPos     = { "lit_Pos0", UT_VEC3F, 1, 0 };  
+
+
+UniformDef ModelRotation = { "mat_ModelRot", UT_MAT3F, 1, 0 };
 
 UniformDef CubeUniforms[] = {
    ModelUniform , 
    ViewUniform  , 
    ProjUniform  , 
-   ColorMap 
+   //ModelRotation, 
+   ColorMap    , 
+   LightPos
    };
 
-AttributeDef cube_attribs[] = {
-   { "vPosi", AT_VEC3F, 0 },
-   { "vTxcd", AT_VEC2F, 0 },
-};
-
-//
-//
-struct Simple_obj : public Renderable 
-   {
-
-   Simple_obj () { 
-      }
-
-   virtual glm::fvec3&  Pos  () { return pos; } 
-   virtual glm::fvec3&  Rot  () { return rot; } 
-   virtual glm::fvec3&  Scl  () { return scl; }
-
-   virtual GLuint       Bin_ID   () { return 0; } 
-   virtual GLuint       ROp_ID   () { return 0; } 
-
-   virtual void Setup_RS(
-      const Rn::UniformMap& uniformMap, 
-      const Rn::UniformValueMap& uniformVals,
-      const Rn::AttributeMap& attribMap);
-
-   glm::fvec3           pos; 
-   glm::fvec3           rot; 
-   glm::fvec3           scl; 
-   GLuint               txrID; 
-   }; 
-
-//
-void Simple_obj::Setup_RS (
-   const Rn::UniformMap& uniformMap,
-   const Rn::UniformValueMap& uniformVals,
-   const Rn::AttributeMap& attribMap)
-{
-   int   texture_stage = 0;
-
-   BOOST_ASSERT(uniformMap.count("colorMap"));
-
-   Rn::UniformMap::const_iterator col_It = uniformMap.find("colorMap");
+AttributeDef VertPosi = { "vPosi", AT_VEC3F, 0 };
+AttributeDef VertTxcd = { "vTxcd", AT_VEC2F, 0 };
+AttributeDef VertNorm = { "vNorm", AT_VEC3F, 0 };
 
 
-   //
-   // setup color texture
-   glActiveTexture(GL_TEXTURE_stage(texture_stage));
-   glBindTexture(GL_TEXTURE_2D, txrID);
-   Validate_GL_call();
-
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   Validate_GL_call();
-   Update_uniform(uniformMap, uniformVals, ColorMap); 
-   //glUniform1i(col_It->second, texture_stage);
-   Validate_GL_call();
-   texture_stage++;
-
-   glEnable(GL_TEXTURE_2D);
-   Validate_GL_call();
-
-}
-
-//
-//
-struct Light_obj : public Renderable 
-   {
-
-   enum Type {
-      _INVALID_LT_ = -1,
-      LT_Directional, 
-      LT_Point, 
-      LT_Spot, 
-      }; 
-
-   Light_obj () { 
-      }
-
-   virtual glm::fvec3&  Pos   () { return pos; } 
-   virtual glm::fvec3&  Rot   () { return rot; }
-   virtual glm::fvec3&  Scl   () { return scl; }
-   virtual GLuint       Bin_ID() { return 0; }
-   virtual GLuint       ROp_ID() { return 0; } 
-
-   virtual void Setup_RS (
-      const Rn::UniformMap& uniformMap, 
-      const Rn::UniformValueMap& uniformVals,
-      const Rn::AttributeMap& attribMap)
-   {
-   }
-
-   Type                       type; 
-   glm::fvec3                 pos; 
-   glm::fvec3                 rot;
-   glm::fvec3                 scl;
-   glm::fvec3                 dir;
-   double                     radius; 
-
-   std::vector<glm::fvec3>    geom; 
-
-   GLuint                     col_ID; 
-   GLuint                     hgt_ID; 
-   }; 
-
-
+AttributeDef CubeAttributes[] = {
+   VertPosi,
+   VertTxcd,
+   VertNorm,
+   };
 
 
 
@@ -274,6 +183,109 @@ static glm::fvec2 cube_txc0[] = {
 //
 
 //
+//
+struct Simple_obj : public Renderable
+{
+
+   Simple_obj() {
+   }
+
+   virtual glm::fvec3&  Pos() { return pos; }
+   virtual glm::fvec3&  Rot() { return rot; }
+   virtual glm::fvec3&  Scl() { return scl; }
+
+   virtual GLuint       Bin_ID() { return 0; }
+   virtual GLuint       ROp_ID() { return 0; }
+
+   virtual void Setup_RS(
+      const Rn::UniformMap& uniformMap,
+      const Rn::UniformValueMap& uniformVals,
+      const Rn::AttributeMap& attribMap);
+
+   glm::fvec3           pos;
+   glm::fvec3           rot;
+   glm::fvec3           scl;
+   GLuint               txrID;
+};
+
+//
+void Simple_obj::Setup_RS(
+   const Rn::UniformMap& uniformMap,
+   const Rn::UniformValueMap& uniformVals,
+   const Rn::AttributeMap& attribMap)
+{
+   int   texture_stage = 0;
+
+   BOOST_ASSERT(uniformMap.count("colorMap"));
+
+   Rn::UniformMap::const_iterator col_It = uniformMap.find("colorMap");
+
+
+   //
+   // setup color texture
+   glActiveTexture(GL_TEXTURE_stage(texture_stage));
+   glBindTexture(GL_TEXTURE_2D, txrID);
+   Validate_GL_call();
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   Validate_GL_call();
+   Update_uniform(uniformMap, uniformVals, ColorMap);
+   //glUniform1i(col_It->second, texture_stage);
+   Validate_GL_call();
+   texture_stage++;
+
+   glEnable(GL_TEXTURE_2D);
+   Validate_GL_call();
+
+}
+
+//
+//
+struct Light_obj : public Renderable
+{
+
+   enum Type {
+      _INVALID_LT_ = -1,
+      LT_Directional,
+      LT_Point,
+      LT_Spot,
+   };
+
+   Light_obj() {
+   }
+
+   virtual glm::fvec3&  Pos() { return pos; }
+   virtual glm::fvec3&  Rot() { return rot; }
+   virtual glm::fvec3&  Scl() { return scl; }
+   virtual GLuint       Bin_ID() { return 0; }
+   virtual GLuint       ROp_ID() { return 0; }
+
+   virtual void Setup_RS(
+      const Rn::UniformMap& uniformMap,
+      const Rn::UniformValueMap& uniformVals,
+      const Rn::AttributeMap& attribMap)
+   {
+   }
+
+   Type                       type;
+   glm::fvec3                 pos;
+   glm::fvec3                 rot;
+   glm::fvec3                 scl;
+   glm::fvec3                 dir;
+   double                     radius;
+
+   std::vector<glm::fvec3>    geom;
+
+   GLuint                     col_ID;
+   GLuint                     hgt_ID;
+};
+
+
+
+//
 struct MRT_frame_buffer                  
 {
 
@@ -361,13 +373,20 @@ void MRT_BindForRendering (MRT_frame_buffer& mrt)
 class Defer_test : public sy::RT_Task, public sy::Window_listener, public cx::Destructor
 {
 private: 
-   
+
+   enum shading { 
+      shade_basic,
+      shade_lighting
+   };
+
    void init_graphics_objects (); 
    void init_scene_objects    (); 
 
+   void update_scene(sy::System_context* sys);
 
-   bool draw_simple_else_deferred; 
+   shading shading_mode;
    void draw_simple           (); 
+   void draw_lighting         (); 
    void draw_deferred         (); 
    // 
    Rn::ShaderTable      shader_Table;
@@ -379,7 +398,8 @@ private:
    bool                                   init_; 
    glm::ivec2                             view_dim; 
    glm::fmat4                             matrices[3];
-
+   glm::fmat3                             matrot;
+   glm::fvec3                             lightPos; 
    MRT_frame_buffer              framebuffer;
    View_params                   viewparams;
 
@@ -391,6 +411,8 @@ private:
       } dat; 
 
    std::vector<Renderable*>   objs;
+   std::vector<glm::fvec3>    objrot;
+   std::vector<glm::fvec3>    objpos;
 
    void init_graphics   (sy::System_context* sys);
    void update_input    (sy::System_context* sys); 
@@ -421,7 +443,8 @@ Defer_test::Defer_test (sy::System_context* sys)
    : windo     ()
    , init_     (false)
    , view_dim  (kInitial_window_width, kInitial_window_height)
-   , draw_simple_else_deferred (true)
+   , shading_mode (shade_lighting)
+   , lightPos (-500.0f, 2000.0f, 500.0f)
    , dat()
 {  
 
@@ -442,17 +465,21 @@ void Defer_test::init_graphics (sy::System_context* sys)
 
 void Defer_test::init_graphics_objects () 
 {
-   viewparams.pos[0] = 0.0;
-   viewparams.pos[1] = 9.0;
-   viewparams.pos[2] = 0.0;
+   viewparams.pos[0] = 0.0f;
+   viewparams.pos[1] = 300.0f;
+   viewparams.pos[2] = 0.0f;
 
-   viewparams.rot[0] = glm::pi<double>();
+   viewparams.rot[0] = 0.0f; // glm::pi<double>();
    viewparams.rot[1] = glm::pi<double>();
 
    MRT_Initialize(framebuffer, kInitial_window_width, kInitial_window_height);
+   
 
-   {  // basic shader
-      std::vector<char> vs, fs;
+   std::vector<char> vs, fs;
+   switch (shading_mode)
+   {  
+   // basic shader
+   case shade_basic: {
       ut::Load_text_file(vs, "C:/Quarantine/hardcore/shader/Cubes/basic_shader.vp");
       ut::Load_text_file(fs, "C:/Quarantine/hardcore/shader/Cubes/basic_shader.fp");
    
@@ -463,17 +490,37 @@ void Defer_test::init_graphics_objects ()
          shader_Table["basic_fp"], 
          0
          };
-   
       shader_Table["basic_prog"] = Build_shader_program(shaders);
-
-      Uniform_locations(uniformLoc_map, CubeUniforms, El_count(CubeUniforms), shader_Table["basic_prog"]);
-      Attribute_locations(attribLoc_map, cube_attribs, El_count(cube_attribs), shader_Table["basic_prog"]);
+      } break;
+   // simple lighting
+   case shade_lighting:  {
+      ut::Load_text_file(vs, "C:/Quarantine/hardcore/shader/Cubes/simple_light.vp");
+      ut::Load_text_file(fs, "C:/Quarantine/hardcore/shader/Cubes/simple_light.fp");
+      shader_Table["light_vp"] = Create_shader((GLchar*)vs.data(), GL_VERTEX_SHADER);
+      shader_Table["light_fp"] = Create_shader((GLchar*)fs.data(), GL_FRAGMENT_SHADER);
+      GLuint shaders[3] = {
+         shader_Table["light_vp"],
+         shader_Table["light_fp"],
+         0
+         };
+      shader_Table["light_prog"] = Build_shader_program(shaders);
+      } break;
+   //
+   default: DX_ASSERT ("invalid shader"); break;
    }
 
-   uniformValueMap["mat_Model"].p  = &matrices[0];
-   uniformValueMap["mat_View"].p   = &matrices[1];
-   uniformValueMap["mat_Proj"].p   = &matrices[2];
-   uniformValueMap["colorMap"].i   = 0;
+   Uniform_locations    (uniformLoc_map, CubeUniforms, El_count(CubeUniforms), shader_Table["light_prog"]);
+   Attribute_locations  (attribLoc_map, CubeAttributes, El_count(CubeAttributes), shader_Table["light_prog"]);
+
+
+   uniformValueMap["mat_Model"].p      = &matrices[0];
+   uniformValueMap["mat_View"].p       = &matrices[1];
+   uniformValueMap["mat_Proj"].p       = &matrices[2];
+   //uniformValueMap["mat_ModelRot"].p   = glm::value_ptr(matrot); // stage 0
+   uniformValueMap["colorMap"].i       = 0; // stage 0
+   uniformValueMap["lit_Pos0"].p       = glm::value_ptr(lightPos);
+
+   //UniformDef ModelRotation = { "mat_ModelRot", UT_MAT3F, 1, 0 };
 
    wat ();
 
@@ -490,21 +537,20 @@ void Defer_test::init_scene_objects ()
    int numpixels = wd * ht;
 
    char* files[]= {
+      "tex_2",
       "tex_6",
       "tex_3",
-      "tex_5",
-      "tex_1",
       "tex_0",
       "tex_7",
       "tex_4",
-      "tex_2",
+      "tex_5",
+      "tex_1",
    };
    int numfiles = El_count (files); 
+   int random_shuffle = rand(); 
 
-   int randshuffle = rand () % 20; 
-
-   for (int i = 0; i < randshuffle; i++)
-      std::next_permutation (files, files + numfiles); 
+   for (int i = 0; i < random_shuffle; i++)
+      std::random_shuffle (files, files + numfiles); 
 
    std::vector<unsigned char> imgbuf (numpixels * 3);
    std::vector<GLuint> txIDs (numfiles); 
@@ -526,27 +572,26 @@ void Defer_test::init_scene_objects ()
    objs.clear();
    dat.cubes.resize(numfiles);
 
-   if (draw_simple_else_deferred)
-   {
-   }
-   else
-   {
-   }
-
    float fRotMult = Ma::TwoPi * 0.01;
+   float fPi      = Ma::Pi * 0.01f;
+   objrot.resize (numfiles);
+   objpos.resize (numfiles);
+
    for (int i = 0; i < dat.cubes.size(); i++)
    {
 
       if (i) {
-         dat.cubes[i].pos = glm::fvec3(float(rand() % 2000) - 1000.0f, 100.0f + float(rand() % 100), float(rand() % 2000) - 1000.0f);
-         dat.cubes[i].scl = glm::fvec3(float(rand() % 100) + 20.0f, float(rand() % 100) + 20.0f, float(rand() % 100) + 20.0f);
-         dat.cubes[i].rot = glm::fvec3(fRotMult * float(rand() % 100), fRotMult * float(rand() % 100), fRotMult * float(rand() % 100));
-
+         dat.cubes[i].pos = glm::fvec3(float(rand() % 2000) - 1000.0f, 100.0f + float(rand() % 500), float(rand() % 2000) - 1000.0f);
+         dat.cubes[i].scl = glm::fvec3(float(rand() % 50) + 100.0f, float(rand() % 50) + 100.0f, float(rand() % 50) + 100.0f);
+         dat.cubes[i].rot = glm::fvec3(fRotMult * float(rand() % 100) - fPi, fRotMult * float(rand() % 100) - fPi, fRotMult * float(rand() % 100) - fPi);
+         objrot[i] = glm::fvec3(0.0001f * ((rand() % 200) - 100.0f), 0.0001f * ((rand() % 200) - 100.0f), 0.0001f * ((rand() % 200) - 100.0f));
       }
-      else {  // we want this one to be the floor
+      else {  //  be the floor
          dat.cubes[i].pos = glm::fvec3(0.0f, 0.0f, 0.0f);
-         dat.cubes[i].scl = glm::fvec3(1000.0f, 1.0f, 1000.0f);
+         dat.cubes[i].scl = glm::fvec3(1000.0f, 20.0f, 1000.0f);
          dat.cubes[i].rot = glm::fvec3(0.0f, 0.0f, 0.0f);
+         objrot[i] = glm::fvec3();
+         objpos[i] = glm::fvec3();
       }
 
       dat.cubes[i].txrID = txIDs[i]; 
@@ -563,7 +608,7 @@ void Defer_test::init_scene_objects ()
 int Defer_test::Initialize (sy::System_context* sys)
 {
 //   make_cube_textures (); 
-   windo.reset (sys->Create_GraphicsWindow (this, "hello Mars", kInitial_window_width, kInitial_window_height, false)); 
+   windo.reset (sys->Create_GraphicsWindow (this, "Cubez", kInitial_window_width, kInitial_window_height, false)); 
    //
    init_graphics (sys); 
    //
@@ -595,7 +640,10 @@ int Defer_test::Update (sy::System_context* sys)
 {
    //   
    update_input (sys); 
-   
+
+   //
+   update_scene(sys);
+
    // 
    render (sys); 
 
@@ -631,6 +679,20 @@ void Defer_test::update_input (sy::System_context* sys)
      
 }
 
+void Defer_test::update_scene (sy::System_context* sys)
+{
+
+
+   for (int i = 1; i < objs.size(); i++)
+   {
+      //objpos[i] += glm::fvec3(0.001f * ((rand() % 200) - 100.0f), 0.001f * ((rand() % 200) - 100.0f), 0.001f * ((rand() % 200) - 100.0f));
+
+      //objs[i]->Pos() += objpos[i]; 
+      objs[i]->Rot() += objrot[i]; 
+
+   }
+
+}
 
 //
 // 
@@ -638,16 +700,24 @@ void Defer_test::render (sy::System_context* sys)
 {   
    glViewport(0, 0, view_dim[0], view_dim[1]);
 
-   if (draw_simple_else_deferred)
+   switch (shading_mode)
    {
+   case shade_basic: 
       glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
-      glClearColor (0.7f, 0.8f, 0.9f, 1.0f); 
+      glClearColor (0.2f, 0.3f, 0.35f, 1.0f); 
       draw_simple();
+      break;
+   case shade_lighting: 
+
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+      glClearColor(0.2f, 0.3f, 0.35f, 1.0f);
+      draw_lighting();
+      break;
+   
+
    }
-   else
-   {
-      draw_deferred (); 
-   }
+
+   
 
 //
 //
@@ -755,6 +825,10 @@ void Defer_test::draw_simple ()
                            * glm::rotate(fRot.z, glm::fvec3(0.0f, 0.0f, 1.0f)); 
          glm::fmat4 matPos = glm::translate(fPos);
 
+         //matrot = glm::fmat3(matRot);
+         //Update_uniform(uniformLoc_map, uniformValueMap, ModelRotation);
+
+
          mat_Model = matPos * matRot * matScale;
       }
       
@@ -779,6 +853,102 @@ void Defer_test::draw_simple ()
 
 }
 
+
+void Defer_test::draw_lighting ()
+{
+   glMatrixMode(GL_MODELVIEW);
+   glPushMatrix();
+
+   glUseProgram(shader_Table["light_prog"]);
+
+   // face cull
+   static bool enable_culling = true;
+   (enable_culling ? glEnable : glDisable) (GL_CULL_FACE);
+   glFrontFace(GL_CCW);
+
+   // polygon mode   
+   static int DBG_polygon_mode = 2;
+   GLenum polygon_Mode[] = { GL_POINT, GL_LINE, GL_FILL };
+   glPolygonMode(GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
+   Validate_GL_call();
+
+   glEnable(GL_TEXTURE_2D);
+   Validate_GL_call();
+
+   // geometry streams  
+   glEnableVertexAttribArray(attribLoc_map["vPosi"]);
+   glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
+   Validate_GL_call();
+   glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
+   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
+   Validate_GL_call();
+
+   glEnableVertexAttribArray(attribLoc_map["vNorm"]);
+   glVertexAttribPointer(attribLoc_map["vNorm"], 3, GL_FLOAT, GL_FALSE, 0, cube_norm);
+   Validate_GL_call();
+   //
+   // view, proj 
+   {
+      glm::fmat4& mat_View = *(glm::fmat4*)uniformValueMap["mat_View"].p;
+      mat_View = glm::translate(viewparams.pos) * glm::eulerAngleYX(viewparams.rot[1], viewparams.rot[0]);
+      mat_View = glm::inverse(mat_View);
+      Update_uniform(uniformLoc_map, uniformValueMap, ViewUniform);
+
+      glm::fmat4& mat_Proj = *(glm::fmat4*)uniformValueMap["mat_Proj"].p;
+      mat_Proj = glm::perspective(
+         (float)viewparams.FoV,       //kPerspective_FoV,  
+         (float)viewparams.Asp_ratio, //camera_y_asp,
+         (float)viewparams.dist_Near, //kNear_plane_dist,  
+         (float)viewparams.dist_Far   //kFar_plane_dist  
+         );
+      Update_uniform(uniformLoc_map, uniformValueMap, ProjUniform);
+   }
+
+   {
+      glm::fvec3& litPos = *(glm::fvec3*)uniformValueMap["lit_Pos0"].p;
+      Update_uniform(uniformLoc_map, uniformValueMap, LightPos); 
+   }
+   //
+   for (int i = 0; i < objs.size(); i++)
+   {
+      // this is draw loop 
+      // set up grid first  // abstract data set into interface?   
+      Validate_GL_call();
+      {
+         glm::fmat4& mat_Model = *(glm::fmat4*)uniformValueMap["mat_Model"].p;
+         const glm::fvec3& fPos = objs[i]->Pos();
+         const glm::fvec3& fRot = objs[i]->Rot();
+         const glm::fvec3& fScl = objs[i]->Scl();
+
+         glm::fmat4 matScale = glm::scale(fScl);
+
+         glm::fmat4 matRot = glm::rotate(fRot.x, glm::fvec3(1.0f, 0.0f, 0.0f))
+            * glm::rotate(fRot.y, glm::fvec3(0.0f, 1.0f, 0.0f))
+            * glm::rotate(fRot.z, glm::fvec3(0.0f, 0.0f, 1.0f));
+         glm::fmat4 matPos = glm::translate(fPos);
+
+         mat_Model = matPos * matRot * matScale;
+      }
+
+      Update_uniform(uniformLoc_map, uniformValueMap, ModelUniform);
+
+
+      //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
+      objs[i]->Setup_RS(uniformLoc_map, uniformValueMap, attribLoc_map);
+      glDrawArrays(GL_TRIANGLES, 0, El_count(cube_geom));
+
+      Validate_GL_call();
+   }
+
+
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+   glUseProgram(0);
+
+   glEnable(GL_DEPTH_TEST);
+   glMatrixMode(GL_MODELVIEW);
+   glPopMatrix();
+}
 void Defer_test::draw_deferred()
 {
    MRT_BindForRendering(framebuffer);

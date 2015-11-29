@@ -2,13 +2,10 @@
 #define DEFERRED_H
 
 
-//#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#include <Charon/Charon.h>
+#include <Charon/Shader.h>
 
-
-//#include "GL/glew.h"
-#include "Charon/Charon.h"
-#include "Charon/Shader.h"
-
+#include <Terrain_renderer/Terrain_renderer.h>
 
 #include <boost/assert.hpp>
 
@@ -16,7 +13,6 @@
 #include <Dx/Utility.h>
 
 #include <SDL2_platform/SDL2_platform.h>
-#include <Terrain_renderer/Terrain_renderer.h>
 
 //#include <SDL2/SDL_opengl.h>
 #include <GL/glew.h>
