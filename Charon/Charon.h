@@ -26,6 +26,7 @@
 #include <Dx/Utility.h>
 #include <Dx/VecMath.h>
 #include <Dx/Render.h>
+#include <Dx/Resource.h>
 
 
 #include <boost/lexical_cast.hpp>

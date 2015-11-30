@@ -5,6 +5,17 @@ void wat()
    int i = 0; i++;
 }
 
+
+
+
+//Dx::Resource_obj BasicMesh = {
+//   "BasicMesh", 
+//   BasicMeshDef,
+//   El_count(BasicMeshDef)
+//   };
+
+
+
 GLenum GL_TEXTURE_stage(int stage)
 {
    BOOST_ASSERT(stage >= 0);

@@ -20,6 +20,14 @@ UniformDef ProjUniform  = { "mat_Proj", UT_MAT4F, 1, 0 };
 UniformDef ColorMap     = { "colorMap", UT_SAMPLER, 1, 0 };
 UniformDef LightPos     = { "lit_Pos0", UT_VEC3F, 1, 0 };  
 
+Dx::Resource_def BasicCubeGeom[] = { 
+   { "inds", Dx::RD_USHORT },
+   { "verts", Dx::RD_VEC3F },
+   { "norms", Dx::RD_VEC3F },
+   { "txcrd0", Dx::RD_VEC2F },
+   };
+
+
 
 UniformDef ModelRotation = { "mat_ModelRot", UT_MAT3F, 1, 0 };
 
@@ -403,6 +411,11 @@ private:
    MRT_frame_buffer              framebuffer;
    View_params                   viewparams;
 
+   std::vector<glm::fvec3> warped_verts;
+   std::vector<glm::fvec3> warped_norms;
+   std::vector<glm::fvec2> warped_txcrd;
+
+
    struct DeferDat {
       std::vector<Light_obj>     lights; 
       std::vector<Simple_obj>    cubes; 
@@ -530,6 +543,26 @@ void Defer_test::init_graphics_objects ()
 
 void Defer_test::init_scene_objects () 
 {
+   Dx::Resource_obj warped_res; 
+   Dx::Read_resource(warped_res, BasicCubeGeom, El_count(BasicCubeGeom), "C:/usr/warped_2.dat");
+
+   warped_verts.resize(warped_res.fieldMap["inds"].count);
+   warped_norms.resize(warped_res.fieldMap["inds"].count);
+   warped_txcrd.resize(warped_res.fieldMap["inds"].count);
+
+   unsigned short*   inds = static_cast<unsigned short*> (warped_res.fieldMap["inds"].mem);
+   glm::fvec3*       verts = static_cast<glm::fvec3*> (warped_res.fieldMap["verts"].mem);
+   glm::fvec3*       norms = static_cast<glm::fvec3*> (warped_res.fieldMap["norms"].mem);
+   glm::fvec2*       txcd0 = static_cast<glm::fvec2*> (warped_res.fieldMap["txcrd0"].mem);
+
+   for (int i = 0; i < warped_res.fieldMap["inds"].count; i++)
+   {
+      warped_verts[i] = verts[inds[i]]; 
+      warped_norms[i] = norms[inds[i]]; 
+      warped_txcrd[i] = txcd0[inds[i]]; 
+   }
+
+
    const std::string rgbroot = "C:/Quarantine/awsum/Cubes/rgb/";
       
    int wd = 512;
@@ -582,7 +615,7 @@ void Defer_test::init_scene_objects ()
 
       if (i) {
          dat.cubes[i].pos = glm::fvec3(float(rand() % 2000) - 1000.0f, 100.0f + float(rand() % 500), float(rand() % 2000) - 1000.0f);
-         dat.cubes[i].scl = glm::fvec3(float(rand() % 50) + 100.0f, float(rand() % 50) + 100.0f, float(rand() % 50) + 100.0f);
+         dat.cubes[i].scl = glm::fvec3(float(rand() % 50) + 10.0f, float(rand() % 50) + 10.0f, float(rand() % 50) + 10.0f);
          dat.cubes[i].rot = glm::fvec3(fRotMult * float(rand() % 100) - fPi, fRotMult * float(rand() % 100) - fPi, fRotMult * float(rand() % 100) - fPi);
          objrot[i] = glm::fvec3(0.0001f * ((rand() % 200) - 100.0f), 0.0001f * ((rand() % 200) - 100.0f), 0.0001f * ((rand() % 200) - 100.0f));
       }
@@ -778,9 +811,11 @@ void Defer_test::draw_simple ()
    glEnable(GL_TEXTURE_2D);
    Validate_GL_call();
 
+   
    // geometry streams  
    glEnableVertexAttribArray(attribLoc_map["vPosi"]);
-   glVertexAttribPointer (attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
+   //glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
+   glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, warped_verts.data());
    Validate_GL_call();
    glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
    glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
@@ -877,14 +912,14 @@ void Defer_test::draw_lighting ()
 
    // geometry streams  
    glEnableVertexAttribArray(attribLoc_map["vPosi"]);
-   glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
+   glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, warped_verts.data());
    Validate_GL_call();
    glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
-   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
+   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, warped_txcrd.data());
    Validate_GL_call();
 
    glEnableVertexAttribArray(attribLoc_map["vNorm"]);
-   glVertexAttribPointer(attribLoc_map["vNorm"], 3, GL_FLOAT, GL_FALSE, 0, cube_norm);
+   glVertexAttribPointer(attribLoc_map["vNorm"], 3, GL_FLOAT, GL_FALSE, 0, warped_norms.data());
    Validate_GL_call();
    //
    // view, proj 
@@ -935,7 +970,7 @@ void Defer_test::draw_lighting ()
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
       objs[i]->Setup_RS(uniformLoc_map, uniformValueMap, attribLoc_map);
-      glDrawArrays(GL_TRIANGLES, 0, El_count(cube_geom));
+      glDrawArrays(GL_TRIANGLES, 0, warped_verts.size());
 
       Validate_GL_call();
    }
@@ -964,11 +999,12 @@ void Defer_test::draw_deferred()
 }
 
 
-
 //
 // main entry
 int main (int argv, char** argc)
    {
+
+
 std::shared_ptr<sy::System_context>  sys   (sy::Create_context ()); 
 std::shared_ptr<Defer_test>          test  (Create_Defer_test(sys.get())); 
 return sy::Run_realtime_task (sys.get(), test.get()); 
