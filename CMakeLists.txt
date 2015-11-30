@@ -54,3 +54,4 @@ add_subdirectory (Charon)
 
 add_subdirectory (test_Mars)
 add_subdirectory (test_Cubes)
+add_subdirectory (test_Balls)

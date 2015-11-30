@@ -1,13 +1,13 @@
 
-#include "Cubes.h"
+#include "Balls.h"
 
 
 
 const int kInitial_window_width     = 1024;
 const int kInitial_window_height    = 768;
 
-static double  kNear_plane_dist     = 50.0;
-static double  kFar_plane_dist      = 5000.0;
+static double  kNear_plane_dist     = 30.0;
+static double  kFar_plane_dist      = 6000.0;
 static double  kPerspective_FoV     = 60.0; 
 const float    kMaskVal             = -2553.0f;
 
@@ -52,142 +52,8 @@ AttributeDef CubeAttributes[] = {
    };
 
 
-static glm::fvec3 cube_norm[] = {
-   // front
-   glm::fvec3(0.0, 0.0, 1.0),
-   glm::fvec3(0.0, 0.0, 1.0),
-   glm::fvec3(0.0, 0.0, 1.0),
-   glm::fvec3(0.0, 0.0, 1.0),
-   glm::fvec3(0.0, 0.0, 1.0),
-   glm::fvec3(0.0, 0.0, 1.0),
-   // right
-   glm::fvec3(1.0, 0.0, 0.0),
-   glm::fvec3(1.0, 0.0, 0.0),
-   glm::fvec3(1.0, 0.0, 0.0),
-   glm::fvec3(1.0, 0.0, 0.0),
-   glm::fvec3(1.0, 0.0, 0.0),
-   glm::fvec3(1.0, 0.0, 0.0),
-   // left
-   glm::fvec3(-1.0, 0.0, 0.0),
-   glm::fvec3(-1.0, 0.0, 0.0),
-   glm::fvec3(-1.0, 0.0, 0.0),
-   glm::fvec3(-1.0, 0.0, 0.0),
-   glm::fvec3(-1.0, 0.0, 0.0),
-   glm::fvec3(-1.0, 0.0, 0.0),
-   // bottom
-   glm::fvec3(0.0, -1.0, 0.0),
-   glm::fvec3(0.0, -1.0, 0.0),
-   glm::fvec3(0.0, -1.0, 0.0),
-   glm::fvec3(0.0, -1.0, 0.0),
-   glm::fvec3(0.0, -1.0, 0.0),
-   glm::fvec3(0.0, -1.0, 0.0),
-   // top
-   glm::fvec3(0.0, 1.0, 0.0),
-   glm::fvec3(0.0, 1.0, 0.0),
-   glm::fvec3(0.0, 1.0, 0.0),
-   glm::fvec3(0.0, 1.0, 0.0),
-   glm::fvec3(0.0, 1.0, 0.0),
-   glm::fvec3(0.0, 1.0, 0.0),
-   // back
-   glm::fvec3(0.0, 0.0, -1.0),
-   glm::fvec3(0.0, 0.0, -1.0),
-   glm::fvec3(0.0, 0.0, -1.0),
-   glm::fvec3(0.0, 0.0, -1.0),
-   glm::fvec3(0.0, 0.0, -1.0),
-   glm::fvec3(0.0, 0.0, -1.0),
-};
-
-static glm::fvec3 cube_geom[] = {
-   // front
-   glm::fvec3(1.0, 1.0, 1.0),
-   glm::fvec3(-1.0, 1.0, 1.0),
-   glm::fvec3(-1.0, -1.0, 1.0),
-   glm::fvec3(-1.0, -1.0, 1.0),
-   glm::fvec3(1.0, -1.0, 1.0),
-   glm::fvec3(1.0, 1.0, 1.0),
-   // right
-   glm::fvec3(1.0, 1.0, -1.0),
-   glm::fvec3(1.0, 1.0, 1.0),
-   glm::fvec3(1.0, -1.0, 1.0),
-   glm::fvec3(1.0, -1.0, 1.0),
-   glm::fvec3(1.0, -1.0, -1.0),
-   glm::fvec3(1.0, 1.0, -1.0),
-   // left
-   glm::fvec3(-1.0, 1.0, 1.0),
-   glm::fvec3(-1.0, 1.0, -1.0),
-   glm::fvec3(-1.0, -1.0, -1.0),
-   glm::fvec3(-1.0, -1.0, -1.0),
-   glm::fvec3(-1.0, -1.0, 1.0),
-   glm::fvec3(-1.0, 1.0, 1.0),
-   // bottom
-   glm::fvec3(1.0, -1.0, 1.0),
-   glm::fvec3(-1.0, -1.0, 1.0),
-   glm::fvec3(-1.0, -1.0, -1.0),
-   glm::fvec3(-1.0, -1.0, -1.0),
-   glm::fvec3(1.0, -1.0, -1.0),
-   glm::fvec3(1.0, -1.0, 1.0),
-   // top
-   glm::fvec3(1.0, 1.0, -1.0),
-   glm::fvec3(-1.0, 1.0, -1.0),
-   glm::fvec3(-1.0, 1.0, 1.0),
-   glm::fvec3(-1.0, 1.0, 1.0),
-   glm::fvec3(1.0, 1.0, 1.0),
-   glm::fvec3(1.0, 1.0, -1.0),
-   // back
-   glm::fvec3(-1.0, 1.0, -1.0),
-   glm::fvec3(1.0, 1.0, -1.0),
-   glm::fvec3(1.0, -1.0, -1.0),
-   glm::fvec3(1.0, -1.0, -1.0),
-   glm::fvec3(-1.0, -1.0, -1.0),
-   glm::fvec3(-1.0, 1.0, -1.0),
-};
 
 
-static glm::fvec2 cube_txc0[] = {
-   glm::fvec2(1.0, 1.0),
-   glm::fvec2(0.0, 1.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(1.0, 0.0),
-   glm::fvec2(1.0, 1.0),
-
-   glm::fvec2(1.0, 1.0),
-   glm::fvec2(0.0, 1.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(1.0, 0.0),
-   glm::fvec2(1.0, 1.0),
-
-   glm::fvec2(1.0, 1.0),
-   glm::fvec2(0.0, 1.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(1.0, 0.0),
-   glm::fvec2(1.0, 1.0),
-
-   glm::fvec2(1.0, 1.0),
-   glm::fvec2(0.0, 1.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(1.0, 0.0),
-   glm::fvec2(1.0, 1.0),
-
-   glm::fvec2(1.0, 1.0),
-   glm::fvec2(0.0, 1.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(1.0, 0.0),
-   glm::fvec2(1.0, 1.0),
-
-   glm::fvec2(1.0, 1.0),
-   glm::fvec2(0.0, 1.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(0.0, 0.0),
-   glm::fvec2(1.0, 0.0),
-   glm::fvec2(1.0, 1.0),
-};
-
-//
 //
 //
 struct Simple_obj : public Renderable
@@ -406,12 +272,12 @@ private:
    glm::fmat4                             matrices[3];
    glm::fmat3                             matrot;
    glm::fvec3                             lightPos; 
-   MRT_frame_buffer                       framebuffer;
-   View_params                            viewparams;
+   MRT_frame_buffer              framebuffer;
+   View_params                   viewparams;
 
-   std::vector<glm::fvec3>                warped_verts;
-   std::vector<glm::fvec3>                warped_norms;
-   std::vector<glm::fvec2>                warped_txcrd;
+   std::vector<glm::fvec3> warped_verts;
+   std::vector<glm::fvec3> warped_norms;
+   std::vector<glm::fvec2> warped_txcrd;
 
 
    struct DeferDat {
@@ -454,8 +320,8 @@ Defer_test::Defer_test (sy::System_context* sys)
    : windo     ()
    , init_     (false)
    , view_dim  (kInitial_window_width, kInitial_window_height)
-   , shading_mode (shade_lighting)
-   , lightPos (-500.0f, 2000.0f, 500.0f)
+   , shading_mode(shade_lighting)
+   , lightPos(-500.0f, 2000.0f, 500.0f)
    , dat()
 {  
 
@@ -580,7 +446,7 @@ void Defer_test::init_scene_objects ()
       "tex_1",
    };
    int numfiles = El_count (files); 
-   int random_shuffle = rand(); 
+   int random_shuffle = 21; 
 
    for (int i = 0; i < random_shuffle; i++)
       std::random_shuffle (files, files + numfiles); 
@@ -615,13 +481,13 @@ void Defer_test::init_scene_objects ()
 
       if (i) {
          dat.cubes[i].pos = glm::fvec3(float(rand() % 2000) - 1000.0f, 100.0f + float(rand() % 500), float(rand() % 2000) - 1000.0f);
-         dat.cubes[i].scl = glm::fvec3(float(rand() % 50) + 10.0f, float(rand() % 50) + 10.0f, float(rand() % 50) + 10.0f);
+         dat.cubes[i].scl = glm::fvec3(50.0f, 50.0f, 50.0f);
          dat.cubes[i].rot = glm::fvec3(fRotMult * float(rand() % 100) - fPi, fRotMult * float(rand() % 100) - fPi, fRotMult * float(rand() % 100) - fPi);
          objrot[i] = glm::fvec3(0.0001f * ((rand() % 200) - 100.0f), 0.0001f * ((rand() % 200) - 100.0f), 0.0001f * ((rand() % 200) - 100.0f));
       }
       else {  //  be the floor
-         dat.cubes[i].pos = glm::fvec3(0.0f, 0.0f, 0.0f);
-         dat.cubes[i].scl = glm::fvec3(1000.0f, 20.0f, 1000.0f);
+         dat.cubes[i].pos = glm::fvec3(0.0f, -2500.0f, 0.0f);
+         dat.cubes[i].scl = glm::fvec3(1000.0f, 1000.0f, 1000.0f);
          dat.cubes[i].rot = glm::fvec3(0.0f, 0.0f, 0.0f);
          objrot[i] = glm::fvec3();
          objpos[i] = glm::fvec3();
@@ -641,7 +507,7 @@ void Defer_test::init_scene_objects ()
 int Defer_test::Initialize (sy::System_context* sys)
 {
 //   make_cube_textures (); 
-   windo.reset (sys->Create_GraphicsWindow (this, "Ballz", kInitial_window_width, kInitial_window_height, false)); 
+   windo.reset (sys->Create_GraphicsWindow (this, "Cubez", kInitial_window_width, kInitial_window_height, false)); 
    //
    init_graphics (sys); 
    //
@@ -737,13 +603,13 @@ void Defer_test::render (sy::System_context* sys)
    {
    case shade_basic: 
       glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
-      glClearColor (0.2f, 0.3f, 0.35f, 1.0f); 
+      glClearColor (0.2f, 0.0f, 0.0f, 1.0f); 
       draw_simple();
       break;
    case shade_lighting: 
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-      glClearColor(0.2f, 0.3f, 0.35f, 1.0f);
+      glClearColor(0.2f, 0.0f, 0.0f, 1.0f);
       draw_lighting();
       break;
    
@@ -818,7 +684,7 @@ void Defer_test::draw_simple ()
    glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, warped_verts.data());
    Validate_GL_call();
    glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
-   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
+   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, warped_txcrd.data());
    Validate_GL_call();
 
    //
@@ -872,7 +738,7 @@ void Defer_test::draw_simple ()
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
       objs[i]->Setup_RS(uniformLoc_map, uniformValueMap, attribLoc_map);
-      glDrawArrays(GL_TRIANGLES, 0, El_count(cube_geom));
+      glDrawArrays(GL_TRIANGLES, 0, warped_verts.size());
 
       Validate_GL_call();
    }
@@ -1013,3 +879,79 @@ return sy::Run_realtime_task (sys.get(), test.get());
 
 
 
+
+void make_cube_textures()
+{
+   FreeImage_Initialise();
+   const std::string imgroot = "C:/Quarantine/awsum/Cubes/";
+   const std::string rgbroot = "C:/Quarantine/awsum/Cubes/rgb/";
+
+   const char* files[] = {
+      "169cover.jpg",
+      "22cbf28a6a79cb48d46629c24907a470.jpg",
+      "abstract_colorful_textures_widescreen_desktop_background_picture - 318.jpg",
+      "abstract_colorful_textures_widescreen_desktop_background_picture.jpg",
+      "blue - square - pattern.jpg",
+      "cloud_texture_by_nos2002.jpg",
+      "colorful - textures - high - resolution - 1024x576.jpg",
+      "colorful - textures - stock - images1 - 1024x640.jpg",
+      "colorful - textures - wide - awesome - 1024x640.jpg",
+      "digital_art_texture_68_by_mercurycode - d713utv.jpg",
+      "fountain_water_texture_2_by_fantasystock.jpg",
+      "images.jpg",
+      "manhole_texture_4250873.JPG",
+      "nbnGLL0.jpg",
+      "space_texture_by_extince.jpg",
+      "squares - texture - wallpaper - 15899.jpg",
+      "textures_131_by_inthename_stock.jpg",
+      "texture_102_by_sirius_sdz - d1rlzx7.jpg",
+      "texture_304_by_sirius_sdz - d5l8pu6.jpg",
+      "texture_326_by_sirius_sdz - d65gs3s.jpg",
+      "watercolor_painting_texture_by_enchantedgal_stock.jpg",
+
+   };
+
+   size_t numfiles = El_count(files);
+
+   int imgcount = 0;
+
+   RGBQUAD rgb;
+   for (int i = 0; i < numfiles; i++)
+   {
+      std::string currfile = imgroot + files[i];
+      if (FIBITMAP* img = FreeImage_Load(FIF_JPEG, currfile.c_str()))
+      {
+         ptru        dat = { FreeImage_GetBits(img) };
+         glm::ivec2  dim(FreeImage_GetWidth(img), FreeImage_GetHeight(img));
+         int         bpp = FreeImage_GetBPP(img);
+         FREE_IMAGE_COLOR_TYPE ctyp = FreeImage_GetColorType(img);
+         BITMAPINFOHEADER* info = FreeImage_GetInfoHeader(img);
+         FREE_IMAGE_TYPE ityp = FreeImage_GetImageType(img);
+
+         if (dim.x >= 512 && dim.y >= 512)
+         {
+            const std::string fname = rgbroot + "tex_" + boost::lexical_cast<std::string> (imgcount);
+            std::shared_ptr<FILE> ws(fopen(fname.c_str(), "wb"), fclose);
+
+            for (int iy = 0; iy < 512; iy++)
+            {
+               for (int ix = 0; ix < 512; ix++)
+               {
+                  FreeImage_GetPixelColor(img, ix, iy, &rgb);
+                  fwrite(&rgb, 1, 3, ws.get());
+               }
+            }
+            imgcount++;
+         }
+
+         FreeImage_Unload(img);
+      }
+      else
+      {
+         printf("\n Failed loading: %s", currfile.c_str());
+      }
+
+   }
+
+   FreeImage_DeInitialise();
+}
