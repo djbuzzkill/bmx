@@ -544,7 +544,7 @@ void Defer_test::init_graphics_objects ()
 void Defer_test::init_scene_objects () 
 {
    Dx::Resource_obj warped_res; 
-   Dx::Read_resource(warped_res, "C:/usr/warped_3.dat");
+   Dx::Read_resource(warped_res, "C:/usr/warped_5.dat");
    
    (BasicCubeGeom, El_count(BasicCubeGeom));
 

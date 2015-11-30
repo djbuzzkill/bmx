@@ -78,8 +78,8 @@ namespace Dx
 
    struct Resource_obj 
    {
-      enum { LabelLength = 128 };
-      const char*                label;
+      enum { LabelLength = 32 };
+      std::string                label;
       std::vector<unsigned char> buffer;
       Field_struc::Map           fieldMap;
    };

@@ -58,6 +58,8 @@ bool Dx::Read_resource(
 {
 //   DX_ASSERT(def, "invalid definition supplied");
 //   DX_ASSERT(count, "invalid def count supplied");
+   char buf[Dx::Resource_obj::LabelLength + 1];
+   std::fill(buf, buf + Dx::Resource_obj::LabelLength + 1, 0); 
 
    res.fieldMap.clear();
    if (size_t sizeOf_file = ut::SizeOf_file(fname))
@@ -66,18 +68,21 @@ bool Dx::Read_resource(
       res.buffer.resize(sizeOf_file);
       fread(res.buffer.data(), sizeof(unsigned char), sizeOf_file, rs.get());
 
-      res.label = reinterpret_cast<char*> (res.buffer.data());
-      unsigned char* curpos = reinterpret_cast<unsigned char*> (res.buffer.data() + Dx::Resource_obj::LabelLength);
+      char* curpos = reinterpret_cast<char*> (res.buffer.data());
 
+      // obj name
+      std::copy(curpos, curpos + Dx::Resource_obj::LabelLength, buf);
+      res.label = buf;
+      curpos += Dx::Resource_obj::LabelLength; 
+      
+      // num fields
       size_t count = *reinterpret_cast<unsigned int*> (curpos);
       curpos += sizeof(unsigned int);
 
-reinterpret_cast<unsigned char*> (res.buffer.data() + Dx::Resource_obj::LabelLength);
-
-      
       for (int i = 0; i < count; i++)
       {
-         const std::string name = (const char*)curpos;
+         std::copy(curpos, curpos + Dx::Resource_obj::LabelLength, buf);
+         const std::string name = buf; 
          curpos += Dx::Resource_obj::LabelLength;
 
          res.fieldMap[name].type = *(Dx::ResourceData*)curpos;
