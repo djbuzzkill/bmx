@@ -9,7 +9,8 @@
 
 namespace Dx
 {
-   //
+
+   // Resource Data Type
    enum ResourceData
    {
       _INVALID_RESOURCE_DATA = 0, 
@@ -65,8 +66,9 @@ namespace Dx
    //
    struct Field_struc
    {
-      void*    mem;
-      size_t   count;
+      ResourceData   type;
+      size_t         count;
+      void*          mem;
 
       typedef std::map<std::string, Field_struc> Map;
    };
@@ -76,7 +78,7 @@ namespace Dx
 
    struct Resource_obj 
    {
-      enum { MaxLabelLength = 128 };
+      enum { LabelLength = 128 };
       const char*                label;
       std::vector<unsigned char> buffer;
       Field_struc::Map           fieldMap;
@@ -85,8 +87,6 @@ namespace Dx
    //
    bool Read_resource (
       Resource_obj& res    , 
-      const Resource_def*  , 
-      size_t def_count     , 
       const std::string fname
       );
 

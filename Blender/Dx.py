@@ -915,31 +915,42 @@ def Extract_mesh (obj, arma):
 def Write_mesh_DX_res (m, fname): 
     f = open (fname, 'wb')
 
-    print ("mesh name: %s", m.name)
+    print ("\n...saving", m.name, "out to: ", fname)
 
     if (f): 
-        write_char_array (f, m.name, 128)
+        write_string_pad (f, m.name, 128)
 
+        write_u32 (f, 4)
+
+
+        write_string_pad (f, "indices", 128) 
+        write_u32 (f, RD_USHORT)
         write_u32 (f, len (m.triindices))
         for e in m.triindices: 
             write_u16 (f, e)
             
+        write_string_pad (f, "posi", 128)
+        write_u32 (f, RD_VEC3F)
         write_u32 (f, len (m.positions))
         for e in m.positions: 
-            write_f32 (f, e.y)
-            write_f32 (f, e.z)
-            write_f32 (f, e.x)
+            write_f32 (f, e[1])
+            write_f32 (f, e[2])
+            write_f32 (f, e[0])
 
+        write_string_pad (f, "norms", 128)
+        write_u32 (f, RD_VEC3F)
         write_u32 (f, len (m.normals))
         for e in m.normals: 
-            write_f32(f, e.y)
-            write_f32(f, e.z)
-            write_f32(f, e.x)
+            write_f32(f, e[1])
+            write_f32(f, e[2])
+            write_f32(f, e[0])
 
+        write_string_pad (f, "txcd0", 128)
+        write_u32 (f, RD_VEC2F)
         write_u32 (f, len (m.texcoord0))
         for e in m.texcoord0: 
-            write_f32 (f, e.x)
-            write_f32 (f, e.y)
+            write_f32 (f, e[0])
+            write_f32 (f, e[1])
     else: 
         pass
 

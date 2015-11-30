@@ -5,7 +5,7 @@
 
 using namespace Dx; 
 
-size_t count_data_type (ResourceData type)
+size_t data_type_comps (ResourceData type)
 {
    switch (type)
    {
@@ -54,12 +54,10 @@ size_t count_data_type (ResourceData type)
 
 bool Dx::Read_resource(
    Resource_obj&        res,
-   const Resource_def*  def,
-   size_t               count,
    const std::string    fname)
 {
-   DX_ASSERT(def, "invalid definition supplied");
-   DX_ASSERT(count, "invalid def count supplied");
+//   DX_ASSERT(def, "invalid definition supplied");
+//   DX_ASSERT(count, "invalid def count supplied");
 
    res.fieldMap.clear();
    if (size_t sizeOf_file = ut::SizeOf_file(fname))
@@ -69,78 +67,90 @@ bool Dx::Read_resource(
       fread(res.buffer.data(), sizeof(unsigned char), sizeOf_file, rs.get());
 
       res.label = reinterpret_cast<char*> (res.buffer.data());
-      unsigned char* curpos = reinterpret_cast<unsigned char*> (res.buffer.data() + Dx::Resource_obj::MaxLabelLength);
+      unsigned char* curpos = reinterpret_cast<unsigned char*> (res.buffer.data() + Dx::Resource_obj::LabelLength);
+
+      size_t count = *reinterpret_cast<unsigned int*> (curpos);
+      curpos += sizeof(unsigned int);
+
+reinterpret_cast<unsigned char*> (res.buffer.data() + Dx::Resource_obj::LabelLength);
+
       
       for (int i = 0; i < count; i++)
       {
-         size_t sizeOf_type = count_data_type(def[i].type);
+         const std::string name = (const char*)curpos;
+         curpos += Dx::Resource_obj::LabelLength;
 
-         res.fieldMap[def[i].label].count = *(unsigned int*) curpos;
+         res.fieldMap[name].type = *(Dx::ResourceData*)curpos;
+         curpos += sizeof(unsigned int);
+
+         res.fieldMap[name].count = *(unsigned int*)curpos;
          curpos += sizeof(unsigned int); 
 
-         switch (def[i].type)
+         size_t numcompoents = data_type_comps(res.fieldMap[name].type);
+
+         switch (res.fieldMap[name].type)
          {
             case RD_UCHAR : 
             case RD_VEC2UC: 
             case RD_VEC3UC: 
             case RD_VEC4UC: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(unsigned char);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(unsigned char);
                break;
             case RD_CHAR : 
             case RD_VEC2C: 
             case RD_VEC3C: 
             case RD_VEC4C: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(char);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(char);
                break;
 
             case RD_SHORT: 
             case RD_VEC2S: 
             case RD_VEC3S: 
             case RD_VEC4S: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(short);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(short);
                break;
 
             case RD_USHORT: 
             case RD_VEC2US: 
             case RD_VEC3US: 
             case RD_VEC4US: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(unsigned short);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(unsigned short);
                break;
 
             case RD_FLOAT: 
             case RD_VEC2F: 
             case RD_VEC3F: 
             case RD_VEC4F: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(float);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(float);
                break;
 
             case RD_DOUBLE: 
             case RD_VEC2D : 
             case RD_VEC3D : 
             case RD_VEC4D : 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(double);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(double);
                break;
 
             case RD_INT  : 
             case RD_VEC2I: 
             case RD_VEC3I: 
             case RD_VEC4I: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(int);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(int);
                break;
 
             case RD_UINT  : 
             case RD_VEC2UI: 
             case RD_VEC3UI: 
             case RD_VEC4UI: 
-               res.fieldMap[def[i].label].mem = curpos;
-               curpos += res.fieldMap[def[i].label].count * sizeOf_type * sizeof(unsigned int);
+               res.fieldMap[name].mem = curpos;
+               curpos += res.fieldMap[name].count * numcompoents * sizeof(unsigned int);
                break;
 
          }

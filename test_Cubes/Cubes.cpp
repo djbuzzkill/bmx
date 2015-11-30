@@ -21,10 +21,10 @@ UniformDef ColorMap     = { "colorMap", UT_SAMPLER, 1, 0 };
 UniformDef LightPos     = { "lit_Pos0", UT_VEC3F, 1, 0 };  
 
 Dx::Resource_def BasicCubeGeom[] = { 
-   { "inds", Dx::RD_USHORT },
-   { "verts", Dx::RD_VEC3F },
+   { "indices", Dx::RD_USHORT },
+   { "posi", Dx::RD_VEC3F },
    { "norms", Dx::RD_VEC3F },
-   { "txcrd0", Dx::RD_VEC2F },
+   { "txcd0", Dx::RD_VEC2F },
    };
 
 
@@ -544,18 +544,20 @@ void Defer_test::init_graphics_objects ()
 void Defer_test::init_scene_objects () 
 {
    Dx::Resource_obj warped_res; 
-   Dx::Read_resource(warped_res, BasicCubeGeom, El_count(BasicCubeGeom), "C:/usr/warped_2.dat");
+   Dx::Read_resource(warped_res, "C:/usr/warped_3.dat");
+   
+   (BasicCubeGeom, El_count(BasicCubeGeom));
 
-   warped_verts.resize(warped_res.fieldMap["inds"].count);
-   warped_norms.resize(warped_res.fieldMap["inds"].count);
-   warped_txcrd.resize(warped_res.fieldMap["inds"].count);
+   warped_verts.resize(warped_res.fieldMap["indices"].count);
+   warped_norms.resize(warped_res.fieldMap["indices"].count);
+   warped_txcrd.resize(warped_res.fieldMap["indices"].count);
 
-   unsigned short*   inds = static_cast<unsigned short*> (warped_res.fieldMap["inds"].mem);
-   glm::fvec3*       verts = static_cast<glm::fvec3*> (warped_res.fieldMap["verts"].mem);
+   unsigned short*   inds = static_cast<unsigned short*> (warped_res.fieldMap["indices"].mem);
+   glm::fvec3*       verts = static_cast<glm::fvec3*> (warped_res.fieldMap["posi"].mem);
    glm::fvec3*       norms = static_cast<glm::fvec3*> (warped_res.fieldMap["norms"].mem);
-   glm::fvec2*       txcd0 = static_cast<glm::fvec2*> (warped_res.fieldMap["txcrd0"].mem);
+   glm::fvec2*       txcd0 = static_cast<glm::fvec2*> (warped_res.fieldMap["txcd0"].mem);
 
-   for (int i = 0; i < warped_res.fieldMap["inds"].count; i++)
+   for (int i = 0; i < warped_res.fieldMap["indices"].count; i++)
    {
       warped_verts[i] = verts[inds[i]]; 
       warped_norms[i] = norms[inds[i]]; 
