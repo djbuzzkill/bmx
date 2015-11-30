@@ -916,20 +916,21 @@ def Write_mesh_DX_res (m, fname):
     f = open (fname, 'wb')
 
     print ("\n...saving", m.name, "out to: ", fname)
+    print ("label length is 32")
 
     if (f): 
-        write_string_pad (f, m.name, 128)
+        write_string_pad (f, m.name, 32)
 
+        #num fields
         write_u32 (f, 4)
 
-
-        write_string_pad (f, "indices", 128) 
+        write_string_pad (f, "indices", 32) 
         write_u32 (f, RD_USHORT)
         write_u32 (f, len (m.triindices))
         for e in m.triindices: 
             write_u16 (f, e)
             
-        write_string_pad (f, "posi", 128)
+        write_string_pad (f, "posi", 32)
         write_u32 (f, RD_VEC3F)
         write_u32 (f, len (m.positions))
         for e in m.positions: 
@@ -937,7 +938,7 @@ def Write_mesh_DX_res (m, fname):
             write_f32 (f, e[2])
             write_f32 (f, e[0])
 
-        write_string_pad (f, "norms", 128)
+        write_string_pad (f, "norms", 32)
         write_u32 (f, RD_VEC3F)
         write_u32 (f, len (m.normals))
         for e in m.normals: 
@@ -945,13 +946,14 @@ def Write_mesh_DX_res (m, fname):
             write_f32(f, e[2])
             write_f32(f, e[0])
 
-        write_string_pad (f, "txcd0", 128)
+        write_string_pad (f, "txcd0", 32)
         write_u32 (f, RD_VEC2F)
         write_u32 (f, len (m.texcoord0))
         for e in m.texcoord0: 
             write_f32 (f, e[0])
             write_f32 (f, e[1])
     else: 
+        print ("Opening", fname, "failed")
         pass
 
 
