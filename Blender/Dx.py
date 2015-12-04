@@ -957,6 +957,9 @@ def Write_mesh_DX_res (m, fname):
         pass
 
 
+def Write_Dx_geom (objname, fname): 
+    Write_mesh_DX_res (Extract_mesh (bpy.data.objects[objname], None), fname)
+
 
 #
 # Write_XML_node

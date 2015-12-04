@@ -408,7 +408,7 @@ void Defer_test::init_graphics_objects ()
 void Defer_test::init_scene_objects () 
 {
    Dx::Resource_obj warped_res; 
-   Dx::Read_resource(warped_res, "C:/usr/warped_5.dat");
+   Dx::Read_resource(warped_res, "C:/usr/qube10.geom");
    
    (BasicCubeGeom, El_count(BasicCubeGeom));
 
@@ -487,7 +487,7 @@ void Defer_test::init_scene_objects ()
       }
       else {  //  be the floor
          dat.cubes[i].pos = glm::fvec3(0.0f, -2500.0f, 0.0f);
-         dat.cubes[i].scl = glm::fvec3(1000.0f, 1000.0f, 1000.0f);
+         dat.cubes[i].scl = glm::fvec3(1000.0f, 700.0f, 1000.0f);
          dat.cubes[i].rot = glm::fvec3(0.0f, 0.0f, 0.0f);
          objrot[i] = glm::fvec3();
          objpos[i] = glm::fvec3();

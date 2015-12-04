@@ -13,12 +13,25 @@ bl_info = {
 #
 # imports
 import bpy
-import H3D
 import struct 
+# import H3D
 import array
 import mathutils
 import os
 from xml.etree.ElementTree import * 
+
+
+
+#
+# constants 
+MgID_Position = 0
+MgID_Normal = 1
+MgID_Tangent = 2
+MgID_Bitangent = 3
+MgID_JointIndices = 4
+MgID_JointWeights = 5
+MgID_TexCoord0 = 6
+MgID_TexCoord1 = 7
 
 #
 # Dx lib - # general stuff ok, blender stuff ok.
@@ -34,14 +47,52 @@ from xml.etree.ElementTree import *
 #
 #
 
+RD_UCHAR = 1
+RD_VEC2UC = 2
+RD_VEC3UC = 3
+RD_VEC4UC = 4
 
+RD_CHAR = 5
+RD_VEC2C = 6
+RD_VEC3C = 7
+RD_VEC4C = 8
+
+RD_SHORT = 9
+RD_VEC2S = 10
+RD_VEC3S =11
+RD_VEC4S = 12
+
+RD_USHORT = 13
+RD_VEC2US = 14
+RD_VEC3US = 15
+RD_VEC4US = 16
+
+RD_FLOAT = 17
+RD_VEC2F = 18
+RD_VEC3F = 19
+RD_VEC4F = 20
+
+RD_DOUBLE = 21
+RD_VEC2D = 22
+RD_VEC3D = 23
+RD_VEC4D = 24
+
+RD_INT = 25
+RD_VEC2I = 26
+RD_VEC3I = 27
+RD_VEC4I = 28
+
+RD_UINT = 29
+RD_VEC2UI = 30
+RD_VEC3UI = 31
+RD_VEC4UI = 32
 
 
 #
 if "bpy" in locals():
     import imp
 
-SIZEOF_LABEL = 64
+SIZEOF_LABEL = 128
 SizeOf_nodeName = 256
 
 def wtf (): 
@@ -696,6 +747,218 @@ def Build_XML_graph (mod_Name, geo_File, geo):
 
 
 #
+# Mesh - actually more of a simple mesh (sub_geo?)
+# this is like a 'sub geo' ?  dont know yet, figure it out.
+# the data this contains goes into a geo and a mesh desc.
+class Mesh () : 
+    '''I am Mesh'''
+    # Mesh me
+    def __init__ (self, nm, m, i, p, n, t, bT, t0, t1, bI, bW, vgm, loc): 
+        'construct  a geo instance'
+        self.name = nm
+        self.material = m
+        self.triindices = i
+        self.positions = p
+        self.normals = n
+        self.tangents = t
+        self.bi_Tangents = t
+        self.texcoord0 = t0
+        self.texcoord1 = t1
+        self.bone_Inds = bI
+        self.bone_Weights = bW
+        self.vg_map = vgm
+        self.location = loc
+
+
+
+#
+#
+def Extract_mesh (obj, arma): 
+    # blender axes come in, geo contains gl axes 
+    # blender axes get switched to opengl axes here 
+    # generate tris from polygons
+    
+    # mesh
+    m = obj.data
+    loc = obj.location
+
+    #obj_Name = obj.name
+    vindices = []
+    # turn n-polygons into triangles
+    # meshes should be already triangulated
+    for p in m.polygons: 
+        poly_len =  len (p.vertices) 
+        if poly_len  == 3: 
+            vindices.extend (p.vertices)  
+        elif  poly_len  == 4:
+            vindices.extend (p.vertices[0:3])
+            vindices.extend ([p.vertices[i] for i in [2, 3, 0]])
+        elif poly_len == 5:
+            vindices.extend (p.vertices[0:3])
+            vindices.extend ([p.vertices[i] for i in [0, 2, 3]])
+            vindices.extend ([p.vertices[i] for i in [0, 3, 4]])
+        else: 
+            raise AssertionError  (obj.name +" unhandled polygon size: " + str (poly_len))                     
+    # ! each bone has an associated vertex group of the same name
+    # 
+    # ! mesh object  has a list vertex groups any of which every vertex may  belong to 
+    # each vertex will reference its index into this vertgroup list
+    # 
+    # ! we build a hierarchic bone list with different indces <-- we do?
+    # 
+    # ? are the vert group order same as the bone index IDs? no.
+    #
+    # ! we use our index order but the verts reference the vert group index order
+    # 
+    # ! we map vg-ID to our-ID  -> map<vg-ID, our-ID>
+    # 
+    # ! the bone order is  different in the one we produce with ml_depth
+    #
+    # ! 
+    #
+    #
+    #
+    #
+    # articulated model ? collect bone_Influences for bone_Inds, bone_Weights
+    bone_Inds =  []
+    bone_Weights =  []
+
+    # look for armature 
+    # we will only use Blender 'parented mesh' approach for articulated models 
+    vgmap = {}
+    if arma: 
+        # 
+        print ( '\nhave skeleton')
+
+        for i, vg in enumerate (obj.vertex_groups): 
+            vgmap[i] = vg.name
+
+
+        
+        # 07/07/2013 - this seems to match the indices of the vert groups 
+        # but we dont know is will always be correct
+        for v in m.vertices: 
+            # ! we have to normalize the weights 
+            wgts_ = [vge.weight for vge in v.groups]
+            inds_  =  [vge.group for vge in v.groups]
+
+            while len(wgts_) < 4: 
+                wgts_.append (0.0)
+                
+            while len (inds_) < 4:
+                inds_.append (0)
+
+            binds = inds_
+            bwgts = mathutils.Vector (wgts_)
+
+            bone_Inds.append ( (binds[0], binds[1], binds[2], binds[3]) )
+
+            wgtsum = sum (bwgts)
+            bone_Weights.append ( (bwgts[0]/wgtsum, bwgts[1]/wgtsum, bwgts[2]/wgtsum, bwgts[3]/wgtsum) )
+
+    #
+    # generate tangent
+
+    #
+    # generate bitangent
+
+    #
+    # generate txcoords from uv's 
+    texcrd0 = [mathutils.Vector () for x in range (len(m.vertices))]
+    uvcoords = m.uv_layers[0].data
+    uv_ind = 0
+    for p in m.polygons: 
+        # i is vetex index
+        for i in p.vertices: 
+            # succesive uv is written into vertex, with over writes
+            texcrd0[i] = uvcoords[uv_ind].uv
+            # incr 
+            uv_ind = uv_ind + 1
+
+    #
+    # not really flipped verts (fl), but 'shifted' to match opengl coord system
+    fl_verts = [(v.co[1], v.co[2], v.co[0]) for v in m.vertices]
+    fl_norms = [(v.normal[1], v.normal[2], v.normal[0]) for v in m.vertices]
+    # generate 2nd uv set
+
+    return Mesh (
+        obj.name, 
+        'dumb.mtrl', 
+        vindices, 
+        fl_verts, # [v.co for v in m.vertices], 
+        fl_norms, # [v.normal for v in m.vertices], 
+        None,  # 'tangents' : [],
+        None, # 'bi_Tanents' : [], 
+        texcrd0, 
+        None, 
+        bone_Inds, 
+        bone_Weights, 
+        vgmap, 
+        (loc[1], loc[2], loc[0]))        
+
+
+#
+#
+
+#        self.triindices = i
+#      self.positions = p
+#     self.normals = n
+#    self.tangents = t
+#   self.bi_Tangents = t
+#  self.texcoord0 = t0
+# self.texcoord1 = t1
+#  self.bone_Inds = bI
+#  self.bone_Weights = bW
+# self.vg_map = vgm
+#  self.location = loc
+
+def Write_mesh_DX_res (m, fname): 
+    f = open (fname, 'wb')
+
+    print ("\n...saving", m.name, "out to: ", fname)
+    print ("label length is 32")
+
+    if (f): 
+        write_string_pad (f, m.name, 32)
+
+        #num fields
+        write_u32 (f, 4)
+
+        write_string_pad (f, "indices", 32) 
+        write_u32 (f, RD_USHORT)
+        write_u32 (f, len (m.triindices))
+        for e in m.triindices: 
+            write_u16 (f, e)
+            
+        write_string_pad (f, "posi", 32)
+        write_u32 (f, RD_VEC3F)
+        write_u32 (f, len (m.positions))
+        for e in m.positions: 
+            write_f32 (f, e[1])
+            write_f32 (f, e[2])
+            write_f32 (f, e[0])
+
+        write_string_pad (f, "norms", 32)
+        write_u32 (f, RD_VEC3F)
+        write_u32 (f, len (m.normals))
+        for e in m.normals: 
+            write_f32(f, e[1])
+            write_f32(f, e[2])
+            write_f32(f, e[0])
+
+        write_string_pad (f, "txcd0", 32)
+        write_u32 (f, RD_VEC2F)
+        write_u32 (f, len (m.texcoord0))
+        for e in m.texcoord0: 
+            write_f32 (f, e[0])
+            write_f32 (f, e[1])
+    else: 
+        print ("Opening", fname, "failed")
+        pass
+
+
+
+#
 # Write_XML_node
 def Write_XML_node (f, node, lvl): 
 
@@ -762,6 +1025,10 @@ def map_dp  (out, f, n):
 # 
 def register () : 
     pass 
+
+
+def unregister (): 
+    pass
 
 # 
 # main
