@@ -1,7 +1,8 @@
 
 #include "Cubes.h"
 
-
+#include <thread>
+#include <SDL_timer.h>
 
 const int kInitial_window_width     = 1024;
 const int kInitial_window_height    = 768;
@@ -14,42 +15,42 @@ const float    kMaskVal             = -2553.0f;
 void Make_Mars_tiles       ();
 void Make_Mars_normal_map  (float height_scale); 
 
-UniformDef ModelUniform = { "mat_Model", UT_MAT4F, 1, 0 };
-UniformDef ViewUniform  = { "mat_View", UT_MAT4F, 1, 0 }; 
-UniformDef ProjUniform  = { "mat_Proj", UT_MAT4F, 1, 0 };
-UniformDef ColorMap     = { "colorMap", UT_SAMPLER, 1, 0 };
-UniformDef LightPos     = { "lit_Pos0", UT_VEC3F, 1, 0 };  
+namespace Def {
 
-Dx::Resource_def BasicCubeGeom[] = { 
-   { "indices", Dx::RD_USHORT },
-   { "posi", Dx::RD_VEC3F },
-   { "norms", Dx::RD_VEC3F },
-   { "txcd0", Dx::RD_VEC2F },
-   };
+   UniformDef ModelUniform = { "mat_Model", UT_MAT4F, 1, 0 };
+   UniformDef ViewUniform  = { "mat_View", UT_MAT4F, 1, 0 }; 
+   UniformDef ProjUniform  = { "mat_Proj", UT_MAT4F, 1, 0 };
+   UniformDef ColorMap     = { "colorMap", UT_SAMPLER, 1, 0 };
+   UniformDef LightPos     = { "lit_Pos0", UT_VEC3F, 1, 0 };  
 
+   Dx::Resource_def BasicCubeGeom[] = { 
+      { "indices", Dx::RD_USHORT },
+      { "posi", Dx::RD_VEC3F },
+      { "norms", Dx::RD_VEC3F },
+      { "txcd0", Dx::RD_VEC2F },
+      };
 
+   UniformDef ModelRotation = { "mat_ModelRot", UT_MAT3F, 1, 0 };
 
-UniformDef ModelRotation = { "mat_ModelRot", UT_MAT3F, 1, 0 };
+   UniformDef CubeUniforms[] = {
+      ModelUniform , 
+      ViewUniform  , 
+      ProjUniform  , 
+      //ModelRotation, 
+      ColorMap    , 
+      LightPos
+      };
 
-UniformDef CubeUniforms[] = {
-   ModelUniform , 
-   ViewUniform  , 
-   ProjUniform  , 
-   //ModelRotation, 
-   ColorMap    , 
-   LightPos
-   };
+   AttributeDef VertPosi = { "vPosi", AT_VEC3F, 0 };
+   AttributeDef VertTxcd = { "vTxcd", AT_VEC2F, 0 };
+   AttributeDef VertNorm = { "vNorm", AT_VEC3F, 0 };
 
-AttributeDef VertPosi = { "vPosi", AT_VEC3F, 0 };
-AttributeDef VertTxcd = { "vTxcd", AT_VEC2F, 0 };
-AttributeDef VertNorm = { "vNorm", AT_VEC3F, 0 };
-
-
-AttributeDef CubeAttributes[] = {
-   VertPosi,
-   VertTxcd,
-   VertNorm,
-   };
+   AttributeDef CubeAttributes[] = {
+      VertPosi,
+      VertTxcd,
+      VertNorm,
+      };
+}
 
 
 static glm::fvec3 cube_norm[] = {
@@ -214,13 +215,72 @@ struct Simple_obj : public Renderable
    GLuint               txrID;
 };
 
+
+const int kNumTicks = 50000000;
+
+void wat0 (const std::vector<std::string>& args, int i)
+{
+   Uint32 ticks = 0;
+
+   for (;;)
+   {      
+      std::chrono::system_clock::time_point nao = 
+            std::chrono::high_resolution_clock::now();
+
+
+      std::chrono::system_clock::duration dur = 
+         nao.time_since_epoch (); 
+
+      printf ( "\nwat %i : %f\n", i, dur ); 
+      std::this_thread::sleep_for (std::chrono::milliseconds (2000));
+   }
+}
+
+void wat1 (const std::vector<std::string>& args, int i)
+{
+   Uint32 ticks = 0;
+
+   for (;;)
+   {      
+      if (ticks < kNumTicks) 
+      {
+ticks += SDL_GetTicks (); 
+      }
+      else {
+         printf ( "\nwat %i\n", i); 
+ticks = 0; 
+      }
+
+   }
+
+}
+
+void wat2 (const std::vector<std::string>& args, int i)
+{
+   Uint32 ticks = 0;
+
+   for (;;)
+   {      
+      if (ticks < kNumTicks) 
+      {
+ticks += SDL_GetTicks (); 
+      }
+      else {
+         printf ( "\nwat %i\n", i); 
+ticks = 0; 
+      }
+
+   }
+
+}
+
 //
 void Simple_obj::Setup_RS(
    const Rn::UniformMap& uniformMap,
    const Rn::UniformValueMap& uniformVals,
    const Rn::AttributeMap& attribMap)
 {
-   int   texture_stage = 0;
+   int   txr_stage = 0;
 
    BOOST_ASSERT(uniformMap.count("colorMap"));
 
@@ -229,7 +289,7 @@ void Simple_obj::Setup_RS(
 
    //
    // setup color texture
-   glActiveTexture(GL_TEXTURE_stage(texture_stage));
+   glActiveTexture(GL_TEXTURE_stage(txr_stage ));
    glBindTexture(GL_TEXTURE_2D, txrID);
    Validate_GL_call();
 
@@ -238,15 +298,15 @@ void Simple_obj::Setup_RS(
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    Validate_GL_call();
-   Update_uniform(uniformMap, uniformVals, ColorMap);
+   Update_uniform (uniformMap, uniformVals, Def::ColorMap);
    //glUniform1i(col_It->second, texture_stage);
    Validate_GL_call();
-   texture_stage++;
+   txr_stage++;
 
    glEnable(GL_TEXTURE_2D);
    Validate_GL_call();
-
 }
+
 
 //
 //
@@ -381,9 +441,9 @@ class Defer_test : public sy::RT_Task, public sy::Window_listener, public cx::De
 private: 
 
    enum shading { 
-      shade_basic,
-      shade_lighting
-   };
+      shade_normal,
+      shade_deferred
+      };
 
    void init_graphics_objects (); 
    void init_scene_objects    (); 
@@ -391,14 +451,19 @@ private:
    void update_scene(sy::System_context* sys);
 
    shading shading_mode;
-   void draw_simple           (); 
    void draw_lighting         (); 
    void draw_deferred         (); 
    // 
    Rn::ShaderTable      shader_Table;
    Rn::UniformMap       uniformLoc_map;
    Rn::AttributeMap     attribLoc_map;
+
    Rn::UniformValueMap  uniformValueMap;
+
+   Rn::UniformMap       unifLoc_geom_stage;
+   Rn::AttributeMap     attrLoc_geom_stage;
+   Rn::UniformMap       unifLoc_light_stage;
+   Rn::AttributeMap     attrLoc_light_stage;
 
    std::shared_ptr<sy::Graphics_window>   windo; 
    bool                                   init_; 
@@ -454,7 +519,7 @@ Defer_test::Defer_test (sy::System_context* sys)
    : windo     ()
    , init_     (false)
    , view_dim  (kInitial_window_width, kInitial_window_height)
-   , shading_mode (shade_lighting)
+   , shading_mode (shade_normal)
    , lightPos (-500.0f, 2000.0f, 500.0f)
    , dat()
 {  
@@ -471,6 +536,33 @@ Defer_test::~Defer_test ()
 
 void Defer_test::init_graphics (sy::System_context* sys)
 {
+// MRT_frame_buffer                  
+//{
+//
+//   enum Type {
+//      RT_Color = 0, 
+//      RT_Position,
+//      RT_Norm, 
+//      Num_RT_types
+//   }; 
+//
+//   GLuint         ID;
+//   int            width; 
+//   int            height; 
+
+   std::string lol[] = {
+      "",
+      "",
+      "",
+      };
+
+   //char& wut[32] = reinterpret_cast<char&>(&hello);
+
+   ptrdiff_t offs_width  = offsetof (MRT_frame_buffer, width); 
+   ptrdiff_t offs_height = offsetof (MRT_frame_buffer, height); 
+   ptrdiff_t offs_rdID_0 = offsetof (MRT_frame_buffer, rt_IDs[0]); 
+   ptrdiff_t offs_rdID_1 = offsetof (MRT_frame_buffer, rt_IDs[1]); 
+
    glewInit (); 
 }
 
@@ -486,50 +578,70 @@ void Defer_test::init_graphics_objects ()
    MRT_Initialize(framebuffer, kInitial_window_width, kInitial_window_height);
    
 
-   std::vector<char> vs, fs;
+
+   std::vector<char> 
+      geom_vs, 
+      geom_fs,
+      light_vs,  
+      light_fs, 
+      vs, fs;
+
+   GLuint shaders[3] = { 0, 0, 0 }; 
    switch (shading_mode)
-   {  
-   // basic shader
-   case shade_basic: {
-      ut::Load_text_file(vs, "C:/Quarantine/hardcore/shader/Cubes/basic_shader.vp");
-      ut::Load_text_file(fs, "C:/Quarantine/hardcore/shader/Cubes/basic_shader.fp");
-   
-      shader_Table["basic_vp"] = Create_shader((GLchar*)vs.data(), GL_VERTEX_SHADER)   ;
-      shader_Table["basic_fp"] = Create_shader((GLchar*)fs.data(), GL_FRAGMENT_SHADER) ;
-      GLuint shaders[3] = {
-         shader_Table["basic_vp"], 
-         shader_Table["basic_fp"], 
-         0
-         };
-      shader_Table["basic_prog"] = Build_shader_program(shaders);
-      } break;
-   // simple lighting
-   case shade_lighting:  {
+      {  
+   case shade_normal: // simple standard lighting
       ut::Load_text_file(vs, "C:/Quarantine/hardcore/shader/Cubes/simple_light.vp");
       ut::Load_text_file(fs, "C:/Quarantine/hardcore/shader/Cubes/simple_light.fp");
       shader_Table["light_vp"] = Create_shader((GLchar*)vs.data(), GL_VERTEX_SHADER);
       shader_Table["light_fp"] = Create_shader((GLchar*)fs.data(), GL_FRAGMENT_SHADER);
-      GLuint shaders[3] = {
-         shader_Table["light_vp"],
-         shader_Table["light_fp"],
-         0
-         };
+
+      shaders[0] = shader_Table["light_vp"];
+      shaders[1] = shader_Table["light_fp"];
       shader_Table["light_prog"] = Build_shader_program(shaders);
-      } break;
+
+      Uniform_locations   (uniformLoc_map, Def::CubeUniforms, El_count(Def::CubeUniforms), shader_Table["light_prog"]);
+      Attribute_locations (attribLoc_map, Def::CubeAttributes, El_count(Def::CubeAttributes), shader_Table["light_prog"]);
+
+      uniformValueMap["mat_Model"].p      = &matrices[0];
+      uniformValueMap["mat_View"].p       = &matrices[1];
+      uniformValueMap["mat_Proj"].p       = &matrices[2];
+      //uniformValueMap["mat_ModelRot"].p   = glm::value_ptr(matrot); // stage 0
+      uniformValueMap["colorMap"].i       = 0; // stage 0
+      uniformValueMap["lit_Pos0"].p       = glm::value_ptr(lightPos);
+      break;
+
+   case shade_deferred: // deferred shading
+
+      ut::Load_text_file (geom_vs, "C:/Quarantine/hardcore/shader/Cubes/deferred_geom.vp");
+      ut::Load_text_file (geom_fs, "C:/Quarantine/hardcore/shader/Cubes/deferred_geom.fp");
+
+      shader_Table["defer_geom_vp"]  = Create_shader (static_cast<GLchar*>(geom_vs.data ()), GL_VERTEX_SHADER);
+      shader_Table["defer_geom_fp"]  = Create_shader (static_cast<GLchar*>(geom_fs.data ()), GL_FRAGMENT_SHADER);
+
+      shaders[0] = shader_Table["defer_geom_vp"];
+      shaders[1] = shader_Table["defer_geom_fp"];
+      shader_Table["defer_geom_prog"]  = Build_shader_program (shaders);
+
+      Uniform_locations   (unifLoc_geom_stage, Def::CubeUniforms, El_count(Def::CubeUniforms), shader_Table["defer_geom_prog"]);
+      Attribute_locations (attrLoc_geom_stage, Def::CubeAttributes, El_count(Def::CubeAttributes), shader_Table["defer_geom_prog"]);
+
+      //
+      ut::Load_text_file (light_vs,"C:/Quarantine/hardcore/shader/Cubes/deferred_lighting.vp");
+      ut::Load_text_file (light_fs,"C:/Quarantine/hardcore/shader/Cubes/deferred_lighting.fp");
+
+      shader_Table["defer_light_vp"] = Create_shader (static_cast<GLchar*>(light_vs.data()), GL_VERTEX_SHADER);
+      shader_Table["defer_light_fp"] = Create_shader (static_cast<GLchar*>(light_fs.data()), GL_FRAGMENT_SHADER);
+
+      shaders[0] = shader_Table["defer_light_vp"];
+      shaders[1] = shader_Table["defer_light_fp"];
+      shader_Table["defer_light_prog"] = Build_shader_program (shaders);
+
+      Uniform_locations   (unifLoc_light_stage, Def::CubeUniforms, El_count(Def::CubeUniforms), shader_Table["defer_light_prog"]);
+      Attribute_locations (attrLoc_light_stage, Def::CubeAttributes, El_count(Def::CubeAttributes), shader_Table["defer_light_prog"]);
+      break;
    //
    default: DX_ASSERT ("invalid shader"); break;
-   }
-
-   Uniform_locations    (uniformLoc_map, CubeUniforms, El_count(CubeUniforms), shader_Table["light_prog"]);
-   Attribute_locations  (attribLoc_map, CubeAttributes, El_count(CubeAttributes), shader_Table["light_prog"]);
-
-
-   uniformValueMap["mat_Model"].p      = &matrices[0];
-   uniformValueMap["mat_View"].p       = &matrices[1];
-   uniformValueMap["mat_Proj"].p       = &matrices[2];
-   //uniformValueMap["mat_ModelRot"].p   = glm::value_ptr(matrot); // stage 0
-   uniformValueMap["colorMap"].i       = 0; // stage 0
-   uniformValueMap["lit_Pos0"].p       = glm::value_ptr(lightPos);
+      }
 
    //UniformDef ModelRotation = { "mat_ModelRot", UT_MAT3F, 1, 0 };
 
@@ -544,7 +656,7 @@ void Defer_test::init_scene_objects ()
    Dx::Resource_obj warped_res; 
    Dx::Read_resource(warped_res, "C:/usr/warped_5.dat");
    
-   (BasicCubeGeom, El_count(BasicCubeGeom));
+   (Def::BasicCubeGeom, El_count(Def::BasicCubeGeom));
 
    warped_verts.resize(warped_res.fieldMap["indices"].count);
    warped_norms.resize(warped_res.fieldMap["indices"].count);
@@ -734,29 +846,23 @@ void Defer_test::render (sy::System_context* sys)
    glViewport(0, 0, view_dim[0], view_dim[1]);
 
    switch (shading_mode)
-   {
-   case shade_basic: 
-      glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); 
-      glClearColor (0.2f, 0.3f, 0.35f, 1.0f); 
-      draw_simple();
-      break;
-   case shade_lighting: 
+      {
+   case shade_normal: 
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
       glClearColor(0.2f, 0.3f, 0.35f, 1.0f);
       draw_lighting();
       break;
-   
 
-   }
+   case shade_deferred: 
+      break;
 
-   
+   default:
+      break;
+      }
 
-//
-//
-//   // draw stuff 
-//
-//   //
+   //
+   //
    windo->Swap_buffers (); 
 }
 
@@ -790,103 +896,6 @@ Defer_test* Create_Defer_test (sy::System_context* sys)
 }
 
 
-void Defer_test::draw_simple ()
-{
-   glMatrixMode(GL_MODELVIEW);
-   glPushMatrix();
-
-   glUseProgram(shader_Table["basic_prog"]);
-
-   // face cull
-   static bool enable_culling = true;
-   (enable_culling ? glEnable : glDisable) (GL_CULL_FACE);
-   glFrontFace(GL_CCW);
-
-   // polygon mode   
-   static int DBG_polygon_mode = 2;
-   GLenum polygon_Mode[] = { GL_POINT, GL_LINE, GL_FILL };
-   glPolygonMode(GL_FRONT_AND_BACK, polygon_Mode[DBG_polygon_mode]);
-   Validate_GL_call();
-
-   glEnable(GL_TEXTURE_2D);
-   Validate_GL_call();
-
-   
-   // geometry streams  
-   glEnableVertexAttribArray(attribLoc_map["vPosi"]);
-   //glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, cube_geom);
-   glVertexAttribPointer(attribLoc_map["vPosi"], 3, GL_FLOAT, GL_FALSE, 0, warped_verts.data());
-   Validate_GL_call();
-   glEnableVertexAttribArray(attribLoc_map["vTxcd"]);
-   glVertexAttribPointer(attribLoc_map["vTxcd"], 2, GL_FLOAT, GL_FALSE, 0, cube_txc0);
-   Validate_GL_call();
-
-   //
-   // view, proj 
-
-   {
-      glm::fmat4& mat_View = *(glm::fmat4*)uniformValueMap["mat_View"].p;
-      mat_View = glm::translate(viewparams.pos) * glm::eulerAngleYX(viewparams.rot[1], viewparams.rot[0]);
-      mat_View = glm::inverse(mat_View);
-      Update_uniform(uniformLoc_map, uniformValueMap, ViewUniform);
-
-      glm::fmat4& mat_Proj= *(glm::fmat4*)uniformValueMap["mat_Proj"].p;
-      mat_Proj = glm::perspective(
-         (float)viewparams.FoV,       //kPerspective_FoV,  
-         (float)viewparams.Asp_ratio, //camera_y_asp,
-         (float)viewparams.dist_Near, //kNear_plane_dist,  
-         (float)viewparams.dist_Far   //kFar_plane_dist  
-         );
-      Update_uniform(uniformLoc_map, uniformValueMap, ProjUniform);
-   }
-   
-
-   //
-   for (int i = 0; i < objs.size(); i++)
-   {
-      // this is draw loop 
-      // set up grid first  // abstract data set into interface?   
-      Validate_GL_call();
-      {
-         glm::fmat4& mat_Model = *(glm::fmat4*)uniformValueMap["mat_Model"].p;
-         const glm::fvec3& fPos = objs[i]->Pos();
-         const glm::fvec3& fRot = objs[i]->Rot();
-         const glm::fvec3& fScl = objs[i]->Scl();
-
-         glm::fmat4 matScale = glm::scale(fScl);
-
-         glm::fmat4 matRot = glm::rotate(fRot.x, glm::fvec3(1.0f, 0.0f, 0.0f)) 
-                           * glm::rotate(fRot.y, glm::fvec3(0.0f, 1.0f, 0.0f)) 
-                           * glm::rotate(fRot.z, glm::fvec3(0.0f, 0.0f, 1.0f)); 
-         glm::fmat4 matPos = glm::translate(fPos);
-
-         //matrot = glm::fmat3(matRot);
-         //Update_uniform(uniformLoc_map, uniformValueMap, ModelRotation);
-
-
-         mat_Model = matPos * matRot * matScale;
-      }
-      
-      Update_uniform (uniformLoc_map, uniformValueMap, ModelUniform);
-
-
-      //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
-      objs[i]->Setup_RS(uniformLoc_map, uniformValueMap, attribLoc_map);
-      glDrawArrays(GL_TRIANGLES, 0, El_count(cube_geom));
-
-      Validate_GL_call();
-   }
-
-
-   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-   glUseProgram(0);
-
-   glEnable(GL_DEPTH_TEST);
-   glMatrixMode(GL_MODELVIEW);
-   glPopMatrix();
-
-}
 
 
 void Defer_test::draw_lighting ()
@@ -927,21 +936,21 @@ void Defer_test::draw_lighting ()
       glm::fmat4& mat_View = *(glm::fmat4*)uniformValueMap["mat_View"].p;
       mat_View = glm::translate(viewparams.pos) * glm::eulerAngleYX(viewparams.rot[1], viewparams.rot[0]);
       mat_View = glm::inverse(mat_View);
-      Update_uniform(uniformLoc_map, uniformValueMap, ViewUniform);
+      Update_uniform (uniformLoc_map, uniformValueMap, Def::ViewUniform);
 
       glm::fmat4& mat_Proj = *(glm::fmat4*)uniformValueMap["mat_Proj"].p;
-      mat_Proj = glm::perspective(
+      mat_Proj = glm::perspective (
          (float)viewparams.FoV,       //kPerspective_FoV,  
          (float)viewparams.Asp_ratio, //camera_y_asp,
          (float)viewparams.dist_Near, //kNear_plane_dist,  
          (float)viewparams.dist_Far   //kFar_plane_dist  
          );
-      Update_uniform(uniformLoc_map, uniformValueMap, ProjUniform);
+      Update_uniform (uniformLoc_map, uniformValueMap, Def::ProjUniform);
    }
 
    {
       glm::fvec3& litPos = *(glm::fvec3*)uniformValueMap["lit_Pos0"].p;
-      Update_uniform(uniformLoc_map, uniformValueMap, LightPos); 
+      Update_uniform (uniformLoc_map, uniformValueMap, Def::LightPos);
    }
    //
    for (int i = 0; i < objs.size(); i++)
@@ -965,7 +974,7 @@ void Defer_test::draw_lighting ()
          mat_Model = matPos * matRot * matScale;
       }
 
-      Update_uniform(uniformLoc_map, uniformValueMap, ModelUniform);
+      Update_uniform(uniformLoc_map, uniformValueMap, Def::ModelUniform);
 
 
       //      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); 
@@ -1006,6 +1015,15 @@ int main (int argv, char** argc)
 
 
 std::shared_ptr<sy::System_context>  sys   (sy::Create_context ()); 
+
+   std::vector<std::string> args; 
+   
+   std::thread task0 (wat0, args, 0); 
+   std::thread task1 (wat0, args, 1); 
+   std::thread task2 (wat0, args, 2); 
+
+
+
 std::shared_ptr<Defer_test>          test  (Create_Defer_test(sys.get())); 
 return sy::Run_realtime_task (sys.get(), test.get()); 
    }

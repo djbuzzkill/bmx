@@ -7,6 +7,7 @@
 
 #include <Terrain_renderer/Terrain_renderer.h>
 
+#include <stddef.h>
 #include <boost/assert.hpp>
 
 #include <Dx/System.h>

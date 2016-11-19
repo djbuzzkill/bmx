@@ -36,3 +36,5 @@ install_manifest.txt
 **/build.x86.vs2013
 **/Debug
 **/Release
+build.x64.vs2013/test_Balls/test_Balls.vcxproj.user
+*.vp
