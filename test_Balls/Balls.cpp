@@ -383,7 +383,9 @@ void Defer_test::init_graphics_objects ()
       shader_Table["light_prog"] = Build_shader_program(shaders);
       } break;
    //
-   default: DX_ASSERT ("invalid shader"); break;
+   default: 
+	   //DX_ASSERT ("invalid shader"); 
+	   break;
    }
 
    Uniform_locations    (uniformLoc_map, CubeUniforms, El_count(CubeUniforms), shader_Table["light_prog"]);

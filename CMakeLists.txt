@@ -15,6 +15,10 @@ else ()
 endif ()
 
 	 
+message (STATUS "FREEIMAGE_LIB_DIR	   :${FREEIMAGE_LIB_DIR}"    )
+message (STATUS "SDL2_PLATFORM_LIB_DIR :${SDL2_PLATFORM_LIB_DIR}")
+message (STATUS "GLEW_PLATFORM_LIB_DIR :${GLEW_PLATFORM_LIB_DIR}") 
+
 include_directories (
 	$ENV{HARDCORE_ROOT}
 	$ENV{FREETYPE2_ROOT}

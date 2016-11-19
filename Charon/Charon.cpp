@@ -47,7 +47,7 @@ bool str_2_index (int &X, int& Y, const std::string& s)
 //
 size_t Max_elems_in_buff (size_t sizeOf_buf, size_t sizeOf_elem)
 {
-   DX_ASSERT (sizeOf_elem, "sizeOf_elem is 0"); 
+   //DX_ASSERT (sizeOf_elem, "sizeOf_elem is 0"); 
 
    if (!sizeOf_elem)
       return ~0x0; 
