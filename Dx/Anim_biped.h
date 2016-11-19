@@ -8,11 +8,11 @@
 #include "VecMath.h"
 #include "Shapes.h"
 
-#include "Horde3D.h"
-#include "Horde3DUtils.h"
+//#include "Horde3D.h"
+//#include "Horde3DUtils.h"
 
-#include "Scene.h"
-#include "Bounding.h"
+//#include "Scene.h"
+//#include "Bounding.h"
 
 
 //

@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include <assert.h>
+//#include <assert.h>
 #include <stdio.h>
 
 
@@ -18,11 +18,11 @@
 
 	#ifdef _WIN32
 
-		void _debug_break_ ();
-		#define DX_DEBUG(...)   fprintf(stderr, __VA_ARGS__)
-      #define DX_ASSERT(x, msg, ...) if((x) == false){fprintf(stderr,"\n\n*WTF* ------> "##msg##" ", __VA_ARGS__); assert(0);} 
-		#define DX_BREAK(msg, ...) do{printf("\n\n*YO* ------> "##msg##" ", __VA_ARGS__); _debug_break_ ();}while(0)
-		#define DX_BREAKASSERT(x, msg, ...) if((x) == false){printf("\n\n*BREAK* -------------> \""##msg##"\" ", __VA_ARGS__); _debug_break_ ();} 
+//		void _debug_break_ ();
+//		#define DX_DEBUG(...)   fprintf(stderr, __VA_ARGS__)
+//      #define DX_ASSERT(x, msg, ...) if((x) == false){fprintf(stderr,"\n\n*WTF* ------> "##msg##" ", __VA_ARGS__); assert(0);} 
+//		#define DX_BREAK(msg, ...) do{printf("\n\n*YO* ------> "##msg##" ", __VA_ARGS__); _debug_break_ ();}while(0)
+//		#define DX_BREAKASSERT(x, msg, ...) if((x) == false){printf("\n\n*BREAK* -------------> \""##msg##"\" ", __VA_ARGS__); _debug_break_ ();} 
 
 	#else
 		#include "NeedPlatformBreak.h"
