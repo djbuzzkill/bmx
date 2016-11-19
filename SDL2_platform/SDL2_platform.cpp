@@ -4,12 +4,12 @@
 #include <string>
 
 #include <SDL.h>
-#include <SDL_opengl.h>
+//#include <SDL_opengl.h>
 
 
 #include "Dx/System.h"
 #include "Dx/VecMath.h"
-#include "Dx/Render.h"
+//#include "Dx/Render.h"
 
 //   SDL_window (const std::string& title, sy::Window_listener* ls) 
 
@@ -40,10 +40,13 @@ public:
 
    std::shared_ptr<SDL_Window> win_; 
    SDL_GLContext        gl_;
+
+   uint32_t				flags; 
    //
    //
-   SDL_window (const std::string& title, sy::Window_listener* ls, int wd, int ht, uint32_t flags_) 
-      : win_ (SDL_CreateWindow (title.c_str(), sy::Window::kDef_window_X_pos, sy::Window::kDef_window_Y_pos, wd, ht, flags_), SDL_DestroyWindow) 
+   SDL_window (const std::string& title, sy::Window_listener* ls, int wd, int ht, uint32_t sdl_flags, uint32_t sy_flags) 
+	: win_(SDL_CreateWindow(title.c_str(), sy::Window::kDef_window_X_pos, sy::Window::kDef_window_Y_pos, wd, ht, sdl_flags), SDL_DestroyWindow)
+	, flags(sy_flags)
    {
       //SDL_Rect rect; 
       //SDL_GetDisplayBounds (0, &rect); 
@@ -78,27 +81,34 @@ public:
    //
 	virtual int setup_display ()
    {
-      gl_ = ::SDL_GL_CreateContext(win_.get());
 
-      ::SDL_GL_MakeCurrent (win_.get(), gl_); 
-      ::SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, k_GL_Major_version);
-      ::SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, k_GL_Minor_version);
-      ::SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-      ::SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-      ::SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	   if (flags & sy::GRAPHICS_WINDOW_OPENGL)
+	   {
+		   gl_ = ::SDL_GL_CreateContext(win_.get());
 
-      int supportec_extensions[] = { 
+		   ::SDL_GL_MakeCurrent(win_.get(), gl_);
+		   ::SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, k_GL_Major_version);
+		   ::SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, k_GL_Minor_version);
+		   ::SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		   ::SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		   ::SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-         ::SDL_GL_ExtensionSupported ("not_an_extension"), 
-         ::SDL_GL_ExtensionSupported ("GL_ARB_tessellation_shader"), 
-         ::SDL_GL_ExtensionSupported ("GL_EXT_direct_state_access"), 
-         ::SDL_GL_ExtensionSupported ("GL_ARB_viewport_array"), 
-         }; 
+		   int supportec_extensions[] = {
 
-      if (gl_)
-         return 0;       
+			   ::SDL_GL_ExtensionSupported("not_an_extension"),
+			   ::SDL_GL_ExtensionSupported("GL_ARB_tessellation_shader"),
+			   ::SDL_GL_ExtensionSupported("GL_EXT_direct_state_access"),
+			   ::SDL_GL_ExtensionSupported("GL_ARB_viewport_array"),
+		   };
 
-      return -1; 
+		   if (gl_) 
+				return 0;
+		   else
+			   return __LINE__;
+		}
+
+	   return 0; 
+
    }
 	
    virtual void Swap_buffers ()
@@ -158,16 +168,19 @@ public:
       const char*          title,
       int                  wd, 
       int                  ht, 
-      bool                 fullscreen)
+      uint32_t			flags)
    {
 
       std::string s_title = title; 
 
-      Uint32 flags_ = SDL_window::kSDL_default_flags;
-      if (fullscreen)
-         flags_ |= SDL_WINDOW_FULLSCREEN;
+//	  GRAPHICS_WINDOW_FULLSCREEN = (0x1 << 0),
+//		  GRAPHICS_WINDOW_OPENGL = (0x1 << 1),
+
+	  uint32_t sdl_flags  = SDL_window::kSDL_default_flags;
+	  if (flags & sy::GRAPHICS_WINDOW_FULLSCREEN)
+         sdl_flags |= SDL_WINDOW_FULLSCREEN;
       
-      SDL_window* syswnd_ = new SDL_window (s_title, ls, wd, ht, flags_); 
+	  SDL_window* syswnd_ = new SDL_window(s_title, ls, wd, ht, sdl_flags, flags);
 
       map_window_2_listener[syswnd_->win_.get()] = ls; 
 
@@ -292,6 +305,7 @@ sy::System_context* sy::Create_context ()
 
 
 
+#if SDL2_PLATFORM_ENABLE_OPENGL
 
 //
 // ProjectionState - load perspective GL projection 
@@ -375,6 +389,7 @@ Ma::Mat44f& Rn::ModelViewMatrix (
 
 	return out; 
 }
+
 
 //
 // ModelViewState - load model GL model view matrix 
@@ -701,3 +716,4 @@ void Rn::Draw_axes (
 
 }
 
+#endif

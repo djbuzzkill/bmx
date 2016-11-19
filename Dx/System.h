@@ -2,6 +2,9 @@
 #define Include_System
 
 #include "Interface.h"
+#include <stdint.h>
+
+
 
 namespace OIS 
 { 
@@ -158,6 +161,12 @@ namespace sy
 		SR_Exit = 0,  
 		}; 
 
+	enum GraphicsWindowFlags {
+		GRAPHICS_WINDOW_FULLSCREEN = (0x1 << 0),
+		GRAPHICS_WINDOW_OPENGL = (0x1 << 1),
+		};
+
+
 	class System_context 
 		{ 
 	protected: 
@@ -168,10 +177,12 @@ namespace sy
 	public: 
 
 
+		
+
       // deprecated by GraphicsWindow
-		virtual sy::Window*				Create_window		(Window_listener*, const char* title) = 0; 
-      virtual sy::Graphics_window*  Create_GraphicsWindow (Window_listener*, const char* title, int wd, int ht, bool fullscreen) = 0; 
-      virtual void                  Poll_input           (Mouse_state& m, Keyboard_state& k) = 0;  
+		virtual sy::Window*				Create_window			(Window_listener*, const char* title) = 0; 
+		virtual sy::Graphics_window*	Create_GraphicsWindow(Window_listener*, const char* title, int wd, int ht, uint32_t flags) = 0;
+		virtual void					Poll_input				(Mouse_state& m, Keyboard_state& k) = 0;  
 
 		// virtual OIS::InputManager* Create_input_system (Window*) = 0;   // OIS input manager
 		// should be called Dispatch_WindowEvents ()
