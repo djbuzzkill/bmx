@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.0)
 
 project (Hardcore)
 
@@ -48,13 +49,13 @@ link_directories (
 
 # add_subdirectory (test_GL4_experiment)
 
-add_subdirectory (Dx)
-add_subdirectory (SDL2_platform)
-add_subdirectory (OpenGL_system)
-add_subdirectory (Terrain_renderer)
-add_subdirectory (Charon)
-
-add_subdirectory (test_Mars)
-add_subdirectory (test_Cubes)
-add_subdirectory (test_Balls)
-add_subdirectory (test_Vulkan)
+add_subdirectory (cx)
+add_subdirectory (mtool)
+#add_subdirectory (SDL2_platform)
+#add_subdirectory (OpenGL_system)
+#add_subdirectory (Terrain_renderer)
+#add_subdirectory (Charon)
+#add_subdirectory (test_Mars)
+#add_subdirectory (test_Cubes)
+#add_subdirectory (test_Balls)
+#add_subdirectory (test_Vulkan)
