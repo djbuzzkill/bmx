@@ -1,23 +1,20 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-project (Sy)
+project (cx)
 
-include_directories (
-	${BOOST_INCLUDE_DIRS}
-	)
 
-set (SY_SOURCES
+set (CX_SOURCES
 	Task.cpp
 	System.cpp
 	)
 
-set (SY_HEADERS
+set (CX_HEADERS
 	Task.h
 	System.h
 	)
 
-add_library (Sy
+add_library (cx
 	${SY_SOURCES}
 	${SY_HEADERS}
 	)
