@@ -5,17 +5,17 @@ project (mtool)
 
 
 set (MTOOL_HEADER_FILES
-	mtool.h
-	)
+  mtool.h
+  )
 	
 set (MTOOL_SOURCE_FILES
-	cube.cpp
-	)
+  mtool.cpp
+  )
 
 add_executable (mtool
-	${CUBES_HEADER_FILES}
-	${CUBES_SOURCE_FILES}
-	)
+  ${MTOOL_HEADER_FILES}
+  ${MTOOL_SOURCE_FILES}
+  )
 
 
 target_link_libraries (mtool

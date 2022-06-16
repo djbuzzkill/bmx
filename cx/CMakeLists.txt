@@ -5,18 +5,18 @@ project (cx)
 
 
 set (CX_SOURCES
-	Task.cpp
-	System.cpp
-	)
+  Task.cpp
+  System.cpp
+  )
 
 set (CX_HEADERS
-	Task.h
-	System.h
-	)
+  Task.h
+  System.h
+  )
 
 add_library (cx
-	${SY_SOURCES}
-	${SY_HEADERS}
-	)
+  ${CX_SOURCES}
+  ${CX_HEADERS}
+  )
 
 

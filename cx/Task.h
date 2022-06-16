@@ -2,11 +2,11 @@
 #define _Task_incl_
 
 
-namespace sy
+namespace cx 
 {
-	int dumb (); 
+  int dumb (); 
 
-   struct SystemContext; 
+  class SystemContext; 
 	// 
 	// abstract OS/Sys
 
@@ -41,20 +41,20 @@ namespace sy
 
 
       
-	// 
-	// abstract realtime loop
-	class RT_Task 
-      {
-   public: 
-
-	virtual void Initialize    (SystemContext*)				= 0; 
-   virtual void Update		   (double , SystemContext*)  = 0; 
-   virtual void Deinitialize  (SystemContext*)           = 0; 
-	   //
-   protected: 
-		RT_Task () { }
-	   }; 
-
-} // Sy
+  // 
+  // abstract realtime loop
+  class RT_Task 
+  {
+  public: 
+    
+    virtual void Initialize    (SystemContext*)				= 0; 
+    virtual void Update		   (double , SystemContext*)  = 0; 
+    virtual void Deinitialize  (SystemContext*)           = 0; 
+    //
+  protected: 
+    RT_Task () { }
+  }; 
+  
+} // cx
 
 #endif

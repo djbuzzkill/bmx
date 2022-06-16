@@ -14,20 +14,10 @@ else ()
 endif ()
 
 	 
-message (STATUS "FREEIMAGE_LIB_DIR	   :${FREEIMAGE_LIB_DIR}"    )
-message (STATUS "SDL2_PLATFORM_LIB_DIR :${SDL2_PLATFORM_LIB_DIR}")
-message (STATUS "GLEW_PLATFORM_LIB_DIR :${GLEW_PLATFORM_LIB_DIR}") 
 
 include_directories (
-	$ENV{HARDCORE_ROOT}
-	$ENV{FREETYPE2_ROOT}
-	$ENV{FREETYPE_GL_ROOT}/lib/
-	$ENV{GLM_ROOT}
-	$ENV{GLEW_ROOT}/include
-	$ENV{SDL2_ROOT}/include
-	$ENV{FREEIMAGE_ROOT}/include
-	$ENV{BOOST_LIB_ROOT}
-	)
+  "./"
+  )
 
 
 message (STATUS	"FREEIMAGE_ROOT: $ENV{FREEIMAGE_ROOT}")
@@ -47,15 +37,9 @@ link_directories (
 	$ENV{FREETYPE2_ROOT}/lib/
 	)
 
-# add_subdirectory (test_GL4_experiment)
-
+# libs
 add_subdirectory (cx)
+
+
+# progs
 add_subdirectory (mtool)
-#add_subdirectory (SDL2_platform)
-#add_subdirectory (OpenGL_system)
-#add_subdirectory (Terrain_renderer)
-#add_subdirectory (Charon)
-#add_subdirectory (test_Mars)
-#add_subdirectory (test_Cubes)
-#add_subdirectory (test_Balls)
-#add_subdirectory (test_Vulkan)

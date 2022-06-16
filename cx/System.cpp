@@ -2,7 +2,7 @@
 #include "System.h"
 #include "Task.h"
 
-namespace sy
+namespace cx
 {
    //
    void Destroy (Destructor* o)
@@ -12,7 +12,7 @@ namespace sy
 
 
    //
-   int Run_realtime_task (sy::SystemContext* sys, sy::RT_Task* task)
+   int Run_realtime_task (cx::SystemContext* sys, cx::RT_Task* task)
    {
 
       int run_state =0 ; 

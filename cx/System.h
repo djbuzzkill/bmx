@@ -1,22 +1,28 @@
+
+
+
+#include <cstddef>
+
+
 #ifndef INTRODUCING_SYSTEM_H
 #define INTRODUCING_SYSTEM_H
 
 
-namespace sy 
+namespace cx 
 {
-	class Window ;          
-	class GraphicsDisplay;    
-	class RT_Task;    
-	class SystemContext;    
-	class WindowListener;   
-   class GraphicsWindow;   
+  class Window ;          
+  class GraphicsDisplay;    
+  class RT_Task;    
+  class SystemContext;    
+  class WindowListener;   
+  class GraphicsWindow;   
 
    //
    class Destructor 
       {
    public: 
 
-      virtual ~Destructor () = 0 {}; 
+      virtual ~Destructor () = 0; 
 
    protected: 
 
@@ -170,33 +176,33 @@ namespace sy
 	//
 	// SystemContext - whatever things across platform
 
-		enum SystemRequest {
-			SR_Exit = 0,  
-			}; 
-
-	class SystemContext 
-		{ 
-	protected: 
-
-		SystemContext () { 
-			}
-
-	public: 
-
-
-      // deprecated by GraphicsWindow
-		virtual sy::Window*				   Create_window		(WindowListener*, const char* title) = 0; 
-      virtual sy::GraphicsWindow*   Create_GraphicsWindow (WindowListener*, const char* title, int wd, int ht, bool fullscreen) = 0; 
-      virtual void                  Poll_input           (Mouse_state& m, Keyboard_state& k) = 0;  
-
-		// virtual OIS::InputManager* Create_input_system (Window*) = 0;   // OIS input manager
-		// should be called Dispatch_WindowEvents ()
-
-		virtual bool	   DispatchEvents	() = 0; 
-
-      // timer
-      virtual  unsigned long long   GetTimerTicks        () = 0; 
-      virtual  unsigned long long   GetTimerFrequencyHz  () = 0;
+  enum SystemRequest {
+    SR_Exit = 0,  
+  }; 
+  
+  class SystemContext 
+  { 
+  protected: 
+    
+    SystemContext () { 
+    }
+    
+  public: 
+    
+    
+    // deprecated by GraphicsWindow
+    virtual cx::Window*				   Create_window		(WindowListener*, const char* title) = 0; 
+    virtual cx::GraphicsWindow*   Create_GraphicsWindow (WindowListener*, const char* title, int wd, int ht, bool fullscreen) = 0; 
+    virtual void                  Poll_input           (Mouse_state& m, Keyboard_state& k) = 0;  
+    
+    // virtual OIS::InputManager* Create_input_system (Window*) = 0;   // OIS input manager
+    // should be called Dispatch_WindowEvents ()
+    
+    virtual bool	   DispatchEvents	() = 0; 
+    
+    // timer
+    virtual  unsigned long long   GetTimerTicks        () = 0; 
+    virtual  unsigned long long   GetTimerFrequencyHz  () = 0;
 
 		// Request_system ();
 		virtual void	   SysReq			(SystemRequest req) = 0; 
@@ -215,7 +221,7 @@ namespace sy
       double   freq_Hz; 
 
 
-      bool Reset (sy::SystemContext* sys)
+      bool Reset (SystemContext* sys)
       {
          if (freq_ticks = sys->GetTimerFrequencyHz  ())
          {
@@ -228,7 +234,7 @@ namespace sy
       }
 
 
-      double GetDt (sy::SystemContext* sys)
+      double GetDt (SystemContext* sys)
       {
          acc_ticks = sys->GetTimerTicks (); 
          u64 elapsed_ = acc_ticks - prev_ticks;
@@ -238,61 +244,61 @@ namespace sy
 
    }; 
 
-	//
-	// WindowListener
-	class WindowListener
-	{
-	protected: 
-		WindowListener () {
-			}
-	public: 
-
-		virtual void OnWindowResize		(int wd, int ht) = 0; 
-		virtual void OnWindowClose		() = 0; 
-		virtual void OnWindowActivate	(bool activate) = 0; 
-	}; 
-
-	//
-	// AppWindow 
-	class Window 
-		{
-	public: 
-
-		//
-		// funcs
-		virtual size_t	Get_WindowID () = 0; 
-		virtual void	Show	(bool show)		= 0; 
-		virtual void	SetPos	(int x, int y)	= 0; 
-
-	protected: 
-		Window () { 
-		}
-	}; 
-
-	//
-	// GraphicsDisplay - roughly a graphics device
-	class GraphicsDisplay
-		{
-	public: 
-
-		virtual int		Setup_display  () = 0; 
-		virtual void	Swap_buffers   () = 0; 
-
-	protected:
-
-
-		GraphicsDisplay () { 
-			}
-		}; 
-
-   //
-   class GraphicsWindow : public Window, public GraphicsDisplay
-      {
-   protected: 
-      GraphicsWindow () {}
-      
-      }; 
-
+  //
+  // WindowListener
+  class WindowListener
+  {
+  protected: 
+    WindowListener () {
+    }
+  public: 
+    
+    virtual void OnWindowResize		(int wd, int ht) = 0; 
+    virtual void OnWindowClose		() = 0; 
+    virtual void OnWindowActivate	(bool activate) = 0; 
+  }; 
+  
+  //
+  // AppWindow 
+  class Window 
+  {
+  public: 
+    
+    //
+    // funcs
+    virtual size_t	Get_WindowID () = 0; 
+    virtual void	Show	(bool show)		= 0; 
+    virtual void	SetPos	(int x, int y)	= 0; 
+    
+  protected: 
+    Window () { 
+    }
+  }; 
+  
+  //
+  // GraphicsDisplay - roughly a graphics device
+  class GraphicsDisplay
+  {
+  public: 
+    
+    virtual int		Setup_display  () = 0; 
+    virtual void	Swap_buffers   () = 0; 
+    
+  protected:
+    
+    
+    GraphicsDisplay () { 
+    }
+  }; 
+  
+  //
+  class GraphicsWindow : public Window, public GraphicsDisplay
+  {
+  protected: 
+    GraphicsWindow () {}
+    
+  }; 
+  
 
 	//
 	// RealtimeApp 
@@ -319,8 +325,8 @@ namespace sy
    
    //
    //
-   int            Run_realtime_task       (SystemContext* sys, RT_Task* rtt); 
-   SystemContext* Create_context (); 
+  int             Run_realtime_task       (SystemContext* sys, RT_Task* rtt); 
+  SystemContext*  Create_context (); 
 
 
    }
