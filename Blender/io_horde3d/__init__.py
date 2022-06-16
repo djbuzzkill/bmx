@@ -1,4 +1,4 @@
-bl_info = {
+Bl_info = {
     "name": "Export Horde 3D runtime",
     "author": "djbuzzkill",
     "blender": (2, 5, 7),
