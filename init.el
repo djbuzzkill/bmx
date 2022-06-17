@@ -1,5 +1,9 @@
 ;;
 ;;
+;;
+;;
+
+
 (setq inhibit-startup-message t)
 
 ;;
@@ -8,7 +12,6 @@
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-
 
 (transient-mark-mode 1)
 
@@ -30,7 +33,6 @@
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-<tab>") 'other-window)
-;;(global-set-key (kbd "C-m") 'set-mark-command)
 
 
 ;; quit putting Customize shit in this file
@@ -56,12 +58,15 @@
 
 (require 'use-package)
 
+
+	 
 (setq use-package-always-ensure t)
 
 ;; no line numbers for these buffers
 (dolist (mode '(org-mode-hook
 		term-mode-hook
                 shell-mode-hook
+		treemacs-mode-hook
 		eshell-mode-hook))
   (add-hook mode (lambda  () (display-line-numbers-mode 0))))
   
@@ -69,7 +74,6 @@
 ;;
 ;;
 (use-package command-log-mode)
-
 
 ;;
 ;; better mode buffer functionality
@@ -91,7 +95,8 @@
   :config
   (ivy-mode 1))
 	  
-;;
+
+;; remember to "install fonts"
 (use-package all-the-icons)
 
 
@@ -161,7 +166,9 @@
 
    "b" '(:ignore b :which-key "buffer operations")
    "bb" '(counsel-ibuffer :which-key "switch buffer")
-   
+
+   "f" '(:ignore f :which-key "file operations")
+   "fp" '(find-file-at-point :which-key "open file at point")
 
    ))
 
@@ -193,6 +200,23 @@
   :config (evil-collection-init))
 	  ;;
 
+;; comment/uncomment code
+(use-package evil-nerd-commenter
+  :bind ("M-/" . evilc-comment-or-uncomment-lines))
+
+
+;;
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom (dired-listing-switches "-agho --group-directories-first")
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-up-directory
+    "l" 'dired-find-file))
+
+
 
 ;; for keybinding stuff
 (use-package hydra)
@@ -209,12 +233,68 @@
   
 (use-package forge)
 
-(use-package org)
+
+
+(defun e9/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
+  (setq evil-auto-indent nil))
+
+
+;;
+(use-package org
+;; :hook (org-mode . 
+  :config (setq org-ellipsis " ▾"))
+
+
+
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :init (setq lsp-keymap-prefix "C-c l")
   :config (lsp-enable-which-key-integration))
+
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui)
+  :custom (lsp-ui-doc-position 'bottom))
+
+(use-package lsp-treemacs
+  :after lsp)
+
+
+
+(use-package dap-mode)
+
+;;
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind
+  (:map company-active-map
+	("<tab>" . company-complete-selection))
+  (:map lsp-mode-map
+	("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+
+;;
+(use-package lsp-ivy)
+
 
 ;;
 (use-package projectile
@@ -227,7 +307,7 @@
   (when (file-directory-p "~/owens_lake")
     (setq projectile-project-search-path '("~/owens_lake")))
   (setq projectile-switch-project-action #'projectile-dired))
-  
+;;   
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
 
@@ -237,15 +317,76 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-;; evil collection 
-;; (use-package evil-magit
-;;   :after magit)
 
+
+;;
+;; evil collection
+ (use-package evil-collection
+   :after magit)
+
+
+;;
+(use-package term
+  :config
+  (setq explicit-shell-filename "bash")
+  (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
+  
+
+
+;;
+  
+(use-package eterm-256color
+  :hook (term-mode . eterm-256color-mode))
+
+(use-package vterm
+  :commands vterm
+
+  :config
+  (setq vterm-max-scrollback 10000))
+
+
+
+;;
+(use-package eshell-git-prompt)
+
+
+
+(defun e9/configure-eshell ()
+  (add-hook 'eshell-pre-command-hook 'eshell-truncate-buffer)
+
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+  (evil-define-key '(mormal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+  (evil-normalize-maps)
+
+  (setq eshell-history-size (* 10 1024)
+	eshell-buffer-maximum-lines  (* 10 1024)
+	eshell-hist-ignoredupes t
+	eshell-scroll-to-bottom-on-input t))
+
+
+;;
+
+(use-package eshell
+  :hook (eshell-first-time-mode . 'e9/configure-eshell)
+  :config (eshell-git-prompt-use-theme 'robbyrussell))
+  
 
 ;;
 (use-package python-mode
   :ensure t
-  :custom (python-shell-interpreter "python3"))
+  :hook (python-mode . lsp-deferred)
+  :custom
+  (python-shell-interpreter "python3")
+  (dap-python-executable "python3")
+  (dap-python-debugger 'debugpy)
+  :config
+  (require 'dap-python))
+
+;;
+(use-package pyvenv
+  :config (pyvenv-mode 1))
 
 ;; 
 (use-package flycheck
@@ -254,14 +395,21 @@
 
 ;; Common Lisp/Slime
 (add-to-list 'load-path "~/owens_lake/slime")
-(setq  inferior-lisp-program "~/bin/sbcl")
-(require 'slime)
-(slime-setup)
-(slime-setup '(slime-fancy))
+;;(setq  inferior-lisp-program "~/bin/sbcl")
+
+
+;;
+;(require 'slime)
+(use-package slime
+  :init (setq inferior-lisp-program "~/bin/sbcl")
+        (slime-setup)
+  :config (slime-setup '(slime-fancy)))
+  
+
 
 ;; 
 (setq initial-frame-alist '((width . 164) (height . 48) (x-pos . 0) (y-pos . 0)))
-;;(setq iswitchb-mode t)
+;;(setq iswitchb-mode 
 
 
 
@@ -280,15 +428,13 @@
 ;; (global-set-key "\M-s" 'slime-selector)
 
 ;;
-(set-frame-parameter (selected-frame) 'alpha 90)
+(set-frame-parameter (selected-frame) 'alpha 95)
 
 ;; 
 ;; (find-file "c:/Quarantine/.emacs")
+(find-file  "~/hello.lisp")
 (find-file  "~/hello.org")
 (find-file  "~/.emacs.d/init.el")
-(find-file  "~/hello.lisp")
-
-;;
 
 
 ;;
