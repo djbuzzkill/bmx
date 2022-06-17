@@ -2,7 +2,16 @@
 
 #include <glm/glm.hpp>
 #include <iostream>
+
 #include <vector>
+#include <string>
+
+#include <SDL2/SDL.h>
+#include <vulkan/vulkan.h>
+#include "System.h"
+
+
+#include <zmq.h>
 
 int main (int argv, char** argc)
 {
@@ -13,6 +22,9 @@ int main (int argv, char** argc)
   glm::vec3 x = v + v;
   
   std::cout << "wat:" << x[0] + args.size () << std::endl;
+
+
+  auto wat = glm::dot(x, x);
   
   return 0; 
 }
