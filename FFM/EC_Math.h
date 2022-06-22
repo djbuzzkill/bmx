@@ -7,7 +7,7 @@
 #include "FE_Math.h"
 
 
-namespace FM
+namespace FFM
 {
 
 
@@ -16,11 +16,12 @@ namespace FM
 
 
 // s * P
-  FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEContextPtr); 
+  FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEConPtr); 
+ 
 
 
 
-  bool is_point_on_curve (FE_Point& p, FE_Curve& eq, FEContextPtr); 
+  bool is_point_on_curve (FE_Point& p, FE_Curve& eq, FEConPtr); 
 
 }
 

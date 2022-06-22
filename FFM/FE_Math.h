@@ -6,16 +6,13 @@
 #include "Utility.h"
 
 
-namespace FM
+namespace FFM
 {
 
 typedef size_t FE_t;
 
 template<unsigned N>
 using FE_bytes = std::array<unsigned char, N>; 
-
-
-
 
 class FE_context : public Destructor
 {
@@ -26,11 +23,11 @@ class FE_context : public Destructor
   virtual void Print (const char* msg, FE_t x) = 0; 
  
   // get new element
-  virtual FE_t New (size_t v = 0) = 0; 
+  virtual FE_t New () = 0; 
   virtual FE_t New (const char *strv, size_t base = 0) = 0; 
   //  virtual FE_t New (bytearr& LEraw) = 0;
 
- // give it back 
+ // does nothing atm
   virtual void   Del  (FE_t id) = 0; 
   /* 0=hex, 2=bin, 10=dec,...  */ 
   virtual FE_t Set (FE_t place, const char* strv, size_t base = 0 ) = 0; 
@@ -48,10 +45,10 @@ class FE_context : public Destructor
 };
 
 
-typedef std::shared_ptr<FE_context> FEContextPtr;  
+typedef std::shared_ptr<FE_context> FEConPtr;  
 // 
 
-FEContextPtr Create_FE_context (size_t field_bitcount );
+  FEConPtr Create_FE_context (const char* strv, size_t base = 0 /* 0=hex, 2=bin, 10=dec */ );
 //
 
 } // FM

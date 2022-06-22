@@ -10,7 +10,7 @@
 #include <string>
 #include <algorithm>
 
-namespace FM
+namespace FFM
 {
 // 
 template<typename Ty>

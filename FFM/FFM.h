@@ -1,5 +1,5 @@
-#ifndef FM_H
-#define FM_H
+#ifndef FFM_H
+#define FFM_H
 
 
 #include "Utility.h"

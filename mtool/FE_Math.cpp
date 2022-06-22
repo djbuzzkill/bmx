@@ -107,7 +107,7 @@ void FE_ctx_impl:: Print (const char* msg, FE_t x)
 size_t FE_ctx_impl::New  (size_t v)
 {
   elems.push_back (__mpz_struct()); 
-  mpz_init2 (&elems.back (), num_field_bits); 
+  mpz_init (&elems.back ()); 
   mpz_set_ui (&elems.back (), v); 
   return elems.size () - 1; 
 }
@@ -116,11 +116,11 @@ size_t FE_ctx_impl::New  (size_t v)
 size_t FE_ctx_impl::New  (const char *strv, size_t base)
 {
   elems.push_back (__mpz_struct()); 
-  mpz_init2 (&elems.back (), num_field_bits); 
+  mpz_init (&elems.back ()); 
   mpz_set_str (&elems.back (), strv, base);
-  
   return elems.size () - 1; 
 }
+
 
 
 FE_t FE_ctx_impl::Set (FE_t place, size_t v)

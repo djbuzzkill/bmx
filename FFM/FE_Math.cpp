@@ -10,74 +10,75 @@ const unsigned kFE_bit_count = 256;
 
 
 
-namespace FM
+namespace FFM
 {
 
-class FE_ctx_impl : public  FE_context
-{
-public:
-  FE_ctx_impl (size_t bitcount); 
-  ~FE_ctx_impl ();
-
-  enum { LocalElementStackSize = 32 } ; 
-  
-public:
-  
-  void Print (const char* msg, FE_t x);
-
-
-  // get new element
-  size_t New  (size_t v);
-  size_t New  (const char *hexv, size_t base);
-
-  
-  FE_t Set (FE_t place, const char* strv, size_t base = 0 ); 
-  FE_t Set (FE_t place, size_t v); 
- 
-  // returning element; 
-  void   Del  (FE_t id); 
-
-  FE_t Add (FE_t out, FE_t lhs, FE_t rhs);
-  FE_t Sub (FE_t out, FE_t lhs, FE_t rhs); 
-  FE_t Mul (FE_t out, FE_t lhs, FE_t rhs);
-  FE_t Div (FE_t out, FE_t lhs, FE_t rhs);
-
-  unsigned char* Raw (unsigned char* BE_bytes_out, FE_t); 
-
-  inline __mpz_struct* el (FE_t x) { return &elems[x]; }
-  inline __mpz_struct* loc(FE_t x) { return &locals[x]; }
-
-  inline bool check (FE_t x) {return (x < elems.size () ? true : false); }
-
-
- 
-  typedef std::vector<__mpz_struct> mpz_array;  
-public: 
-  size_t num_field_bits;
-  mpz_t  prime; 
-
-  mpz_array elems; 
-  mpz_array locals; 
-
-};
-
-FE_ctx_impl::  FE_ctx_impl (size_t bitcount) 
-    : num_field_bits (bitcount)
+  class FE_ctx_impl : public  FE_context
   {
-    mpz_init2 (prime, bitcount);
-    elems.reserve (256); 
+public:
+    FE_ctx_impl (const char*, size_t); 
+    ~FE_ctx_impl ();
+    
+    enum { LocalElementStackSize = 32 } ; 
+    
+  public:
+    
+    void Print (const char* msg, FE_t x);
+    
+    
+    // get new element
+    size_t New  ();
+    size_t New  (const char *hexv, size_t base);
+    
+    
+    FE_t Set (FE_t place, const char* strv, size_t base = 0 ); 
+    FE_t Set (FE_t place, size_t v); 
+    
+    // returning element; 
+    void   Del  (FE_t id); 
+    
+    FE_t Add (FE_t out, FE_t lhs, FE_t rhs);
+    FE_t Sub (FE_t out, FE_t lhs, FE_t rhs); 
+    FE_t Mul (FE_t out, FE_t lhs, FE_t rhs);
+    FE_t Div (FE_t out, FE_t lhs, FE_t rhs);
+    
+    unsigned char* Raw (unsigned char* BE_bytes_out, FE_t); 
+    
+    inline __mpz_struct* el (FE_t x) { return &elems[x]; }
+    inline __mpz_struct* loc(FE_t x) { return &locals[x]; }
+    
+    inline bool check (FE_t x) {return (elems.count (x) ? true : false); }
+    
 
-    if (elems.size() == 0)
-      elems.push_back (__mpz_struct()); 
  
-    mpz_init2 (prime, bitcount);
+    typedef std::vector<__mpz_struct> mpz_array;
+    
+    typedef std::map<size_t, __mpz_struct> mpz_map;
+    
+  public: 
+    size_t num_field_bits;
+    mpz_t  Fp; 
+    
+    mpz_map elems; 
+    mpz_array locals; 
 
-   // local temp 
-    locals.resize (LocalElementStackSize ); 
+  };
+
+
+
+  
+  FE_ctx_impl::  FE_ctx_impl (const char* strv, size_t base) 
+    : locals (LocalElementStackSize)
+    , elems ()
+  {
+ 
+    mpz_init (Fp); 
+    mpz_set_str (Fp, strv, base);
+    
+    // local temp 
     for (size_t i = 0; i < LocalElementStackSize; ++i)
       {
-	mpz_init2 (loc(i), num_field_bits); 
-
+	mpz_init (loc(i)); 
       }
   } 
 
@@ -105,22 +106,26 @@ void FE_ctx_impl:: Print (const char* msg, FE_t x)
  
 }
 
-size_t FE_ctx_impl::New  (size_t v)
+
+
+  // allocate new field element
+size_t FE_ctx_impl::New ()
 {
-  elems.push_back (__mpz_struct()); 
-  mpz_init2 (&elems.back (), num_field_bits); 
-  mpz_set_ui (&elems.back (), v); 
-  return elems.size () - 1; 
+  size_t name = 1; 
+  for (; elems.count (name); ++name);
+
+  mpz_init (el(name));
+
+  return name; 
 }
 
 
-size_t FE_ctx_impl::New  (const char *strv, size_t base)
+size_t FE_ctx_impl::New (const char *strv, size_t base)
 {
-  elems.push_back (__mpz_struct()); 
-  mpz_init2 (&elems.back (), num_field_bits); 
-  mpz_set_str (&elems.back (), strv, base);
+  size_t name = New (); 
+  mpz_set_str (el(name), strv, base);
   
-  return elems.size () - 1; 
+  return name; 
 }
 
 
@@ -147,8 +152,14 @@ FE_t FE_ctx_impl::Set (FE_t place, const char* strv, size_t base)
 // returning element; 
 void FE_ctx_impl::Del(FE_t id)
 {
-  
 
+  mpz_map::iterator it = elems.find (id); 
+
+  if (it != elems.end())
+    {
+      mpz_clear ( el(id) ); 
+      elems.erase (it); 
+    }
 }
 
 FE_t FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
@@ -161,11 +172,8 @@ FE_t FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
   
   enum { x = 0, y, z } ; 
 
-  mpz_mod (loc(x), el(lhs), prime); 
-  mpz_mod (loc(y), el(rhs), prime); 
-  
-  mpz_add (loc(z), loc(x), loc(y) ); 
-  mpz_mod (el(out),loc(z), prime);
+  mpz_add (loc(z), el(lhs), el(rhs) ); 
+  mpz_mod (el(out),loc(z), Fp);
   return out;
   
 }
@@ -189,20 +197,20 @@ return 0;
 }
 
 
-unsigned char* FE_ctx_impl::Raw (unsigned char* BE_bytes_out, FE_t)
-{
-return 0;
-}
+  unsigned char* FE_ctx_impl::Raw (unsigned char* BE_bytes_out, FE_t)
+  {
+    return 0;
+  }
 
 
-
-FEContextPtr Create_FE_context (size_t field_bitcount )
-{
-  FEContextPtr ret (new FE_ctx_impl ( field_bitcount )); 
   
-   return ret;
-}
-
+  FEConPtr Create_FE_context (const char* strv, size_t base )
+  {
+    FEConPtr ret (new FE_ctx_impl ( strv, base )); 
+    
+    return ret;
+  }
+  
 
 
 // convert this in to ::Raw ()

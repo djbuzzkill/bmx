@@ -17,6 +17,17 @@
 #include <zmq.h>
 
 
+
+
+
+
+
+
+
+
+
+
+
 //  SEC256k1  stuff
 const char kSEC256k1_p_sz[]       = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F";
 const char kSEC256k1_G_x_sz[]     = "0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
@@ -35,19 +46,19 @@ void FE_test(std::vector<std::string> &args)
 {
 
   
-  FM::FEContextPtr fc = FM::Create_FE_context(kField_bit_precision);
+  FFM::FEConPtr fc = FFM::Create_FE_context(kSEC256k1_p_sz, 0);
   
-  FM::FE_t     prime = fc->New (kSEC256k1_p_sz);
-  FM::FE_Point G     = { fc->New (kSEC256k1_G_x_sz)    , fc->New (kSEC256k1_G_y_sz) };
-  FM::FE_Curve eq    = { fc->New (kSEC356k1_coeff_a_sz), fc->New (kSEC256k1_coeff_b_sz) };
+  FFM::FE_t     prime = fc->New (kSEC256k1_p_sz);
+  FFM::FE_Point G     = { fc->New (kSEC256k1_G_x_sz)    , fc->New (kSEC256k1_G_y_sz) };
+  FFM::FE_Curve eq    = { fc->New (kSEC356k1_coeff_a_sz), fc->New (kSEC256k1_coeff_b_sz) };
 
-  FM::FE_bytes<32> rawnum;
+  FFM::FE_bytes<32> rawnum;
   
-  FM::FE_Point R = { fc->New(), fc->New()} ; 
+  FFM::FE_Point R = { fc->New(), fc->New()} ; 
 
-  FM::FE_t s = fc->New ("0x04ea32532fd", 0);
+  FFM::FE_t s = fc->New ("0x04ea32532fd", 0);
 
-  FM::FE_Mult (R, s, G, fc);   
+  FFM::FE_Mult (R, s, G, fc);   
   is_point_on_curve (G, eq, fc); 
 }
 
@@ -58,13 +69,13 @@ void Test_CryptoPP()
   int v = 1;
 
   printf ("v:%i\n", v); 
-  FM::swap_endian (&v); 
+  FFM::swap_endian (&v); 
 
   printf ("v:%i\n", v); 
    
   const unsigned char hash_inp[] = "ji111089323fdsjklf;sa3424211$#@5321r23jkffsdafsaf443243l23;jww";
   unsigned char outp[64];
-  memset (outp, 0, 64); 
+  memset (outp, 0, 64);
 
   // this sha256 is from ssl?
   //  unsigned char* res = SHA256 (hash_inp, 60 , outp); 
@@ -81,8 +92,6 @@ void Test_CryptoPP()
 
 void test_gmp(std::vector<std::string> &args)
 {
-
- 
   mpz_t bign_a, bign_b, bign_c, bn_res;
   mpz_init2(bign_a, 256);
   mpz_init2(bign_b, 256);
@@ -133,9 +142,6 @@ void test_gmp(std::vector<std::string> &args)
 
   gmp_printf ("bn2:%Z", bn[2]);
   gmp_printf ("bn3:%Z", bn[3]);
-
-
-
   
   mpz_mod(bign_c, bign_b, bign_a); 
   //gmp_printf ("%s is an big_c %Zd\n", "here", bign_c);

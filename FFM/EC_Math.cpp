@@ -1,9 +1,9 @@
 #include "EC_Math.h"
 
-namespace FM
+namespace FFM
 {
 
-FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEContextPtr ctx)
+FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEConPtr ctx)
 {
 
   ctx->Mul (std::get<0> (out), s, std::get<0>(out));
@@ -14,7 +14,7 @@ FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEContextPtr ctx)
 }
 
 
-bool is_point_on_curve(FE_Point &p, FE_Curve &eq, FEContextPtr fc)
+bool is_point_on_curve(FE_Point &p, FE_Curve &eq, FEConPtr fc)
 {
   (void) p;
   (void) eq;
