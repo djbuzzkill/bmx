@@ -42,7 +42,7 @@ target_link_libraries (mtool
 
   #ssl
   crypto++
-  FFM
+  FM
   SDL2
   SDL2main
   )

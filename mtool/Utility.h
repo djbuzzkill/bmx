@@ -35,8 +35,8 @@ inline Ty* swap_endian_array (Ty* p, size_t num_el)
 }
 	
 
-
-
+//
+//
 struct Destructor
 {
 protected:

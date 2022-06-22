@@ -1,10 +1,10 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION  3.0)
 
-project (FM)
+project (FFM)
 
 
-set (FM_SOURCES
+set (FFM_SOURCES
 
   Common.cpp
   Utility.cpp
@@ -13,7 +13,7 @@ set (FM_SOURCES
   
   )
 
-set (FM_HEADERS
+set (FFM_HEADERS
   Common.h
   Utility.h
 
@@ -22,9 +22,9 @@ set (FM_HEADERS
   )
 
 
-add_library (FM
-  ${FM_SOURCES}
-  ${FM_HEADERS}
+add_library (FFM
+  ${FFM_SOURCES}
+  ${FFM_HEADERS}
   )
 
 

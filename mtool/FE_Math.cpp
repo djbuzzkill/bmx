@@ -1,7 +1,8 @@
 #include "FE_Math.h"
 
 
-#include <zmq.h>
+#include <gmp.h>
+
 
 const unsigned kFE_bit_count = 256; 
 
@@ -201,16 +202,6 @@ FEContextPtr Create_FE_context (size_t field_bitcount )
    return ret;
 }
 
-
-FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEContextPtr ctx)
-{
-
-  ctx->Mul (std::get<0> (out), s, std::get<0>(out));
-  ctx->Mul (std::get<1> (out), s, std::get<1>(out));
-  
-  return out; 
-  
-}
 
 
 // convert this in to ::Raw ()

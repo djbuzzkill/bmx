@@ -6,13 +6,14 @@
 #include "Utility.h"
 
 
-#include <gmp.h>
 
-//struct FE_t; 
 
 typedef size_t FE_t;
 
-typedef std::tuple<FE_t, FE_t> FE_Point; 
+template<unsigned N>
+using FE_bytes = std::array<unsigned char, N>; 
+
+
 
 
 class FE_context : public Destructor
@@ -51,13 +52,6 @@ typedef std::shared_ptr<FE_context> FEContextPtr;
 
 FEContextPtr Create_FE_context (size_t field_bitcount );
 //
-
-
-
-
-
-// s * P
-FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEContextPtr); 
 
 
 

@@ -1,7 +1,7 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION  3.0)
 
-project (cx)
+project (Cx)
 
 
 set (CX_SOURCES
@@ -14,7 +14,7 @@ set (CX_HEADERS
   System.h
   )
 
-add_library (cx
+add_library (Cx
   ${CX_SOURCES}
   ${CX_HEADERS}
   )

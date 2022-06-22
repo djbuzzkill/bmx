@@ -1,31 +1,21 @@
 #include "mtool.h"
 
-#include <glm/glm.hpp>
-#include <stdio.h>
-
-#include <array>
-#include <vector>
-#include <string>
-#include <algorithm>
+//#include <glm/glm.hpp>
+//#include <stdio.h>
 
 
+//#include <SDL2/SDL.h>
+//#include <vulkan/vulkan.h>
 
-#include <SDL2/SDL.h>
-#include <vulkan/vulkan.h>
-
-#include <openssl/sha.h>
+//#include <openssl/sha.h>
 
 #include <cryptopp/sha.h>
 #include <cryptopp/ripemd.h>
 
 
 
+#include <zmq.h>
 
-
-
-
-template<unsigned N>
-using bytearr =  std::array<unsigned char, N> ;
 
 //  SEC256k1  stuff
 const char kSEC256k1_p_sz[]       = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F";
@@ -35,22 +25,29 @@ const char kSEC356k1_coeff_a_sz[] = "0x0";
 const char kSEC256k1_coeff_b_sz[] = "0x7"; 
 
 // y^2 = x^3 +ax^2+b 
+const size_t kField_bit_precision = 256;
 
+
+
+//
+////
 void FE_test(std::vector<std::string> &args)
 {
 
-  FEContextPtr fc = Create_FE_context(256);
   
-  FE_t     prime = fc->New (kSEC256k1_p_sz);
-  FE_Point G     = { fc->New (kSEC256k1_G_x_sz)    , fc->New (kSEC256k1_G_y_sz) };
-  FE_curve eq    = { fc->New (kSEC356k1_coeff_a_sz), fc->New (kSEC256k1_coeff_b_sz) };
+  FM::FEContextPtr fc = FM::Create_FE_context(kField_bit_precision);
+  
+  FM::FE_t     prime = fc->New (kSEC256k1_p_sz);
+  FM::FE_Point G     = { fc->New (kSEC256k1_G_x_sz)    , fc->New (kSEC256k1_G_y_sz) };
+  FM::FE_Curve eq    = { fc->New (kSEC356k1_coeff_a_sz), fc->New (kSEC256k1_coeff_b_sz) };
 
+  FM::FE_bytes<32> rawnum;
+  
+  FM::FE_Point R = { fc->New(), fc->New()} ; 
 
-  FE_Point R = { fc->New(), fc->New()} ; 
+  FM::FE_t s = fc->New ("0x04ea32532fd", 0);
 
-  FE_t s = fc->New ("0x04ea32532fd", 0);
-
-  FE_Mult (R, s, G, fc);   
+  FM::FE_Mult (R, s, G, fc);   
   is_point_on_curve (G, eq, fc); 
 }
 
@@ -61,7 +58,7 @@ void Test_CryptoPP()
   int v = 1;
 
   printf ("v:%i\n", v); 
-  swap_endian (&v); 
+  FM::swap_endian (&v); 
 
   printf ("v:%i\n", v); 
    
