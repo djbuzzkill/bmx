@@ -1,0 +1,30 @@
+
+CMAKE_MINIMUM_REQUIRED(VERSION  3.0)
+
+project (FM)
+
+
+set (FM_SOURCES
+
+  Common.cpp
+  Utility.cpp
+  FE_Math.cpp
+  EC_Math.cpp
+  
+  )
+
+set (FM_HEADERS
+  Common.h
+  Utility.h
+
+  FE_Math.h
+  EC_Math.h
+  )
+
+
+add_library (FM
+  ${FM_SOURCES}
+  ${FM_HEADERS}
+  )
+
+
