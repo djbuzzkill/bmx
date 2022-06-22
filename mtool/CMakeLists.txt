@@ -4,12 +4,29 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 project (mtool)
 
 
+
+add_compile_options (-g -O0 )
+
+#set ("CMAKE_CXX_FLAGS=-g -00")
+#set ("CMAKE_C_FLAGS=-g -00")
+
+  
 set (MTOOL_HEADER_FILES
   mtool.h
+
+  Common.h
+  Utility.h
+  EC_Math.h
+  FE_Math.h
   )
 	
 set (MTOOL_SOURCE_FILES
   mtool.cpp
+  Common.cpp
+  Utility.cpp
+  FE_Math.cpp
+  EC_Math.cpp
+
   )
 
 add_executable (mtool
@@ -19,6 +36,13 @@ add_executable (mtool
 
 
 target_link_libraries (mtool
+
+  gmp
+  gmpxx
+
+  #ssl
+  crypto++
+
   cx
   SDL2
   SDL2main

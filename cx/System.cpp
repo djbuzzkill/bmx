@@ -2,6 +2,11 @@
 #include "System.h"
 #include "Task.h"
 
+#include <iostream>
+
+
+
+
 namespace cx
 {
    //
@@ -10,8 +15,15 @@ namespace cx
    if (o) delete o; 
       }
 
+  int foo ()
+  {
+    std::cout << __FUNCTION__ << std::endl;
 
-   //
+
+    return 1024;
+  } 
+
+  //
    int Run_realtime_task (cx::SystemContext* sys, cx::RT_Task* task)
    {
 

@@ -6,8 +6,10 @@ project (Hardcore)
 
 # include
 include_directories (
-  "./cx"
+  ./
   )
+
+add_definitions (-DCMAKE_EXPORT_COMPILE_COMMANDS=1)
 
 
 message (STATUS	"FREEIMAGE_ROOT: $ENV{FREEIMAGE_ROOT}")

@@ -17,6 +17,10 @@ namespace cx
   class WindowListener;   
   class GraphicsWindow;   
 
+
+
+  int foo ();
+  
    //
    class Destructor 
       {
