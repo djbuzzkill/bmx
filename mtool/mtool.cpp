@@ -19,9 +19,7 @@
 #include <cryptopp/ripemd.h>
 
 
-#include <zmq.h>
 
-#include <cx/System.h>
 
 
 
@@ -38,89 +36,22 @@ const char kSEC256k1_coeff_b_sz[] = "0x7";
 
 // y^2 = x^3 +ax^2+b 
 
-typedef bytearr<32> bignum32b;
-
-
-//FE_add, FE_sub, FE_mul, FE_div; 
-
-
-
-unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE = true)
-{
- 
-  assert (out.size () > 0);
-  
-  std::string rawmem (out.size() + 4, 0); 
-
-  FILE* memfile = fmemopen (&rawmem[0], 128, "w+");
-
- if ( !memfile )
-    {
-
-      printf ("fmemopen failed\n"); 
-      
-      return 0; 
-    }
-  
-  unsigned numbytes = 0;
-
-  char* ch = reinterpret_cast<char*> (&numbytes); 
-  int out_size =  mpz_out_raw (memfile, n);
-  fclose  (memfile);
-
-  std::any_of(ch, ch+out_size, isalnum);
-
-  
-  printf ("out_size:%i\n", out_size);
-  
-  ch[0] = rawmem[3];
-  ch[1] = rawmem[2];
-  ch[2] = rawmem[1];
-  ch[3] = rawmem[0];
-  
-  printf ("numbytes:%u\n", numbytes);
-
-  for (unsigned i = 0; i < numbytes; ++i)
-  {
-    
-    out[i] = rawmem[4 + numbytes - 1 - i]; 
-  }
-
-  
-  return numbytes;
-}
-
-
-
-// FE_add, FE_sub, FE_mul, FE_div 
-// FE_curve &EC_set_curve(FE_curve &out, FE_t a, FE_t b)
-// {
-//   mpz_set (out.a, a);
-//   mpz_set (out.b, b);
-//   return out; 
-  
-// }
-
-
 void FE_test(std::vector<std::string> &args)
 {
 
-  FEContextPtr FE = Create_FE_context(256);
+  FEContextPtr fc = Create_FE_context(256);
   
-  FE_t     prime = FE->New (kSEC256k1_p_sz);
-  FE_Point G     = { FE->New (kSEC256k1_G_x_sz)    , FE->New (kSEC256k1_G_y_sz) };
-  FE_curve eq    = { FE->New (kSEC356k1_coeff_a_sz), FE->New (kSEC256k1_coeff_b_sz) };
-  
-  
-  is_point_on_curve (G, eq);
-  // FE_init (eq.a, kSEC356k1_coeff_a_sz);
-  // FE_init (eq.b, kSEC256k1_coeff_b_sz);
-  // FE_init (&G.x, kSEC256k1_G_x_sz);
-  // FE_init (&G.y, kSEC256k1_G_y_sz);
-  // FE_init (prime, kSEC256k1_p_sz);
+  FE_t     prime = fc->New (kSEC256k1_p_sz);
+  FE_Point G     = { fc->New (kSEC256k1_G_x_sz)    , fc->New (kSEC256k1_G_y_sz) };
+  FE_curve eq    = { fc->New (kSEC356k1_coeff_a_sz), fc->New (kSEC256k1_coeff_b_sz) };
 
-  // for (int i = 0; i < 32; ++i)
-  //   FE_init (fe[i], "0x0");
+
+  FE_Point R = { fc->New(), fc->New()} ; 
+
+  FE_t s = fc->New ("0x04ea32532fd", 0);
+
+  FE_Mult (R, s, G, fc);   
+  is_point_on_curve (G, eq, fc); 
 }
 
 
@@ -146,7 +77,11 @@ void Test_CryptoPP()
   // EC_set_curve(eq, , __)
   
 }
-    
+
+
+/*
+
+
 void test_gmp(std::vector<std::string> &args)
 {
 
@@ -177,7 +112,6 @@ void test_gmp(std::vector<std::string> &args)
   gmp_printf ("a%Z", bign_a );
   
   // mpz_add (bign_c, bign_a, bign_b);
-  bignum32b a, b, c;
   
   mpz_set (bn[0], bign_a);       
   mpz_set (bn[1], bign_b);
@@ -232,7 +166,7 @@ void test_gmp(std::vector<std::string> &args)
   
 }
 
-
+*/
 
 // ----------------------- main --------------------------
 int main (int argv, char** argc)
@@ -245,9 +179,8 @@ int main (int argv, char** argc)
   // test_gmp (args);
   FE_test (args); 
 
-  cx::Mouse_state ms;
-  
-  auto f =   cx::foo  ; 
+  // cx::Mouse_state ms;
+  //auto f =   cx::foo  ; 
 
   return 0; 
 }

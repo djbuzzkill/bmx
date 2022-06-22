@@ -1,85 +1,10 @@
 #include "FE_Math.h"
 
 
+#include <zmq.h>
 
 const unsigned kFE_bit_count = 256; 
 
-
-// bool FE_init (FE_t out, const char *hexstr)
-// {
-//   mpz_init2 (out, kFE_bit_count); 
-//   if (mpz_set_str (out, hexstr, 0) != 0)
-//   {
-//     printf ("unable to set with: %s\n ", hexstr); 
-//     return false; 
-//   }
-//   return true; 
-// }
-
-// //
-// FE_t& FE_add (FE_t& out, FE_t a, FE_t b, FE_t p) {
-
-//   FE_t a_, b_;
-
-
-//   FE_init (a_, "0x0");
-//   FE_init (b_, "0x0"); 
-//   mpz_mod (a_, a, p);
-//   mpz_mod (b_, b, p); 
-//   mpz_add (out, a_, b_);
-
-  
-//   return out;
-// }
-
-// FE_t& FE_sub (FE_t &out, FE_t lhs, FE_t rhs)
-// {
-//   FE_t l, r;
-
-  
-//   FE_init (l, "0x0");
-//   FE_init (r, "0x0");
-
-//   return out; 
-
-// }
-
-
-// FE_t &FE_mul (FE_t &out, FE_t lhs, FE_t rhs)
-// {
-//   return out; 
-// }
-
-
-// FE_t &FE_div (FE_t &out, FE_t lhs, FE_t rhs)
-// {
-//   return out;
-// }
-
-
-void print_mpz (const char* msg, mpz_t n)
-{
-
-   
-  char strbuf_256[256];
-  memset (strbuf_256, 0, 256);
-
-  mpz_get_str (strbuf_256, 10, n);
-  printf ("%s dec: %s\n", msg, strbuf_256) ;
-  
-  memset (strbuf_256, 2, 256); 
-  mpz_get_str (strbuf_256, 2, n);
-  printf ("%s bin : %s\n", msg, strbuf_256) ;
-
-  // memset (strbuf_256, 0, 256); 
-  // mpz_get_str (strbuf_256, 16, n);
-  // printf ("%s hex: %s\n", msg, strbuf_256) ;
- 
-  mpz_add_ui;
-  mpz_mul_ui;
-  mpz_sub_ui;
-  mpz_mod_ui;
-}
 
 
 
@@ -286,4 +211,78 @@ FE_Point& FE_Mult (FE_Point& out, FE_t s, const FE_Point& P, FEContextPtr ctx)
   return out; 
   
 }
+
+
+// convert this in to ::Raw ()
+//
+
+unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE = true)
+{
+ 
+  assert (out.size () > 0);
+  
+  std::string rawmem (out.size() + 4, 0); 
+
+  FILE* memfile = fmemopen (&rawmem[0], 128, "w+");
+
+ if ( !memfile )
+    {
+
+      printf ("fmemopen failed\n"); 
+      
+      return 0; 
+    }
+  
+  unsigned numbytes = 0;
+
+  char* ch = reinterpret_cast<char*> (&numbytes); 
+  int out_size =  mpz_out_raw (memfile, n);
+  fclose  (memfile);
+
+  std::any_of(ch, ch+out_size, isalnum);
+
+  
+  printf ("out_size:%i\n", out_size);
+  
+  ch[0] = rawmem[3];
+  ch[1] = rawmem[2];
+  ch[2] = rawmem[1];
+  ch[3] = rawmem[0];
+  
+  printf ("numbytes:%u\n", numbytes);
+
+  for (unsigned i = 0; i < numbytes; ++i)
+  {
+    
+    out[i] = rawmem[4 + numbytes - 1 - i]; 
+  }
+
+  
+  return numbytes;
+}
+
+void print_mpz (const char* msg, mpz_t n)
+{
+
+   
+  char strbuf_256[256];
+  memset (strbuf_256, 0, 256);
+
+  mpz_get_str (strbuf_256, 10, n);
+  printf ("%s dec: %s\n", msg, strbuf_256) ;
+  
+  memset (strbuf_256, 2, 256); 
+  mpz_get_str (strbuf_256, 2, n);
+  printf ("%s bin : %s\n", msg, strbuf_256) ;
+
+  // memset (strbuf_256, 0, 256); 
+  // mpz_get_str (strbuf_256, 16, n);
+  // printf ("%s hex: %s\n", msg, strbuf_256) ;
+ 
+  mpz_add_ui;
+  mpz_mul_ui;
+  mpz_sub_ui;
+  mpz_mod_ui;
+}
+
 
