@@ -4,6 +4,7 @@
 //#include <stdio.h>
 
 
+#include <Cx/System.h>
 //#include <SDL2/SDL.h>
 //#include <vulkan/vulkan.h>
 
@@ -13,20 +14,10 @@
 #include <cryptopp/ripemd.h>
 
 
+#include <gmp.h>
 
+// zero mq messaging
 #include <zmq.h>
-
-
-
-
-
-
-
-
-
-
-
-
 
 //  SEC256k1  stuff
 const char kSEC256k1_p_sz[]       = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F";
@@ -40,26 +31,142 @@ const size_t kField_bit_precision = 256;
 
 
 
+
+#define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
+
+
+void print_bignum (const char *lbl, FFM::FE_t x, FFM::FEConPtr c) {
+
+  char vstr[256]; 
+  c->Format (vstr, "%Zd", x); 
+  printf ("%s%s\n", lbl, vstr); 
+}
+
 //
 ////
 void FE_test(std::vector<std::string> &args)
 {
+  POUT ("0");
+  FFM::FEConPtr fc = FFM::Create_FE_context("97", 10);
+
+
+
+  FFM::FE_t
+    x = fc->New(),
+    u = fc->New (),
+    v = fc->New (),
+
+    d = fc->New(),
+    m = fc->New (),
+    t = fc->New (),
+
+    k = fc->New(),
+    q = fc->New (),
+    z = fc->New (); 
+  
+
+  fc->Set (x, "0xdeadf00d", 0);
+  fc->Set (u, "0xdeadfeed", 0);
+  fc->Set (d, "57", 10);
+  fc->Set (t, "7246", 10);
+      // 
+  fc->Set (v, "95", 10);
+  fc->Set (m, "45", 10);
+  fc->Set (x, "31", 10);
+  
+  fc->Mul (k, v, m);
+  fc->Mul (q, k, x);
+  
+  print_bignum ("95*45*31=", q, fc); 
+
+
+  // 
+  
+  fc->Set (x, "17", 10);
+  fc->Set (u, "13", 10);
+  fc->Set (v, "19", 10);
+  fc->Set (d, "44", 10);
+
+  fc->Mul (k, x, u);
+  fc->Mul (q, k, v);
+  fc->Mul (k, q, d);
+  
+  print_bignum ("17*13*19*44=", k, fc);   
 
   
+ 
+  fc->Set (v, "12", 10);
+  fc->Set (d, "77", 10); 
+  fc->Set (m, "49", 10);
+
+  fc->Set (k, "12", 10); 
+  for (size_t i = 1 ; i < 7; ++i)
+    fc->Mul  (k, k, v);
+
+  fc->Set (q, "77", 10); 
+  for (size_t i = 1; i < 49; ++i)
+    fc->Mul (q, q, d);
+
+
+  fc->Mul (z, k, q); 
+
+  print_bignum ("12^7 * 77^49=", z, fc);
+
+
+
+ 
+ }
+
+
+
+void EC_test ()
+{
+
+
+  POUT ("0");
   FFM::FEConPtr fc = FFM::Create_FE_context(kSEC256k1_p_sz, 0);
-  
-  FFM::FE_t     prime = fc->New (kSEC256k1_p_sz);
-  FFM::FE_Point G     = { fc->New (kSEC256k1_G_x_sz)    , fc->New (kSEC256k1_G_y_sz) };
-  FFM::FE_Curve eq    = { fc->New (kSEC356k1_coeff_a_sz), fc->New (kSEC256k1_coeff_b_sz) };
 
-  FFM::FE_bytes<32> rawnum;
+  FFM::FE_t     Fp = fc->New (kSEC256k1_p_sz, 0);
+
+  char Fp_str[256]; 
+  print_bignum ("Fp:", Fp, fc); 
+
+  // fc->Add ( 
+  // 
+  FFM::EC_Point G = FFM::EC_MakePoint (fc);
+  FFM::EC_Set (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0);
+  FFM::EC_Print ("G-> ", G);
+  //
+  FFM::EC_Coeffs eq = FFM::EC_MakeCoeffs (fc);
+  FFM::EC_Set (eq,  kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 0); 
+  FFM::EC_Print ("eq-> ", eq);
   
-  FFM::FE_Point R = { fc->New(), fc->New()} ; 
+  
+  FFM::EC_Point R = FFM::EC_MakePoint (fc);
+  FFM::EC_Set (R, "0xdeadbeef", "0xdeadf00d", 0);  
+  FFM::EC_Print ("R-> ", R);
 
   FFM::FE_t s = fc->New ("0x04ea32532fd", 0);
 
-  FFM::FE_Mult (R, s, G, fc);   
-  is_point_on_curve (G, eq, fc); 
+  FFM::EC_Mul (R, s, G);
+
+  FFM::EC_Point Q = FFM::EC_MakePoint (fc);
+  FFM::EC_Point M = FFM::EC_MakePoint (fc);
+
+  FFM::EC_Add (Q, G, G);
+  POUT("G+G=Q");
+  FFM::EC_Print ("Q-> ", Q);
+
+  
+  FFM::EC_Sub (M, Q, G); 
+  POUT("M=Q-G");
+  FFM::EC_Print("Q->", Q);  
+  
+  //FFM::EC_IsPointOnCurve (); 
+  FFM::is_point_on_curve (G, eq); 
+
+  FFM::FE_bytes<32> rawnum;
+  
 }
 
 

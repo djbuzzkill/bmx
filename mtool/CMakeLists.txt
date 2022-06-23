@@ -16,16 +16,16 @@ set (MTOOL_HEADER_FILES
 
   Common.h
   Utility.h
-  EC_Math.h
-  FE_Math.h
+#  EC_Math.h
+#  FE_Math.h
   )
 	
 set (MTOOL_SOURCE_FILES
   mtool.cpp
   Common.cpp
   Utility.cpp
-  FE_Math.cpp
-  EC_Math.cpp
+#  FE_Math.cpp
+#  EC_Math.cpp
 
   )
 
@@ -37,14 +37,12 @@ add_executable (mtool
 
 target_link_libraries (mtool
 
+  FFM
   gmp
   gmpxx
 
   #ssl
   crypto++
-  FFM
-  SDL2
-  SDL2main
   )
 
 

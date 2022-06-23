@@ -21,7 +21,9 @@ class FE_context : public Destructor
  public:
   
   virtual void Print (const char* msg, FE_t x) = 0; 
- 
+  virtual char* Format (char* out, const char* fmt, FE_t x) = 0; 
+
+  virtual bool IsValid (FE_t) = 0; 
   // get new element
   virtual FE_t New () = 0; 
   virtual FE_t New (const char *strv, size_t base = 0) = 0; 
@@ -42,6 +44,7 @@ class FE_context : public Destructor
   virtual FE_t Mul (FE_t out, FE_t lhs, FE_t rhs) = 0;
   virtual FE_t Div (FE_t out, FE_t lhs, FE_t rhs) = 0;
 
+  virtual FE_t Inv (FE_t out, FE_t x) = 0; 
 };
 
 

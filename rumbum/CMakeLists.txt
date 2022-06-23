@@ -26,12 +26,12 @@ add_executable (rumbum
 
 
 target_link_libraries (rumbum
-
+  gmp
+  gmpxx
+  
   Cx
   crypto++
   FFM
-  SDL2
-  SDL2main
   )
 
 

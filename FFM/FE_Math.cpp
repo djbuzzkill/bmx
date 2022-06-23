@@ -10,6 +10,10 @@ const unsigned kFE_bit_count = 256;
 
 
 
+
+
+
+
 namespace FFM
 {
 
@@ -22,9 +26,9 @@ public:
     enum { LocalElementStackSize = 32 } ; 
     
   public:
-    
+    char* Format (char* out, const char* fmt, FE_t x); 
     void Print (const char* msg, FE_t x);
-    
+    bool IsValid (FE_t); 
     
     // get new element
     size_t New  ();
@@ -42,6 +46,8 @@ public:
     FE_t Mul (FE_t out, FE_t lhs, FE_t rhs);
     FE_t Div (FE_t out, FE_t lhs, FE_t rhs);
     
+    FE_t Inv (FE_t out, FE_t x);
+    
     unsigned char* Raw (unsigned char* BE_bytes_out, FE_t); 
     
     inline __mpz_struct* el (FE_t x) { return &elems[x]; }
@@ -56,9 +62,9 @@ public:
     typedef std::map<size_t, __mpz_struct> mpz_map;
     
   public: 
-    size_t num_field_bits;
+    // size_t num_field_bits;
     mpz_t  Fp; 
-    
+    mpz_t Fp_minus_two; 
     mpz_map elems; 
     mpz_array locals; 
 
@@ -74,6 +80,11 @@ public:
  
     mpz_init (Fp); 
     mpz_set_str (Fp, strv, base);
+
+
+    mpz_init (Fp_minus_two);
+    
+    mpz_sub_ui (Fp_minus_two, Fp, 2); 
     
     // local temp 
     for (size_t i = 0; i < LocalElementStackSize; ++i)
@@ -87,114 +98,169 @@ FE_ctx_impl::~FE_ctx_impl ()
   }
 
 
-void FE_ctx_impl:: Print (const char* msg, FE_t x)
-{
-
-  if (!check (x))
-    return; 
-
-  char strbuf_256[256];
-  memset (strbuf_256, 0, 256);
-
-  mpz_get_str (strbuf_256, 10, el(x));
-  printf ("%s dec: %s\n", msg, strbuf_256) ;
   
-  memset (strbuf_256, 0, 256); 
-  mpz_get_str (strbuf_256, 2, el(x));
-  printf ("%s hex : %s\n", msg, strbuf_256) ;
+  char* FE_ctx_impl::Format (char* out, const char* fmt, FE_t x)
+  {
 
- 
-}
+    
+    gmp_sprintf (out, fmt, el(x));
+    return out; 
+  }
 
 
+  void FE_ctx_impl:: Print (const char* msg, FE_t x)
+  {
+    
+    if (!check (x))
+      return; 
+    
+    char strbuf_256[256];
+    memset (strbuf_256, 0, 256);
+    
+    mpz_get_str (strbuf_256, 10, el(x));
+    printf ("%s dec: %s\n", msg, strbuf_256) ;
+    
+    memset (strbuf_256, 0, 256); 
+    mpz_get_str (strbuf_256, 2, el(x));
+    printf ("%s hex : %s\n", msg, strbuf_256) ;
+  }
+
+  bool FE_ctx_impl::IsValid (FE_t x)
+  {
+    return check (x); 
+  }
 
   // allocate new field element
-size_t FE_ctx_impl::New ()
-{
-  size_t name = 1; 
-  for (; elems.count (name); ++name);
-
-  mpz_init (el(name));
-
-  return name; 
-}
-
-
-size_t FE_ctx_impl::New (const char *strv, size_t base)
-{
-  size_t name = New (); 
-  mpz_set_str (el(name), strv, base);
+  size_t FE_ctx_impl::New ()
+  {
+    size_t name = 1; 
+    for (; elems.count (name); ++name);
+    
+    mpz_init (el(name));
+    
+    return name; 
+  }
   
-  return name; 
-}
-
-
-FE_t FE_ctx_impl::Set (FE_t place, size_t v)
-{
-  if (!check(place))
+  
+  size_t FE_ctx_impl::New (const char *strv, size_t base)
+  {
+    size_t name = New (); 
+    mpz_set_str (el(name), strv, base);
+    
+    return name; 
+  }
+  
+  
+  FE_t FE_ctx_impl::Set (FE_t place, size_t v)
+  {
+    if (!check(place))
       return 0; 
-
-  mpz_set_ui (el(place), v); 
-  return place; 
-}
-
-FE_t FE_ctx_impl::Set (FE_t place, const char* strv, size_t base)
-{
-  if (!check (place))
+    
+    mpz_set_ui (el(place), v); 
+    return place; 
+  }
+  
+  FE_t FE_ctx_impl::Set (FE_t place, const char* strv, size_t base)
+  {
+    if (!check (place))
+      return 0; 
+    
+    
+    mpz_set_str (el(place), strv, base);
+    return place; 
+    
+  }
+  
+  // returning element; 
+  void FE_ctx_impl::Del(FE_t id)
+  {
+    
+    mpz_map::iterator it = elems.find (id); 
+    
+    if (it != elems.end())
+      {
+	mpz_clear ( el(id) ); 
+	elems.erase (it); 
+      }
+  }
+  
+  FE_t FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
+  {
+    if (!check (lhs) || !check (rhs) || !check (out))
+      {
+	return 0; 
+      }
+    
+    enum { x=0, y, z };  
+    
+    mpz_add (loc(z), el(lhs), el(rhs) ); 
+    mpz_mod (el(out),loc(z), Fp);
+    return out;
+    
+  }
+  
+  FE_t FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs)
+  {
+    if (!check(out) || !check(lhs) || !check(rhs))
+      return 0;
+    
+    enum {x= 0, y, z};
+    
+    mpz_sub (loc(y), el(lhs), el(rhs));
+    
+    mpz_mod (el(out), loc(y), Fp); 
+    
     return 0; 
-
-
-  mpz_set_str (el(place), strv, base);
-  return place; 
-
-}
-
-// returning element; 
-void FE_ctx_impl::Del(FE_t id)
-{
-
-  mpz_map::iterator it = elems.find (id); 
-
-  if (it != elems.end())
-    {
-      mpz_clear ( el(id) ); 
-      elems.erase (it); 
-    }
-}
-
-FE_t FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
-{
-  if (!check (lhs) || !check (rhs) || !check (out))
-    {
-      return 0; 
-    }
-
+  }
   
-  enum { x = 0, y, z } ; 
+  //
+  //
+  FE_t FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
+  {
+    if (!check(out) || !check(lhs) || !check(rhs))
+      return 0;
+    
+    enum { x = 0, y , z};
+    
+    mpz_mul (loc(x), el(lhs), el(rhs));
+    mpz_mod (el(out), loc(x), Fp);
+ 
+    return out;
+  }
 
-  mpz_add (loc(z), el(lhs), el(rhs) ); 
-  mpz_mod (el(out),loc(z), Fp);
-  return out;
+  //
+  //
+  FE_t FE_ctx_impl::Inv(FE_t out, FE_t x)
+  {
+    if (!check(out) || !check(x))
+      return 0;
+
+    mpz_powm (el(out), el(x), Fp_minus_two, Fp);  
+    return out; 
+    
+    
+  }
+
+
+  //
+  //
+
+  FE_t FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
+  {
+
+    if (!check (lhs) || !check (rhs))
+      return 0;
+
+    enum {x=0, y, z}; 
   
-}
+    mpz_powm (loc(x), el(rhs), Fp_minus_two, Fp);
 
-FE_t FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs)
-{
-  return 0; 
-}
+    mpz_mul (loc(z), el(lhs), loc(x)); 
 
-
-FE_t FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
-{
-  return 0;
-}
-
-FE_t FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
-{
-return 0;
-
-
-}
+    mpz_mod (el(out), loc(z), Fp);
+  
+    return out;
+  }
 
 
   unsigned char* FE_ctx_impl::Raw (unsigned char* BE_bytes_out, FE_t)
@@ -202,8 +268,8 @@ return 0;
     return 0;
   }
 
-
-  
+  //
+  //
   FEConPtr Create_FE_context (const char* strv, size_t base )
   {
     FEConPtr ret (new FE_ctx_impl ( strv, base )); 
@@ -213,10 +279,10 @@ return 0;
   
 
 
-// convert this in to ::Raw ()
-//
+  // convert this in to ::Raw ()
+  //
 
-unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE = true)
+unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE )
 {
  
   assert (out.size () > 0);
