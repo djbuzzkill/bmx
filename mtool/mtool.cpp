@@ -52,24 +52,18 @@ void FE_test(std::vector<std::string> &args)
 
 
   FFM::FE_t
-    x = fc->New(),
+    x = fc->New (),
     u = fc->New (),
     v = fc->New (),
 
-    d = fc->New(),
+    d = fc->New (),
     m = fc->New (),
     t = fc->New (),
-
-    k = fc->New(),
+    j = fc->New (), 
+    k = fc->New (),
     q = fc->New (),
     z = fc->New (); 
   
-
-  fc->Set (x, "0xdeadf00d", 0);
-  fc->Set (u, "0xdeadfeed", 0);
-  fc->Set (d, "57", 10);
-  fc->Set (t, "7246", 10);
-      // 
   fc->Set (v, "95", 10);
   fc->Set (m, "45", 10);
   fc->Set (x, "31", 10);
@@ -78,7 +72,6 @@ void FE_test(std::vector<std::string> &args)
   fc->Mul (q, k, x);
   
   print_bignum ("95*45*31=", q, fc); 
-
 
   // 
   
@@ -93,8 +86,6 @@ void FE_test(std::vector<std::string> &args)
   
   print_bignum ("17*13*19*44=", k, fc);   
 
-  
- 
   fc->Set (v, "12", 10);
   fc->Set (d, "77", 10); 
   fc->Set (m, "49", 10);
@@ -107,14 +98,23 @@ void FE_test(std::vector<std::string> &args)
   for (size_t i = 1; i < 49; ++i)
     fc->Mul (q, q, d);
 
-
   fc->Mul (z, k, q); 
 
   print_bignum ("12^7 * 77^49=", z, fc);
-
-
-
  
+
+  // excercize
+
+   FFM::ByteArray rawnum;
+   fc->Raw (rawnum, z);  
+   printf ("rawnum.size (%zu)\n\n  bytes:", rawnum.size ());
+
+   for (auto x : rawnum)
+     {
+       printf ("%d ", x);
+     }
+   printf ("\n"); 
+   
  }
 
 
@@ -165,8 +165,7 @@ void EC_test ()
   //FFM::EC_IsPointOnCurve (); 
   FFM::is_point_on_curve (G, eq); 
 
-  FFM::FE_bytes<32> rawnum;
-  
+ 
 }
 
 

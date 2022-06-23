@@ -4,16 +4,6 @@
 #include <gmp.h>
 
 
-const unsigned kFE_bit_count = 256; 
-
-
-
-
-
-
-
-
-
 namespace FFM
 {
 
@@ -46,9 +36,10 @@ public:
     FE_t Mul (FE_t out, FE_t lhs, FE_t rhs);
     FE_t Div (FE_t out, FE_t lhs, FE_t rhs);
     
+    FE_t Pow (FE_t out, FE_t b, FE_t exp); 
     FE_t Inv (FE_t out, FE_t x);
     
-    unsigned char* Raw (unsigned char* BE_bytes_out, FE_t); 
+    ByteArray& Raw (ByteArray& out, FE_t); 
     
     inline __mpz_struct* el (FE_t x) { return &elems[x]; }
     inline __mpz_struct* loc(FE_t x) { return &locals[x]; }
@@ -133,6 +124,7 @@ FE_ctx_impl::~FE_ctx_impl ()
   // allocate new field element
   size_t FE_ctx_impl::New ()
   {
+    // 0 is forbidden name
     size_t name = 1; 
     for (; elems.count (name); ++name);
     
@@ -141,7 +133,7 @@ FE_ctx_impl::~FE_ctx_impl ()
     return name; 
   }
   
-  
+  // 
   size_t FE_ctx_impl::New (const char *strv, size_t base)
   {
     size_t name = New (); 
@@ -150,7 +142,7 @@ FE_ctx_impl::~FE_ctx_impl ()
     return name; 
   }
   
-  
+  // 
   FE_t FE_ctx_impl::Set (FE_t place, size_t v)
   {
     if (!check(place))
@@ -159,7 +151,8 @@ FE_ctx_impl::~FE_ctx_impl ()
     mpz_set_ui (el(place), v); 
     return place; 
   }
-  
+
+  // 
   FE_t FE_ctx_impl::Set (FE_t place, const char* strv, size_t base)
   {
     if (!check (place))
@@ -183,7 +176,9 @@ FE_ctx_impl::~FE_ctx_impl ()
 	elems.erase (it); 
       }
   }
-  
+
+  //
+  //  out = (lhs + rhs)%Fp
   FE_t FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
   {
     if (!check (lhs) || !check (rhs) || !check (out))
@@ -198,7 +193,8 @@ FE_ctx_impl::~FE_ctx_impl ()
     return out;
     
   }
-  
+
+  // out = (lhs - rhs)%Fp
   FE_t FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs)
   {
     if (!check(out) || !check(lhs) || !check(rhs))
@@ -214,7 +210,7 @@ FE_ctx_impl::~FE_ctx_impl ()
   }
   
   //
-  //
+  // out = (lhs * rhs)%Fp
   FE_t FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
   {
     if (!check(out) || !check(lhs) || !check(rhs))
@@ -229,7 +225,7 @@ FE_ctx_impl::~FE_ctx_impl ()
   }
 
   //
-  //
+  // out = 1/x
   FE_t FE_ctx_impl::Inv(FE_t out, FE_t x)
   {
     if (!check(out) || !check(x))
@@ -241,13 +237,25 @@ FE_ctx_impl::~FE_ctx_impl ()
     
   }
 
+  //
+  //
+  FE_t FE_ctx_impl :: Pow (FE_t out, FE_t b, FE_t exp)
+  {
+
+    if (!check(out) || !check(b) || !check(exp))
+      return 0;
+
+    mpz_powm (el(out), el(b), el(exp), Fp); 
+    return out;  
+
+  }
+  
 
   //
-  //
+  // out = (lhs / rhs)%Fp
 
   FE_t FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
   {
-
     if (!check (lhs) || !check (rhs))
       return 0;
 
@@ -263,9 +271,51 @@ FE_ctx_impl::~FE_ctx_impl ()
   }
 
 
-  unsigned char* FE_ctx_impl::Raw (unsigned char* BE_bytes_out, FE_t)
+  ByteArray& FE_ctx_impl::Raw (ByteArray& out, FE_t x)
   {
-    return 0;
+    if (!check (x))
+      return out;
+
+
+    const size_t buffersize = 256;  
+    ByteArray tmp (buffersize, 0);
+
+    
+   FILE* memfile = fmemopen (&tmp[0], 256, "w+");
+   
+   if ( !memfile )
+     {
+       
+       printf ("fmemopen failed\n"); 
+       
+       return out; 
+     }
+
+
+   char numbytes_BE[4]; 
+   int& numbytes = reinterpret_cast<int&> (numbytes_BE);
+
+   int out_size =  mpz_out_raw (memfile, el(x));
+   fclose  (memfile);
+   
+   printf ("out_size:%i\n", out_size);
+  
+   numbytes_BE[0] = tmp[3];
+   numbytes_BE[1] = tmp[2];
+   numbytes_BE[2] = tmp[1];
+   numbytes_BE[3] = tmp[0];
+   
+   printf ("numbytes:%u\n", numbytes);
+
+
+   out.resize(numbytes);    
+   for (unsigned i = 0; i < numbytes; ++i)
+     {
+    
+       out[i] = tmp[4 + numbytes - 1 - i]; 
+     }
+
+   return out;
   }
 
   //
@@ -286,45 +336,10 @@ unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE )
 {
  
   assert (out.size () > 0);
-  
+
   std::string rawmem (out.size() + 4, 0); 
 
-  FILE* memfile = fmemopen (&rawmem[0], 128, "w+");
-
- if ( !memfile )
-    {
-
-      printf ("fmemopen failed\n"); 
-      
-      return 0; 
-    }
-  
-  unsigned numbytes = 0;
-
-  char* ch = reinterpret_cast<char*> (&numbytes); 
-  int out_size =  mpz_out_raw (memfile, n);
-  fclose  (memfile);
-
-  std::any_of(ch, ch+out_size, isalnum);
-
-  
-  printf ("out_size:%i\n", out_size);
-  
-  ch[0] = rawmem[3];
-  ch[1] = rawmem[2];
-  ch[2] = rawmem[1];
-  ch[3] = rawmem[0];
-  
-  printf ("numbytes:%u\n", numbytes);
-
-  for (unsigned i = 0; i < numbytes; ++i)
-  {
-    
-    out[i] = rawmem[4 + numbytes - 1 - i]; 
-  }
-
-  
-  return numbytes;
+  return 0;
 }
 
 void print_mpz (const char* msg, mpz_t n)
