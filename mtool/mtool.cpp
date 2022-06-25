@@ -31,10 +31,6 @@ const size_t kField_bit_precision = 256;
 
 
 
-
-#define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
-
-
 void print_bignum (const char *lbl, FFM::FE_t x, FFM::FEConPtr c) {
 
   char vstr[256]; 
@@ -47,123 +43,226 @@ void print_bignum (const char *lbl, FFM::FE_t x, FFM::FEConPtr c) {
 void FE_test(std::vector<std::string> &args)
 {
   POUT ("0");
-  FFM::FEConPtr fc = FFM::Create_FE_context("97", 10);
-
-
-
+  FFM::FEConPtr F = FFM::Create_FE_context("97", 10);
+  POUT ("1");  
+  
   FFM::FE_t
-    x = fc->New (),
-    u = fc->New (),
-    v = fc->New (),
+    x = F->New (),
+    u = F->New (),
+    v = F->New (),
 
-    d = fc->New (),
-    m = fc->New (),
-    t = fc->New (),
-    j = fc->New (), 
-    k = fc->New (),
-    q = fc->New (),
-    z = fc->New (); 
+    d = F->New (),
+    m = F->New (),
+    t = F->New (),
+    j = F->New (), 
+    k = F->New (),
+    q = F->New (),
+    z = F->New (),
+    f = F->New(); 
+  POUT ("2");
+
   
-  fc->Set (v, "95", 10);
-  fc->Set (m, "45", 10);
-  fc->Set (x, "31", 10);
+  F->Set (v, "95", 10);
+  F->Set (m, "45", 10);
+  F->Set (x, "31", 10);
   
-  fc->Mul (k, v, m);
-  fc->Mul (q, k, x);
+  F->Mul (k, v, m);
+  F->Mul (q, k, x);
   
-  print_bignum ("95*45*31=", q, fc); 
+  print_bignum ("95*45*31=", q, F); 
 
   // 
+  F->Set (x, "17", 10);
+  F->Set (u, "13", 10);
+  F->Set (v, "19", 10);
+  F->Set (d, "44", 10);
+
+  F->Mul (k, x, u);
+  F->Mul (q, k, v);
+  F->Mul (k, q, d);
   
-  fc->Set (x, "17", 10);
-  fc->Set (u, "13", 10);
-  fc->Set (v, "19", 10);
-  fc->Set (d, "44", 10);
+  print_bignum ("17*13*19*44=", k, F);   
 
-  fc->Mul (k, x, u);
-  fc->Mul (q, k, v);
-  fc->Mul (k, q, d);
-  
-  print_bignum ("17*13*19*44=", k, fc);   
+  F->Set (v, "12", 10);
+  F->Set (d, "77", 10); 
+  F->Set (m, "49", 10);
 
-  fc->Set (v, "12", 10);
-  fc->Set (d, "77", 10); 
-  fc->Set (m, "49", 10);
-
-  fc->Set (k, "12", 10); 
+  F->Set (k, "12", 10); 
   for (size_t i = 1 ; i < 7; ++i)
-    fc->Mul  (k, k, v);
+    F->Mul (k, k, v);
 
-  fc->Set (q, "77", 10); 
+  F->Set (q, "77", 10); 
   for (size_t i = 1; i < 49; ++i)
-    fc->Mul (q, q, d);
+    F->Mul (q, q, d);
 
-  fc->Mul (z, k, q); 
+  F->Mul (z, k, q); 
 
-  print_bignum ("12^7 * 77^49=", z, fc);
+  print_bignum ("12^7 * 77^49=", z, F);
  
-
+  printf ("sizeof(int): %zd \n", sizeof(int)); 
   // excercize
 
-   FFM::ByteArray rawnum;
-   fc->Raw (rawnum, z);  
-   printf ("rawnum.size (%zu)\n\n  bytes:", rawnum.size ());
+  FFM::ByteArray rawnum;
+  F->Raw (rawnum, z);  
+  printf ("rawnum.size (%zu)\n\n  bytes:", rawnum.size ());
+  
+  for (auto x : rawnum)
+    {
+      printf ("%d ", x);
+    }
+  printf ("\n");
+}
 
-   for (auto x : rawnum)
-     {
-       printf ("%d ", x);
-     }
-   printf ("\n"); 
+
+
+bool checkres (const char* str, bool res)
+{
+  printf ("%s:%s\n", str, res ? "Yes" : "No"); 
+  return res; 
+}
+
+
+
+
+
+
+void EC_test (std::vector<std::string>& args) 
+{
+  POUT ("0");
+  FFM::FEConPtr F = FFM::Create_FE_context("223", 10);
+  FFM::ECConRef EC = FFM::Create_EC_context (F); 
+  
+  FFM::FE_t
+    x = F->New (),
+    u = F->New (),
+    v = F->New (); 
+
+
+  const std::string A = "A.Point"; 
+  const std::string B = "B.Point";
+  
+  const std::string X = "X.Point"; 
+  const std::string Y = "Y.Point"; 
+
+  const std::string U = "U.Point"; 
+  const std::string V = "V.Point";
+  
+  const std::string P = "P.Point"; 
+  const std::string Q = "Q.Point"; 
+  const std::string R = "R.Point"; 
+
+  const std::string Eq = "Eq"; 
    
- }
+  EC->DefPoint (Y);
+  EC->DefPoint (P);
+  EC->DefPoint (Q);
+  EC->DefPoint (R);
+ 
+  EC->DefCoeffs(Eq, "0", "7", 10);
+
+  // Ex. 1 
+  EC->DefPoint (A, "192", "105", 10);
+  EC->DefPoint (B, "17", "56", 10);
+  EC->DefPoint (U, "200", "119", 10);
+  EC->DefPoint (V,  "1", "193", 10);
+  EC->DefPoint (X, "42", "99", 10);
+  
+
+  checkres ("[192, 105]", EC->IsPointOnCurve (Eq, A));
+  checkres ("[17, 56]", EC->IsPointOnCurve (Eq, B));
+  checkres ("[200, 119]", EC->IsPointOnCurve (Eq, U));
+  checkres ("[1, 193]", EC->IsPointOnCurve (Eq, V));
+  checkres ("[42j, 99]", EC->IsPointOnCurve (Eq, X));
+
+
+  // Ex. 2
+  EC->SetPoint_ui (X, 170, 142); 
+  EC->SetPoint_ui (Y, 60, 139);
+  
+  EC->SetPoint_ui (A, 47, 71); 
+  EC->SetPoint_ui (B, 17, 56); 
+
+  EC->SetPoint_ui (U, 143, 98);
+  EC->SetPoint_ui (V, 76, 66); 
+
+
+  EC->Add (P, X, Y);
+  EC->PrintPoint ("(170, 142):", X); 
+  EC->PrintPoint ("(60, 39):", Y); 
+  EC->PrintPoint("X+Y:", P); 
+  
+  EC->Add (Q, A, B);
+  EC->PrintPoint ("A:", A); 
+  EC->PrintPoint ("B:", B); 
+  EC->PrintPoint ("A+B:", Q); 
+  
+  EC->PrintPoint ("U:", U); 
+  EC->PrintPoint ("V:", V); 
+  EC->Add (R, U, V);
+  EC->PrintPoint ("U+V:", R); 
+
+  printf ("sizeof(size_t): %zu\n", sizeof(size_t));
+  
+  printf ("sizeof(int): %zu \n", sizeof(int));
+
+}
 
 
 
-void EC_test ()
+void SEC256k1_test ()
 {
 
 
   POUT ("0");
-  FFM::FEConPtr fc = FFM::Create_FE_context(kSEC256k1_p_sz, 0);
+  FFM::FEConPtr F = FFM::Create_FE_context(kSEC256k1_p_sz, 0);
+  FFM::ECConRef EC = FFM::Create_EC_context (F);  
 
-  FFM::FE_t     Fp = fc->New (kSEC256k1_p_sz, 0);
 
-  char Fp_str[256]; 
-  print_bignum ("Fp:", Fp, fc); 
 
-  // fc->Add ( 
+  const std::string
+    Fp = "Fp",
+    G = "G",
+    Eq = "Eq",
+    R = "R",
+    s = "s",
+    Q = "Q",
+    M = "M";
+  
+  EC->DefElem (Fp, kSEC256k1_p_sz, 0);
+
+  //char Fp_str[256]; 
+  //print_bignum ("Fp:", Fp, F); 
+
+  // F->Add ( 
   // 
-  FFM::EC_Point G = FFM::EC_MakePoint (fc);
-  FFM::EC_Set (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0);
-  FFM::EC_Print ("G-> ", G);
+  EC->DefPoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0);
+  EC->PrintPoint ("G-> ", G);
   //
-  FFM::EC_Coeffs eq = FFM::EC_MakeCoeffs (fc);
-  FFM::EC_Set (eq,  kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 0); 
-  FFM::EC_Print ("eq-> ", eq);
+  EC->DefCoeffs (Eq, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 0); 
+  EC->PrintCoeffs ("eq-> ", Eq);
   
   
-  FFM::EC_Point R = FFM::EC_MakePoint (fc);
-  FFM::EC_Set (R, "0xdeadbeef", "0xdeadf00d", 0);  
-  FFM::EC_Print ("R-> ", R);
+  EC->DefPoint (R, "0xdeadbeef", "0xdeadf00d", 0);  
+  EC->PrintPoint ("R-> ", R);
 
-  FFM::FE_t s = fc->New ("0x04ea32532fd", 0);
+  EC->DefElem (s, "0x04ea32532fd", 0);
 
-  FFM::EC_Mul (R, s, G);
+//  FFM::EC->Mul (R, s, G);
 
-  FFM::EC_Point Q = FFM::EC_MakePoint (fc);
-  FFM::EC_Point M = FFM::EC_MakePoint (fc);
+  EC->DefPoint (Q);
+  EC->DefPoint (M);
 
-  FFM::EC_Add (Q, G, G);
+  EC->Add (Q, G, G);
   POUT("G+G=Q");
-  FFM::EC_Print ("Q-> ", Q);
+  EC->PrintPoint ("Q-> ", Q);
 
   
-  FFM::EC_Sub (M, Q, G); 
-  POUT("M=Q-G");
-  FFM::EC_Print("Q->", Q);  
+  // EC_Sub (M, Q, G); 
+  // POUT("M=Q-G");
+  // EC_Print("Q->", Q);  
   
   //FFM::EC_IsPointOnCurve (); 
-  FFM::is_point_on_curve (G, eq); 
+  EC->IsPointOnCurve (Eq, G); 
 
  
 }
@@ -286,8 +385,8 @@ int main (int argv, char** argc)
   // glm::vec3 x = v + v;
 
   // test_gmp (args);
-  FE_test (args); 
-
+  //FE_test (args); 
+  EC_test (args);  
   // cx::Mouse_state ms;
   //auto f =   cx::foo  ; 
 

@@ -5,7 +5,6 @@ project (mtool)
 
 
 
-add_compile_options (-g -O0 )
 
 #set ("CMAKE_CXX_FLAGS=-g -00")
 #set ("CMAKE_C_FLAGS=-g -00")

@@ -10,6 +10,12 @@
 #include <string>
 #include <algorithm>
 
+
+
+
+#define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
+
+
 namespace FFM
 {
 // 
