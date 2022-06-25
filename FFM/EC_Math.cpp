@@ -112,7 +112,7 @@ namespace FFM
     bool SetElem_ui (const std::string& , size_t x) ;
     
     //  bool EC_IsAtInfinity (const EC_Point& P);
-    bool IsPointOnCurve (const std::string& eq, const std::string P);
+    bool IsPointOnCurve (const std::string& eq, const std::string& P);
 
     // -------------------------------------------------------------------
     //
@@ -136,6 +136,7 @@ namespace FFM
     typedef std::map<std::string, ElemTuple> CurveMap;
     typedef std::map<std::string, FE_t> ElementMap; 
     
+    FEConPtr F;  
     PointMap pointmap;
     CurveMap curvemap; 
     ElementMap elmap;
@@ -145,7 +146,6 @@ namespace FFM
     enum { kTempStackSize = 32 } ; 
 
     inline const FE_t& loc (size_t i) { return localtemp[i]; }
-    FEConPtr F;  
 
   };
 
@@ -158,9 +158,11 @@ namespace FFM
     , elmap()
     , localtemp(kTempStackSize)
   {
-    for (size_t i = 0; localtemp.size (); ++i)
+
+    for (size_t i = 0; i < localtemp.size (); ++i)
       localtemp[i] = F->New (); 
-  }
+
+	  }
 
   //
   EC_con_impl::~EC_con_impl ()
@@ -187,7 +189,7 @@ namespace FFM
 
  //
   //
-  bool EC_con_impl::IsPointOnCurve (const std::string& eq, const std::string P)
+  bool EC_con_impl::IsPointOnCurve (const std::string& eq, const std::string& P)
   {
 
     if (!pt_exists (P) || !co_exists(eq))
@@ -215,7 +217,9 @@ namespace FFM
 
   ECConRef Create_EC_context (FEConPtr F) {
 
-    return std::make_shared<EC_con_impl> (F);
+    ECConRef ret (std::make_shared<EC_con_impl> (F));
+
+   return ret; 
   }
     
 
@@ -347,14 +351,12 @@ namespace FFM
       switch (fmt)
       {
       case EC_Format::HEX:  
-	POUT ("Point:EC_FORMAT_HEX"); 
 	F->Format (xs_, "%Zx", x(point(P)));
 	F->Format (ys_, "%Zx", x(point(P)));
 	printf ( "%s[x:0x%s, y:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
 	
       case EC_Format::DEC: 
-	POUT ("Point:EC_FORMAT_DEC"); 
 	
       default: 
 	F->Format (xs_, "%Zd", x(point(P)));
@@ -373,13 +375,11 @@ namespace FFM
     switch (fmt)
       {
       case EC_Format::HEX:
-	//POUT ("Coef:EC_FORMAT_HEX");  
 	F->Format (xs, "%Zx", elem(e));
 	printf ( "%s[0x%s]\n", lbl.c_str(), xs); 
 	break;
 	
       case EC_Format::DEC:
-	//POUT("Coeff:EC_FORMAT_DEC"); 
       default: 
 	F->Format (xs, "%Zd", elem(e));
 	printf ( "%s[%s]\n", lbl.c_str(), xs); 
@@ -399,14 +399,12 @@ void EC_con_impl::PrintCoeffs  (const  std::string& lbl, const std::string& eq ,
     switch (fmt)
       {
       case EC_Format::HEX:
-	//POUT ("Coef:EC_FORMAT_HEX");  
 	F->Format (xs_, "%Zx", a(curve(eq)));
 	F->Format (ys_, "%Zx", b(curve(eq)));
 	printf ( "%s[a:0x%s, b:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
 	
       case EC_Format::DEC:
-	//POUT("Coeff:EC_FORMAT_DEC"); 
       default: 
 	F->Format (xs_, "%Zd", a(curve(eq)));
 	F->Format (ys_, "%Zd", b(curve(eq)));

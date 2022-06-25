@@ -46,10 +46,10 @@ namespace FFM
     virtual bool SetElem_ui (const std::string& , size_t x) = 0;
      
     //  bool EC_IsAtInfinity (const EC_Point& P);
-    virtual bool IsPointOnCurve (const std::string& eq, const std::string P) = 0;  
+    virtual bool IsPointOnCurve (const std::string& eq, const std::string& P) = 0;  
 
     //  
-    inline bool DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base) { return (DefPoint(sym) ? SetPoint(sym, strx, strx, base) : false); }
+    inline bool DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base) { return (DefPoint(sym) ? SetPoint(sym, strx, stry, base) : false); }
     inline bool DefCoeffs (const std::string& sym, const char* stra, const char* strb, size_t base) { return (DefCoeffs(sym) ? SetCoeffs(sym, stra, strb, base) : false); } 
     inline bool DefElem  (const std::string& sym, const char* strv, size_t base) { return (DefElem(sym) ? SetElem(sym, strv, base) : false); }
 

@@ -130,8 +130,9 @@ void EC_test (std::vector<std::string>& args)
 {
   POUT ("0");
   FFM::FEConPtr F = FFM::Create_FE_context("223", 10);
+
+
   FFM::ECConRef EC = FFM::Create_EC_context (F); 
-  
   FFM::FE_t
     x = F->New (),
     u = F->New (),
@@ -152,7 +153,6 @@ void EC_test (std::vector<std::string>& args)
   const std::string R = "R.Point"; 
 
   const std::string Eq = "Eq"; 
-   
   EC->DefPoint (Y);
   EC->DefPoint (P);
   EC->DefPoint (Q);
@@ -168,6 +168,16 @@ void EC_test (std::vector<std::string>& args)
   EC->DefPoint (X, "42", "99", 10);
   
 
+
+  
+  EC->PrintPoint (A, A);
+  EC->PrintPoint (B, B);
+  EC->PrintPoint (U, U);
+  EC->PrintPoint (V, V);
+  EC->PrintPoint (X, X);
+  EC->PrintCoeffs (Eq, Eq);
+
+  
   checkres ("[192, 105]", EC->IsPointOnCurve (Eq, A));
   checkres ("[17, 56]", EC->IsPointOnCurve (Eq, B));
   checkres ("[200, 119]", EC->IsPointOnCurve (Eq, U));
