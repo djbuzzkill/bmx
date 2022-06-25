@@ -14,60 +14,22 @@ namespace FFM
 
 
 
-  typedef std::tuple<FE_var, FE_var> ElemTuple; 
+  typedef std::tuple<FE_t, FE_t> ElemTuple; 
 
-  inline FE_var& x(ElemTuple& t) { return std::get<0> (t); }
-  inline FE_var& y(ElemTuple& t) { return std::get<1> (t); }
+  inline FE_t& x(ElemTuple& t) { return std::get<0> (t); }
+  inline FE_t& y(ElemTuple& t) { return std::get<1> (t); }
   
-  inline const FE_var& x(const ElemTuple& t) { return std::get<0> (t); }
-  inline const FE_var& y(const ElemTuple& t) { return std::get<1> (t); }
+  inline const FE_t& x(const ElemTuple& t) { return std::get<0> (t); }
+  inline const FE_t& y(const ElemTuple& t) { return std::get<1> (t); }
 
 
-
-  
-  inline FE_var& a(ElemTuple& t) { return std::get<0> (t); }
-  inline FE_var& b(ElemTuple& t) { return std::get<1> (t); }
-
-  inline const FE_var& a(const ElemTuple& t) { return std::get<0> (t); }
-  inline const FE_var& b(const ElemTuple& t) { return std::get<1> (t); }
-
-
-
-  //  
-  // struct EC_Point : public std::tuple<FE_var, FE_var, FEConPtr>  {
-
-  //   const FE_var& x() const { return std::get<0> (*this) ;}
-  //   const FE_var& y() const { return std::get<1> (*this); }
-
-  //   FE_var& x() { return std::get<0> (*this); }
-  //   FE_var& y() { return std::get<1> (*this); }
-
-  // };
 
   
-  // struct EC_Coeffs : public std::tuple<FE_var, FE_var, FEConPtr> {
-    
-  //   const FE_var& a() const { return std::get<0> (*this) ;}
-  //   const FE_var& b() const { return std::get<1> (*this); }
+  inline FE_t& a(ElemTuple& t) { return std::get<0> (t); }
+  inline FE_t& b(ElemTuple& t) { return std::get<1> (t); }
 
-  //   FE_var& a() { return std::get<0> (*this) ;}
-  //   FE_var& b() { return std::get<1> (*this); }
-
-  // };
-
- 
-
-  
-  
- 
-  // bool EC_IsAtInfinity (const ElemTuple& P)
-  // {
-
-  //   if (FE_Infinity (P.x()) || FE_Infinity (P.y()))
-  //     return true; 
-
-  //   return false;
-  // }
+  inline const FE_t& a(const ElemTuple& t) { return std::get<0> (t); }
+  inline const FE_t& b(const ElemTuple& t) { return std::get<1> (t); }
 
 
   struct EC_con_impl : public EC_context , public std::enable_shared_from_this<EC_con_impl> 
@@ -85,15 +47,6 @@ namespace FFM
      bool DefCoeffs (const std::string& sym);
      bool DefElem  (const std::string& sym) ;
     
-
-    // bool DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base);
-    // bool DefCoeffs (const std::string& sym, const char* stra, const char strb, size_t base);
-    // bool DefElem  (const std::string& sym, const char* strv, size_t base);
-    
-    // bool DefPoint_ui (const std::string& sym, size_t , size_t );
-    // bool DefCoeffs_ui (const std::string& sym, size_t, size_t );
-    // bool DefElem_ui (const std::string& sym, size_t );
-
    // return to source
      bool UndefPoint (const std::string&) ;
      bool UndefCoeffs (const std::string& ); 
@@ -199,15 +152,16 @@ namespace FFM
 
     // y^2 = x^3 + ax + b
     
-    F->Pow_ui (loc(x0).name(), x(point(P)), 3); 
+    F->Pow_ui (loc(x0), x(point(P)), 3); 
 
-    F->Mul (loc(x1).name(), a(curve(eq)), x(point(P)));
-    F->Add (loc(rhs).name(), loc(x0).name(), loc(x1).name()); 
-    F->Add (loc(rhs).name(), loc(rhs).name(), b(curve(eq)));
+    F->Mul (loc(x1), a(curve(eq)), x(point(P)));
+    F->Add (loc(rhs), loc(x0), loc(x1)); 
+    F->Add (loc(rhs), loc(rhs), b(curve(eq)));
     
-    F->Mul (loc(lhs).name(), y(point(P)), y(point(P)));
+    F->Mul (loc(lhs), y(point(P)), y(point(P)));
 
-    // lhs > rhs : +
+    // lhs > rhs :
+    // +
     // lhs = rhs : 0
     // lhs < rhs : - 
     int res = F->Cmp (loc(lhs), loc(rhs));
@@ -232,11 +186,8 @@ namespace FFM
     
     ElemTuple& out = point(sym);
 
-    FE_t w = F->New ();
-    x(out) = w.name ();
-   
-    FE_t q = F->New(); 
-    y(out) = q.name ();
+    x(out) = F->New ();
+    y(out) = F->New ();
 
     return true; 
   }
@@ -244,24 +195,14 @@ namespace FFM
  
   bool EC_con_impl::DefCoeffs (const std::string& sym)
   {
-
-
     if (co_exists (sym))
     {
       return false; 
     }
 
-    
     ElemTuple& out = curve(sym);
-
-    FE_t _ = F->New ();
-    a(out) = _.name ();
-   
-    FE_t s = F->New(); 
-    b(out) = s.name();
-
-
-    
+    a(out) = F->New ();
+    b(out) = F->New (); 
     return true; 
 
   }
@@ -277,15 +218,6 @@ namespace FFM
     return true; 
   }
   
-  // bool EC_con_impl::DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base) {}
-  // bool EC_con_impl::DefCoeffs (const std::string& sym, const char* stra, const char strb, size_t base){}
-  // bool EC_con_impl::DefElem  (const std::string& sym, const char* strv, size_t base) {}
-  // bool EC_con_impl::DefPoint_ui (const std::string& sym, size_t , size_t );
-  // bool EC_con_impl::DefCoeffs_ui (const std::string& sym, size_t, size_t );
-  // bool EC_con_impl::DefElem_ui (const std::string& sym, size_t );
-
-
-
   // return to source
   bool EC_con_impl::UndefPoint (const std::string& sym)
   {

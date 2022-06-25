@@ -11,10 +11,6 @@
 #include <algorithm>
 
 
-
-
-
-
 // 
 template<typename Ty>
 inline Ty* swap_endian (Ty* x)

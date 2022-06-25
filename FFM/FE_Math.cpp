@@ -16,52 +16,44 @@ public:
     enum { LocalElementStackSize = 32 } ; 
     
   public:
-    char* Format (char* out, const char* fmt, FE_var x); 
+    char* Format (char* out, const char* fmt, FE_t x); 
     void Print (const char* msg, FE_t x);
     bool IsValid (FE_t); 
     
     // get new element
     FE_t New  ();
-    FE_t New  (const char *hexv, size_t base);
+    // FE_t New  (const char *hexv, size_t base);
     
     
-    void Set (FE_var place, const char* strv, size_t base = 0 ); 
-    void Set_ui (FE_var place, size_t v); 
-    void Set (FE_var lval, FE_var rval);
+    void Set (FE_t place, const char* strv, size_t base = 0); 
+    void Set_ui (FE_t place, size_t v); 
+    void Set (FE_t lval, FE_t rval);
     
     // returning element; 
-    void   Del  (FE_var id); 
+    void   Del  (FE_t id); 
     
     void Add (FE_t out, FE_t lhs, FE_t rhs);
     void Sub (FE_t out, FE_t lhs, FE_t rhs); 
     void Mul (FE_t out, FE_t lhs, FE_t rhs);
     void Div (FE_t out, FE_t lhs, FE_t rhs);
     void Pow (FE_t out, FE_t b, FE_t exp); 
-    void Pow_ui (FE_t out, FE_t b, unsigned int exp); 
+    void Pow_ui (FE_t out, FE_t b, size_t exp); 
     void Inv (FE_t out, FE_t x);
 
-    void Add (FE_var out, FE_var lhs, FE_var rhs);
-    void Sub (FE_var out, FE_var lhs, FE_var rhs); 
-    void Mul (FE_var out, FE_var lhs, FE_var rhs);
-    void Div (FE_var out, FE_var lhs, FE_var rhs);
-    void Pow (FE_var out, FE_var b, FE_var exp); 
-    void Pow_ui (FE_var out, FE_var b, unsigned int exp); 
-    void Inv (FE_var out, FE_var x); 
- 
 
     int Cmp (FE_t lhs, FE_t rhs);
-    int Cmp (FE_var lhs, FE_var rhs);
+    //int Cmp (FE_var lhs, FE_var rhs);
     
 
     
     ByteArray& Raw (ByteArray& out, FE_t); 
     
-    inline __mpz_struct* el (FE_var x) { return &elems[x]; }
-    inline __mpz_struct* el (FE_t x) { return el(x.name()); }
+    inline __mpz_struct* el (FE_t x) { return &elems[x]; }
+    //inline __mpz_struct* el (FE_t x) { return el(x.name()); }
     inline __mpz_struct* loc(size_t x) { return &locals[x]; }
     
-    inline bool check (FE_var x) { return elems.count (x) ? true : false;  } 
-    inline bool check (FE_t x) {return check(x.name()); }
+    inline bool check (FE_t x) { return elems.count (x) ? true : false;  } 
+    //inline bool check (FE_t x) {return check(x.name()); }
  
     typedef std::vector<__mpz_struct> mpz_array;
     
@@ -79,9 +71,9 @@ public:
 
 
   
-  FE_ctx_impl::  FE_ctx_impl (const char* strv, size_t base) 
-    : locals (LocalElementStackSize)
-    , elems ()
+  FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) 
+    : elems ()
+    , locals (LocalElementStackSize)
   {
  
     mpz_init (Fp); 
@@ -105,7 +97,7 @@ public:
 
 
   
-  char* FE_ctx_impl::Format (char* out, const char* fmt, FE_var x)
+  char* FE_ctx_impl::Format (char* out, const char* fmt, FE_t x)
   {
     gmp_sprintf (out, fmt, el(x));
     return out; 
@@ -124,10 +116,7 @@ public:
     mpz_get_str (strbuf_256, 10, el(x));
     printf ("%s:%s\n", msg, strbuf_256) ;
     
-    // memset (strbuf_256, 0, 256); 
-    // mpz_get_str (strbuf_256, 2, el(x));
-    // printf ("%s bin : %s\n", msg, strbuf_256) ;
-  }
+ }
 
   bool FE_ctx_impl::IsValid (FE_t x)
   {
@@ -141,28 +130,19 @@ public:
   FE_t FE_ctx_impl::New ()
   {
     // 0 is forbidden name
-    FE_var name = 1; 
+    FE_t name = 1; 
     for (; elems.count (name); ++name);
-    FE_t ret;
-    ret.name() = name;
+    //FE_t ret;
+    //ret.name() = name;
 
-    std::get<1>(ret) = shared_from_this (); 
-    mpz_init (el(ret));
-    
-    return ret; 
-  }
-  
-  // 
-  FE_t FE_ctx_impl::New (const char *strv, size_t base)
-  {
-    FE_t name = New (); 
-    mpz_set_str (el(name), strv, base);
+    //std::get<1>(ret) = shared_from_this (); 
+    mpz_init (el(name));
     
     return name; 
   }
   
-  // 
-  void FE_ctx_impl::Set_ui (FE_var place, size_t v)
+ // 
+  void FE_ctx_impl::Set_ui (FE_t place, size_t v)
   {
     if (!check(place))
       return ; 
@@ -171,7 +151,7 @@ public:
   }
 
   // 
-  void FE_ctx_impl::Set (FE_var place, const char* strv, size_t base)
+  void FE_ctx_impl::Set (FE_t place, const char* strv, size_t base)
   {
     if (!check (place))
       return ; 
@@ -181,7 +161,7 @@ public:
     
   }
 
-  void FE_ctx_impl ::Set (FE_var lv, FE_var rv)
+  void FE_ctx_impl ::Set (FE_t lv, FE_t rv)
   {
     if (!check (lv) || !check (rv))
       {
@@ -194,7 +174,7 @@ public:
   }
   
   // returning element; 
-  void FE_ctx_impl::Del(FE_var x)
+  void FE_ctx_impl::Del(FE_t x)
   {
     mpz_map::iterator it = elems.find (x); 
     
@@ -205,7 +185,11 @@ public:
       }
   }
 
-  void FE_ctx_impl::Add (FE_var out, FE_var lhs, FE_var rhs)
+  //
+  //  out = (lhs + rhs)%Fp
+  // out = (lhs - rhs)%Fp
+  // out = 1/x
+  void FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
   {
     
     enum { x=0, y, z };  
@@ -214,29 +198,8 @@ public:
     mpz_mod (el(out),loc(z), Fp);
      
   }
-  //
-  //  out = (lhs + rhs)%Fp
-  void FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
-  {
-    if (!check (lhs) || !check (rhs) || !check (out))
-      {
-	return  ; 
-      }
-
-    Add (out.name(), lhs.name(), rhs.name()); 
-  }
-
-  // out = (lhs - rhs)%Fp
+ 
   void FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs)
-  {
-    if (!check(out) || !check(lhs) || !check(rhs))
-      return ;
-    
-    Sub (out.name (), lhs.name(), rhs.name());  
-  }
-
-
-  void FE_ctx_impl::Sub (FE_var out, FE_var lhs, FE_var rhs)
   {
      enum {x= 0, y, z};
     
@@ -244,43 +207,20 @@ public:
     
     mpz_mod (el(out), loc(y), Fp); 
     
-      }
+  }
  
-  //
-  // out = (lhs * rhs)%Fp
   void FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
   {
-    if (!check(out) || !check(lhs) || !check(rhs))
-      return;
+    enum { x = 0, y , z};
     
-    Mul (out.name(), lhs.name(), rhs.name());  
+    mpz_mul (loc(x), el(lhs), el(rhs));
+    mpz_mod (el(out), loc(x), Fp);
   }
-
- void FE_ctx_impl::Mul (FE_var out, FE_var lhs, FE_var rhs)
- {
-   enum { x = 0, y , z};
-   
-   mpz_mul (loc(x), el(lhs), el(rhs));
-   mpz_mod (el(out), loc(x), Fp);
- }
-
-
-  
- //
+  //
   // out = (lhs / rhs)%Fp
-
   void FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
   {
-    if (!check (lhs) || !check (rhs))
-      return;
-    Div (out.name(), lhs.name(), rhs.name()); 
- 
-  }
-
- 
-  void FE_ctx_impl::Div (FE_var out, FE_var lhs, FE_var rhs)
-  {
-
+    
     enum {x=0, y, z}; 
   
     mpz_powm (loc(x), el(rhs), Fp_minus_two, Fp);
@@ -291,73 +231,26 @@ public:
  
   }
 
-  //
-  // out = 1/x
-  void FE_ctx_impl::Inv(FE_t out, FE_t x)
-  {
-    if (!check(out) || !check(x))
-      return ;
-
-    Inv(out.name(), x.name()); 
-    
-  }
-
-  void FE_ctx_impl::Inv (FE_var out, FE_var x)
+  void FE_ctx_impl::Inv (FE_t out, FE_t x)
   {
     mpz_powm (el(out), el(x), Fp_minus_two, Fp);  
   }
 
-
-  
-  //
-  //
   void FE_ctx_impl::Pow (FE_t out, FE_t b, FE_t exp)
   {
-
-    if (!check(out) || !check(b) || !check(exp))
-      return;
-
-    Pow (out.name(), b.name(), exp.name()); 
-  }
-  
-
-  void FE_ctx_impl::Pow (FE_var out, FE_var b, FE_var exp)
-  {
-    
     mpz_powm (el(out), el(b), el(exp), Fp); 
   }
 
 
-
-  void FE_ctx_impl::Pow_ui (FE_t out, FE_t b, unsigned int exp)
-  {
-
-    if (!check(out) || !check(b) ) 
-      return;
-    Pow_ui (out.name (), b.name(), exp); 
-   }
-
-
-  void FE_ctx_impl::Pow_ui (FE_var out, FE_var b, unsigned int exp)
+  void FE_ctx_impl::Pow_ui (FE_t out, FE_t b, size_t exp)
   {
     mpz_pow_ui (el(out), el(b), exp);
     mpz_mod (el(out), el(out), Fp);
   }
  
 
+
   int FE_ctx_impl::Cmp (FE_t lhs, FE_t rhs)
-  {
-    if (!check (lhs) || !check(rhs))
-      {
-	// throw? 
-      return ~0x0;
-      }
-
-    return Cmp (lhs.name(), rhs.name()); 
-  }
-
-
-  int FE_ctx_impl::Cmp (FE_var lhs, FE_var rhs)
   {
     return mpz_cmp (el(lhs), el(rhs));
   }
@@ -386,7 +279,7 @@ public:
 
 
    char numbytes_BE[4]; 
-   int& numbytes = reinterpret_cast<int&> (numbytes_BE);
+   unsigned& numbytes = reinterpret_cast<unsigned&> (numbytes_BE);
 
    int out_size =  mpz_out_raw (memfile, el(x));
    fclose  (memfile);

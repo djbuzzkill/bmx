@@ -131,13 +131,12 @@ void EC_test (std::vector<std::string>& args)
   POUT ("0");
   FFM::FEConPtr F = FFM::Create_FE_context("223", 10);
 
-
+  
   FFM::ECConRef EC = FFM::Create_EC_context (F); 
-  FFM::FE_t
-    x = F->New (),
-    u = F->New (),
-    v = F->New (); 
-
+  // FFM::FE_t
+  //   x = F->New (),
+  //   u = F->New (),
+  //   v = F->New (); 
 
   const std::string A = "A.Point"; 
   const std::string B = "B.Point";
@@ -168,22 +167,26 @@ void EC_test (std::vector<std::string>& args)
   EC->DefPoint (X, "42", "99", 10);
   
 
-
+  POUT("b4"); 
   
   EC->PrintPoint (A, A);
   EC->PrintPoint (B, B);
   EC->PrintPoint (U, U);
   EC->PrintPoint (V, V);
   EC->PrintPoint (X, X);
+ 
+ 
+  POUT ("behind\n"); 
+  
+ 
   EC->PrintCoeffs (Eq, Eq);
 
-  
+  POUT("On Curve"); 
   checkres ("[192, 105]", EC->IsPointOnCurve (Eq, A));
   checkres ("[17, 56]", EC->IsPointOnCurve (Eq, B));
   checkres ("[200, 119]", EC->IsPointOnCurve (Eq, U));
   checkres ("[1, 193]", EC->IsPointOnCurve (Eq, V));
   checkres ("[42j, 99]", EC->IsPointOnCurve (Eq, X));
-
 
   // Ex. 2
   EC->SetPoint_ui (X, 170, 142); 
@@ -195,10 +198,9 @@ void EC_test (std::vector<std::string>& args)
   EC->SetPoint_ui (U, 143, 98);
   EC->SetPoint_ui (V, 76, 66); 
 
-
   EC->Add (P, X, Y);
-  EC->PrintPoint ("(170, 142):", X); 
-  EC->PrintPoint ("(60, 39):", Y); 
+  EC->PrintPoint ("X:", X); 
+  EC->PrintPoint ("Y:", Y); 
   EC->PrintPoint("X+Y:", P); 
   
   EC->Add (Q, A, B);
@@ -210,6 +212,11 @@ void EC_test (std::vector<std::string>& args)
   EC->PrintPoint ("V:", V); 
   EC->Add (R, U, V);
   EC->PrintPoint ("U+V:", R); 
+
+
+
+
+
 
   printf ("sizeof(size_t): %zu\n", sizeof(size_t));
   
