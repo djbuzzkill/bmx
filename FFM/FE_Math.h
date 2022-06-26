@@ -12,7 +12,7 @@ namespace FFM
 
   typedef std::shared_ptr<FE_context> FEConPtr;  
 
-    typedef int FE_t;
+  typedef int FE_t;
   //
   //
   typedef std::vector<unsigned char> ByteArray; 
@@ -22,7 +22,7 @@ namespace FFM
   inline bool FE_Infinity (FE_t x) { return (x < 0 ? true : false); }
   //inline bool FE_Infinity (FE_t x) { return FE_Infinity (x.name()); }
   //
-  class FE_context : public Destructor
+  class FE_context : public FFM::Destructor
   {
   protected:
     FE_context () {}
@@ -36,7 +36,8 @@ namespace FFM
 
     //virtual FE_var Alloc () = 0;
     virtual FE_t New () = 0; 
-    inline FE_t New (const char *strv, size_t base = 0) { if (FE_t x = New()) { Set (x, strv, base); return x; }}
+    inline FE_t New (const char *strv, size_t base = 0) { FE_t x = New(); if (x) { Set (x, strv, base); } return x; }
+    inline FE_t New_ui (size_t v) { FE_t i = New(); if (i) { Set_ui(i, v); } return i; }
     //  virtual FE_t New (bytearr& LEraw) = 0;
 
     // 
@@ -48,7 +49,8 @@ namespace FFM
     virtual void Set (FE_t lval, FE_t rval) = 0;
     virtual void Set_ui (FE_t place, size_t v) = 0; 
     
-   virtual int Cmp (FE_t lhs, FE_t rhs) = 0; 
+    virtual int Cmp (FE_t lhs, FE_t rhs) = 0; 
+    virtual int Cmp_ui (FE_t lhs, size_t rhs) = 0;
     
     
     virtual ByteArray& Raw (ByteArray& out, FE_t) = 0; 
@@ -66,7 +68,18 @@ namespace FFM
 // 
 
   FEConPtr Create_FE_context (const char* strv, size_t base = 0 /* 0=hex, 2=bin, 10=dec */ );
-//
+  
+  //
+  // 
+  struct ScopeDeleter : public std::vector<FE_t>
+  {
+    ScopeDeleter (FEConPtr f) : F(f), std::vector<FE_t>() {}
+    FE_t operator() (FE_t e) { push_back (e); return e; }
+    ~ScopeDeleter () {while (size()) { F->Del(back()); pop_back (); }}
+    FEConPtr F;
+  };
+
+
 
 } // FM
 

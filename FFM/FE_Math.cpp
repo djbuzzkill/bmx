@@ -44,6 +44,7 @@ public:
     int Cmp (FE_t lhs, FE_t rhs);
     //int Cmp (FE_var lhs, FE_var rhs);
     
+    int Cmp_ui (FE_t lhs, size_t rhs); 
 
     
     ByteArray& Raw (ByteArray& out, FE_t); 
@@ -256,7 +257,12 @@ public:
   }
   
 
- 
+int FE_ctx_impl::Cmp_ui (FE_t lhs, size_t rhs)
+{
+  return mpz_cmp_ui (el(lhs), rhs); 
+}
+
+
   ByteArray& FE_ctx_impl::Raw (ByteArray& out, FE_t x)
   {
     if (!check (x))

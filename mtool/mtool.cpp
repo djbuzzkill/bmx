@@ -131,8 +131,7 @@ void EC_test (std::vector<std::string>& args)
   POUT ("0");
   FFM::FEConPtr F = FFM::Create_FE_context("223", 10);
 
-  
-  FFM::ECConRef EC = FFM::Create_EC_context (F); 
+  // create a curve for y^2=X^3 + 7
   // FFM::FE_t
   //   x = F->New (),
   //   u = F->New (),
@@ -151,71 +150,45 @@ void EC_test (std::vector<std::string>& args)
   const std::string Q = "Q.Point"; 
   const std::string R = "R.Point"; 
 
-  const std::string Eq = "Eq"; 
-  EC->DefPoint (Y);
-  EC->DefPoint (P);
-  EC->DefPoint (Q);
-  EC->DefPoint (R);
- 
-  EC->DefCoeffs(Eq, "0", "7", 10);
-
   // Ex. 1 
-  EC->DefPoint (A, "192", "105", 10);
-  EC->DefPoint (B, "17", "56", 10);
-  EC->DefPoint (U, "200", "119", 10);
-  EC->DefPoint (V,  "1", "193", 10);
-  EC->DefPoint (X, "42", "99", 10);
-  
-
-  POUT("b4"); 
-  
-  EC->PrintPoint (A, A);
-  EC->PrintPoint (B, B);
-  EC->PrintPoint (U, U);
-  EC->PrintPoint (V, V);
-  EC->PrintPoint (X, X);
- 
- 
-  POUT ("behind\n"); 
-  
- 
-  EC->PrintCoeffs (Eq, Eq);
-
-  POUT("On Curve"); 
-  checkres ("[192, 105]", EC->IsPointOnCurve (Eq, A));
-  checkres ("[17, 56]", EC->IsPointOnCurve (Eq, B));
-  checkres ("[200, 119]", EC->IsPointOnCurve (Eq, U));
-  checkres ("[1, 193]", EC->IsPointOnCurve (Eq, V));
-  checkres ("[42j, 99]", EC->IsPointOnCurve (Eq, X));
-
+  { 
+    FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+    EC->PrintCoeffs ("Coefficients:", FFM::EC_Format::DEC);
+    POUT("Ex. 1"); 
+    checkres ("[192, 105]", EC->DefPoint_ui (A, 192, 105));
+    checkres ("[17, 56]"  , EC->DefPoint_ui (B, 17, 56));
+    checkres ("[200, 119]", EC->DefPoint_ui (U, 200, 119));
+    checkres ("[1, 193]"  , EC->DefPoint_ui (V, 1, 193));
+    checkres ("[42, 99]"  , EC->DefPoint_ui (X, 42, 99));
+  }
   // Ex. 2
-  EC->SetPoint_ui (X, 170, 142); 
-  EC->SetPoint_ui (Y, 60, 139);
+
+  {
+    FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+    POUT("Ex. 2");
+
+    checkres ("X:[170 142]", EC->DefPoint_ui (X, 170, 142)); 
+    checkres ("Y:[60 139]", EC->DefPoint_ui (Y, 60, 139));
+    checkres ("A:[47 71]", EC->DefPoint_ui (A, 47, 71)); 
+    checkres ("B:[17 56]", EC->DefPoint_ui (B, 17, 56)); 
+    checkres ("U:[143 98]", EC->DefPoint_ui (U, 143, 98));
+    checkres ("V:[76 66]", EC->DefPoint_ui (V, 76, 66)); 
+
+    //EC->PrintPoint ("X:", X); 
+    //EC->PrintPoint ("Y:", Y); 
+    EC->Add (P, X, Y);
+    EC->PrintPoint("X+Y:", P); 
   
-  EC->SetPoint_ui (A, 47, 71); 
-  EC->SetPoint_ui (B, 17, 56); 
-
-  EC->SetPoint_ui (U, 143, 98);
-  EC->SetPoint_ui (V, 76, 66); 
-
-  EC->Add (P, X, Y);
-  EC->PrintPoint ("X:", X); 
-  EC->PrintPoint ("Y:", Y); 
-  EC->PrintPoint("X+Y:", P); 
-  
-  EC->Add (Q, A, B);
-  EC->PrintPoint ("A:", A); 
-  EC->PrintPoint ("B:", B); 
-  EC->PrintPoint ("A+B:", Q); 
-  
-  EC->PrintPoint ("U:", U); 
-  EC->PrintPoint ("V:", V); 
-  EC->Add (R, U, V);
-  EC->PrintPoint ("U+V:", R); 
-
-
-
-
+    //EC->PrintPoint ("A:", A); 
+    //EC->PrintPoint ("B:", B); 
+    EC->Add (Q, A, B);
+    EC->PrintPoint ("A+B:", Q); 
+    
+    //EC->PrintPoint ("U:", U); 
+    //EC->PrintPoint ("V:", V); 
+    EC->Add (R, U, V);
+    EC->PrintPoint ("U+V:", R); 
+  }
 
 
   printf ("sizeof(size_t): %zu\n", sizeof(size_t));
@@ -232,9 +205,7 @@ void SEC256k1_test ()
 
   POUT ("0");
   FFM::FEConPtr F = FFM::Create_FE_context(kSEC256k1_p_sz, 0);
-  FFM::ECConRef EC = FFM::Create_EC_context (F);  
-
-
+  FFM::ECConRef EC = FFM::Create_EC_context (F, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 0);  
 
   const std::string
     Fp = "Fp",
@@ -253,25 +224,23 @@ void SEC256k1_test ()
   // F->Add ( 
   // 
   EC->DefPoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0);
-  EC->PrintPoint ("G-> ", G);
+  EC->PrintPoint ("G|HEX:", G, FFM::EC_Format::HEX);
+  EC->PrintPoint ("G|DEC: ", G, FFM::EC_Format::DEC);
   //
-  EC->DefCoeffs (Eq, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 0); 
-  EC->PrintCoeffs ("eq-> ", Eq);
+  EC->PrintCoeffs ("eq-> ", FFM::EC_Format::DEC);
   
   
-  EC->DefPoint (R, "0xdeadbeef", "0xdeadf00d", 0);  
-  EC->PrintPoint ("R-> ", R);
+  // EC->DefPoint (R, "0xdeadbeef", "0xdeadf00d", 0);  
+  // EC->PrintPoint ("R-> ", R);
 
-  EC->DefElem (s, "0x04ea32532fd", 0);
+  // EC->DefElem (s, "0x04ea32532fd", 0);
 
 //  FFM::EC->Mul (R, s, G);
 
-  EC->DefPoint (Q);
-  EC->DefPoint (M);
 
   EC->Add (Q, G, G);
   POUT("G+G=Q");
-  EC->PrintPoint ("Q-> ", Q);
+  EC->PrintPoint ("Q-> ", Q, FFM::EC_Format::HEX);
 
   
   // EC_Sub (M, Q, G); 
@@ -279,7 +248,7 @@ void SEC256k1_test ()
   // EC_Print("Q->", Q);  
   
   //FFM::EC_IsPointOnCurve (); 
-  EC->IsPointOnCurve (Eq, G); 
+  // EC->IsPointOnCurve (Eq, G); 
 
  
 }
