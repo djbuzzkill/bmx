@@ -52,6 +52,10 @@ namespace FFM
     virtual int Cmp (FE_t lhs, FE_t rhs) = 0; 
     virtual int Cmp_ui (FE_t lhs, size_t rhs) = 0;
     
+    virtual void LogiAnd (FE_t O, FE_t lhs, FE_t rhs) = 0;
+    virtual void LogiShiftR (FE_t x, size_t shift) = 0;
+    virtual void LogiShiftL (FE_t x, size_t shift) = 0;
+    virtual bool LogiBit (FE_t v, size_t pos) = 0;
     
     virtual ByteArray& Raw (ByteArray& out, FE_t) = 0; 
     

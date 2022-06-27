@@ -1,7 +1,6 @@
 #include "EC_Math.h"
 #include "FFM/FE_Math.h"
 
-
 #include <gmp.h>
 
 #include <tuple>
@@ -9,7 +8,7 @@
 namespace FFM
 {
 
-  //#define GETCTX(x) std::get<2>((x))
+  //#define GETCTX(x) std::get<2>((x290:297:
 
   
   // EC_context::~EC_context () {} 
@@ -18,8 +17,7 @@ namespace FFM
   typedef std::tuple<FE_t, FE_t> ElemTuple; 
   
   inline FE_t& x(ElemTuple& t) { return std::get<0> (t); }
-  inline FE_t& y(ElemTuple& t) { return std::get<1> (t); }
-  
+  inline FE_t& y(ElemTuple& t) { return std::get<1> (t); } 
   inline const FE_t& x(const ElemTuple& t) { return std::get<0> (t); }
   inline const FE_t& y(const ElemTuple& t) { return std::get<1> (t); }
 
@@ -41,16 +39,16 @@ namespace FFM
     ~EC_con_impl ();  
    // s * P , 
     bool Add (const std::string& out, const std::string& lhs, const std::string& rhs);
-    bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P); 
-    bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P);
- 
+    // bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P); 
+    bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P); 
     // bool SetCoeffs (const char* a, const char* b, size_t base);
     // bool SetCoeffs_ui (size_t, size_t);
 
 
     // initialize point with elements
     bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
-    bool DefPoint_ui (const std::string& sym, size_t, size_t);  
+    bool CopyPoint (const std::string& sym, const std::string& P); 
+    bool DefPoint_ui (const std::string& sym, size_t, size_t); 
 
     bool DefElem (const std::string& sym, const char*, size_t ) ;
     bool DefElem_ui (const std::string& sym, size_t);
@@ -58,14 +56,13 @@ namespace FFM
     // return to source
     bool UndefPoint (const std::string&) ;
     bool UndefElem  (const std::string&) ;
-    
     void PrintPoint (const std::string& , const std::string&, EC_Format f = EC_Format::DEC) ;
     void PrintCoeffs (const std::string&, EC_Format f= EC_Format::DEC); 
     void PrintElem (const std::string& , const std::string&, EC_Format f= EC_Format::DEC); 
     
     
     //  bool EC_IsAtInfinity (const EC_Point& P);
-    bool IsPointOnCurve (FE_t, FE_t);
+    bool IsPointOnCurve (FE_t, FE_t); 
 
     // -------------------------------------------------------------------
     //
@@ -75,8 +72,6 @@ namespace FFM
 
     ElemTuple& point (const std::string& name) { return pointmap[name]; }
     const ElemTuple& cpoint (const std::string& name) { return pointmap.at(name); }
-
-
     FE_t& elem (const std::string& name) { return elmap[name]; }
     const FE_t& celem  (const std::string& name) { return elmap.at(name); }
  
@@ -84,7 +79,6 @@ namespace FFM
     typedef std::map<std::string, ElemTuple> PointMap;
     typedef std::map<std::string, ElemTuple> CurveMap;
     typedef std::map<std::string, FE_t> ElementMap; 
-    
     FEConPtr F;  
     PointMap pointmap;
 
@@ -92,24 +86,21 @@ namespace FFM
     ElemTuple coeffs;
     
 
-    enum { 
 
-
-      kTempStackSize = 32  } ; 
 
 
   };
 
   
       // EC_con_impl (FEConPtr F, const char*, const char*, size_t); 
-    //virtual ~EC_con_impl (); 
+    //vir290:297:al ~EC_con_impl (); 
   EC_con_impl::EC_con_impl (FEConPtr fc, const char* astr, const char* bstr, size_t base)
       : F(fc)
       , pointmap()
       , coeffs ()
 	//, curvemap()dd
       , elmap()
-    {
+	 {
       a(coeffs) = F->New(astr, base);
       b(coeffs) = F->New(bstr, base);
       
@@ -131,7 +122,7 @@ namespace FFM
 	  F->Del(e.second); 
 	}
       
-	F->Del (a(coeffs)); 
+      F->Del (a(coeffs)); 
       F->Del (b(coeffs));
 
     }
@@ -139,41 +130,41 @@ namespace FFM
 
 
   //
-  //
   bool EC_con_impl::Add (const std::string& out, const std::string& lhs, const std::string& rhs)
   {
-    printf("%s\n", __FUNCTION__); 
-	 
+    //printf ("%s[out:%s, lhs:%s, rhs:%s] \n", __FUNCTION__, out.c_str(), lhs.c_str(), rhs.c_str());  
     ScopeDeleter dr (F);
 
     FE_t s = dr(F->New());
     FE_t s_n = dr(F->New());
     FE_t s_d = dr(F->New());
-    FE_t ss = dr(F->New());
-    FE_t t = dr(F->New());
-    FE_t u = dr(F->New());
-    FE_t v = dr(F->New());
+    FE_t ss  = dr(F->New());
+    FE_t t   = dr(F->New());
+    FE_t u   = dr(F->New());
+    FE_t v   = dr(F->New());
 
-   ElemTuple M;
-   x(M) = F->New();
-   y(M) = F->New(); 
 
-   if (!pt_exists(lhs) || !pt_exists(rhs) || pt_exists(out))
+    FE_t xo  = F->New();
+    FE_t yo  = F->New();
+
+   if (!pt_exists(lhs) || !pt_exists(rhs) )
      return false;
 
-   
-    // Case 0.0: self is the point at infinity, return other
+
+  
+   // Case 0.0: self is the point at infinity, return other
     //  if self.x is None:
     //      return other
 
     // Case 0.1: other is the point at infinity, return self
     //  if other.x is None:
-    //      return self
+    //      return s290:297:f
 
     const ElemTuple& R = point(rhs); 
     const ElemTuple& L = point(lhs);
     // O != 0
-
+    char tbuf[32]; 
+	
     // comparisons 
     int cmpx = F->Cmp (x(point(lhs)), x(point(rhs))); 
     int cmpy = F->Cmp (y(point(rhs)), y(point(rhs)));
@@ -181,30 +172,28 @@ namespace FFM
 
     int cmp_y1_0 =  F->Cmp_ui (y(L), 0);
     
-    // 
-   printf("line(%i)\n", __LINE__);
     // Case 1: self.x == other.x, self.y != other.y
     // Result is point at infinity
     // //
     if (cmpx == 0 && cmpy != 0)
       {
-	POUT("(cmpx == 0 && cmpy != 0)"); 
-      }
+	POUT("x1 == x2 && y1 != y2"); 
+     }
     
 
     
     //      
-    //Case 2: self.x ≠ other.x
+    //Case 2: self.x != other.x
     // Formula (x3,y3)==(x1,y1)+(x2,y2)
     else if (cmpx != 0)
-      {
-	POUT("cmpx != 0");
+     {
+       // POUT("  x1 != x2");
 	
 	// if self.x != other.x:
 	//   s = (other.y - self.y) / (other.x - self.x)
 	//   x = s**2 - self.x - other.x
 	//   y = s * (self.x - x) - self.y
-	//   return self.__class__(x, y, self.a, self.b)
+	//   return self.__class__(x, y, self.a, self290:297:)
 	
 	
 	F->Sub (s_n, y(R), y(L)); 
@@ -214,55 +203,85 @@ namespace FFM
 
 	F->Pow_ui(ss, s, 2);
 	F->Sub (u, ss, x(L));
-	F->Sub (x(M), u, x(R));
+	F->Sub (xo, u, x(R));
 	// x3=s**2-x1-x2
 
 
-	F->Sub (u, x(L), x(M));
+	F->Sub (u, x(L), xo);
 	F->Mul (v, s, u);
-	F->Sub (y(M), v, y(L)); 
+	F->Sub (yo, v, y(L));
+	
 	// y3=s*(x1-x3)-y1
 
 
 	// xtra check
-        assert (IsPointOnCurve(x(M), y(M)));
-	point(out) = M; 
+        if (IsPointOnCurve(xo, yo))
+	  {
+	    if (pt_exists(out))
+	      {
+		ElemTuple& O = point(out);
+		
+		F->Set (x(O), xo);
+		F->Set (y(O), yo);
+		dr (xo);
+		dr (yo);
+		
+	      }
+	    else
+	      {
+		ElemTuple& O = point(out);
+		x(O) = xo;
+		y(O) = yo; 
+		
+	      }
+	    
+	    return true; 
+	  }
+	else
+	  {
+	    printf ("POINT NOT ON CURVE|ln:%i\n", __LINE__); 
 
-	// O = (x3,y3) .. 
-	return true; 
+	  }
      }
    
 
     else if (cmpx == 0 && cmp_y1_0 == 0)
       {
-	POUT("cmpx == 0 && cmp_y1_0 == 0..point is at infinity");
+	POUT("x1 == x2...line is vertical");
 
-        // Case 4: if we are tangent to the vertical line,
+        // Case 4: if we are tangent to the vertical lin290:297:
 
-	// just fall thru
+	if (pt_exists(out))
+	  
+	  {}
+	else
+	  {}
+	  // just fall thru
 
       }
 
 
     
     else 
-      {
-	POUT("lhs == rhs"); 
+    {
+      // POUT("  lhs == rhs"); 
 	// Case 3: self == other
         // Formula (x3,y3)=(x1,y1)+(x1,y1)
         // s=(3*x1**2+a)/(2*y1)
         // x3=s**2-2*x1
         // y3=s*(x1-x3)-y1
-        // if self == other:
+        // if self =290:297:other:
         //    s = (3 * self.x**2 + self.a) / (2 * self.y)
         //    x = s**2 - 2 * self.x
         //    y = s * (self.x - x) - self.y
         //    return self.__class__(x, y, self.a, self.b)
 	F->Set_ui(v, 3);
-	
+
 	F->Pow_ui(u, x(L), 2);
         F->Mul(t, u, v);
 	F->Add(s_n, t, a(coeffs));
+
+
 
 	F->Set_ui(v, 2);
 	F->Mul (s_d, v, y(L));  
@@ -270,27 +289,59 @@ namespace FFM
 	F->Div (s, s_n, s_d);
 	// s = (3 * self.x**2 + self.a) / (2 * self.y)
 
+
 	F->Pow_ui(ss, s, 2);
 	F->Add(u, x(L),  x(L)); 
-	F->Sub(x(M), ss, u);
+
+
+// F->Format (tbuf, "%Zu", x(L)); 
+// printf ("[x1:%s]n:%i|ln:%i\n", tbuf, x(L), __LINE__); 
+// F->Format (tbuf, "%Zu", x(M)); 
+// printf ("{x3:%s]n:%i|ln:%i\n", tbuf, x(M), __LINE__);
+
+
+        F->Sub(xo, ss, u);
         // x = s**2 - 2 * self.x
 
-
-        F->Sub(v, x(L), x(M));
+        F->Sub(v, x(L), xo);
 	F->Mul(t, s, v);
-	F->Sub(y(M), t, y(L)); 
+	F->Sub(yo, t, y(L)); 
+        // y3=s*(x1-x3)-y1
 
 
-	assert (IsPointOnCurve (x(M), y(M)));
-	point(out) = M;
-	return true; 
+
+	if (IsPointOnCurve (xo, yo))
+	{
+	  if (pt_exists(out))
+	    {
+	      ElemTuple& M = point(out);
+	      F->Set (x(M), xo);
+	      F->Set (y(M), yo); 
+	      dr (xo);
+	      dr (yo); 
+	    }
+	  else
+	    {
+
+	      ElemTuple& nupoint = point(out);
+	      x(nupoint) = xo;
+	      y(nupoint) = yo;   
+	    }
+    
+	  return true; 
+	}
+	else
+	  {
+	    printf ("POINT NOT ON CURVE|ln:%i\n", __LINE__);
+
+	  }
 
       }
 
 
     
-    F->Del(x(M));
-    F->Del(y(M));
+    // F->Del(x(M));
+    // F->Del(y(M));
  
 
     return false; 
@@ -298,21 +349,76 @@ namespace FFM
 
  //
   //
-  bool EC_con_impl:: Mul_scalar (const std::string& O, const std::string& s,  const std::string& P)
-  {
-    if (!el_exists(s) || !pt_exists(P) || !pt_exists(O))
-      return false;
+  // bool EC_con_impl:: Mul_scalar (const std::string& O, const std::string& s,  const std::string& P)
+  // {
 
+  //   if (!el_exists(s) || !pt_exists(P) || pt_exists(O))
+  //     return false;
 
-    return true; 
+  //   FE_t one = F->New_ui (1);
+
     
+  //   CopyPoint(O, P);
+
+  //   while(F->Cmp (elem(s), 0))
+  //   {
+  //     // s & 0x1
+  //     if (F->LogiBit (elem(s), 0))
+  // 	{
+  // 	  // if s & 0x1 is true, 
+  // 	  Add (O, O, P); 
+	  
+  // 	}
+  //     Add (O, O, P); 
+
+  //     // s == s >> 1
+  //     F->LogiShiftR (elem(s), 1); 
+  //   }
     
-  }
+
+  //   return true; 
+  // }
 
   //
   // 
-  bool EC_con_impl:: Mul_scalar_ui (const std::string& O, size_t s, const std::string& P)
+  bool EC_con_impl:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
   {
+
+    printf ("%s\n", __FUNCTION__);
+
+    if ( !pt_exists(P) || pt_exists(O))
+      return false;
+
+
+    size_t scount = s_ - 1;
+    
+    CopyPoint (O, P);
+
+    while (scount)
+      {
+	// if (scount & 0x1)
+	// {
+
+	//   POUT ("inwhile_if"); 
+	//   Add(O, O, P);
+	//   numadds++; 
+	// }
+	
+
+	if (!Add (O, O, P))
+	  printf ("add FAILED\n"); 
+	scount--; 
+
+
+	char xbuf[256];
+	char ybuf[256];
+	F->Format (xbuf, "%Zu", x(point(O)));
+	F->Format (ybuf, "%Zu", y(point(O)));
+	printf ("%s(x:%s, y:%s)\n", O.c_str(), xbuf, ybuf); 
+	
+      }
+    
+    
     
     return false; 
   }
@@ -387,6 +493,23 @@ namespace FFM
     return false; 
 
   }
+
+
+  bool EC_con_impl::CopyPoint(const std::string &sym, const std::string &P)
+  {
+    if (!pt_exists(P))
+      return false;
+
+    ElemTuple& newpoint = point(sym);   
+    x(newpoint) = F->New ();  
+    y(newpoint) = F->New ();
+
+    F->Set (x(newpoint), x(point(P)));
+    F->Set (y(newpoint), y(point(P)));
+    
+    return true;
+  }
+
  
   bool EC_con_impl::DefPoint_ui (const std::string& sym, size_t px, size_t py)
   {

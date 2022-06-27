@@ -13,7 +13,6 @@ public:
     FE_ctx_impl (const char*, size_t); 
     ~FE_ctx_impl ();
     
-    enum { LocalElementStackSize = 32 } ; 
     
   public:
     char* Format (char* out, const char* fmt, FE_t x); 
@@ -46,12 +45,16 @@ public:
     
     int Cmp_ui (FE_t lhs, size_t rhs); 
 
-    
+    void LogiAnd (FE_t O, FE_t lhs , FE_t rhs);
+    void LogiShiftR (FE_t x, size_t shift);
+    void LogiShiftL (FE_t x, size_t shift);
+    bool LogiBit (FE_t v, size_t pos);
+
+
     ByteArray& Raw (ByteArray& out, FE_t); 
     
     inline __mpz_struct* el (FE_t x) { return &elems[x]; }
     //inline __mpz_struct* el (FE_t x) { return el(x.name()); }
-    inline __mpz_struct* loc(size_t x) { return &locals[x]; }
     
     inline bool check (FE_t x) { return elems.count (x) ? true : false;  } 
     //inline bool check (FE_t x) {return check(x.name()); }
@@ -65,7 +68,6 @@ public:
     mpz_t  Fp; 
     mpz_t Fp_minus_two; 
     mpz_map elems; 
-    mpz_array locals; 
 
   };
 
@@ -74,7 +76,6 @@ public:
   
   FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) 
     : elems ()
-    , locals (LocalElementStackSize)
   {
  
     mpz_init (Fp); 
@@ -85,12 +86,7 @@ public:
     
     mpz_sub_ui (Fp_minus_two, Fp, 2); 
     
-    // local temp 
-    for (size_t i = 0; i < LocalElementStackSize; ++i)
-      {
-	mpz_init (loc(i)); 
-      }
-  } 
+ } 
 
   FE_ctx_impl::~FE_ctx_impl ()
   {
@@ -177,6 +173,8 @@ public:
   // returning element; 
   void FE_ctx_impl::Del(FE_t x)
   {
+    //printf ("DELETER[%i]\n", x);
+    
     mpz_map::iterator it = elems.find (x); 
     
     if (it != elems.end())
@@ -192,43 +190,52 @@ public:
   // out = 1/x
   void FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
   {
-    
-    enum { x=0, y, z };  
-    
-    mpz_add (loc(z), el(lhs), el(rhs) ); 
-    mpz_mod (el(out),loc(z), Fp);
+    ScopeDeleter dr (shared_from_this());
+
+    FE_t z = dr(New()); 
+    mpz_add (el(z), el(lhs), el(rhs) ); 
+    mpz_mod (el(out),el(z), Fp);
      
   }
  
   void FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs)
   {
-     enum {x= 0, y, z};
+    //    printf ("%s[out:%i, lhs:%i, rhs:%i]\n",__FUNCTION__, out, lhs, rhs); 
+    ScopeDeleter dr (shared_from_this());
+    FE_t y = dr (New());
+
+
+    //printf (" [y:%i]\n", y); 
+
+
+ 
+    mpz_sub (el(y), el(lhs), el(rhs));
     
-    mpz_sub (loc(y), el(lhs), el(rhs));
-    
-    mpz_mod (el(out), loc(y), Fp); 
+    mpz_mod (el(out), el(y), Fp); 
     
   }
  
   void FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
   {
-    enum { x = 0, y , z};
-    
-    mpz_mul (loc(x), el(lhs), el(rhs));
-    mpz_mod (el(out), loc(x), Fp);
+    ScopeDeleter dr (shared_from_this());
+    FE_t r = dr (New());  
+    mpz_mul (el(r), el(lhs), el(rhs));
+    mpz_mod (el(out), el(r), Fp);
   }
   //
   // out = (lhs / rhs)%Fp
   void FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
   {
     
-    enum {x=0, y, z}; 
-  
-    mpz_powm (loc(x), el(rhs), Fp_minus_two, Fp);
+    ScopeDeleter dr (shared_from_this());
+    FE_t x = dr (New());
+    FE_t z = dr (New());
+    
+    mpz_powm (el(x), el(rhs), Fp_minus_two, Fp);
 
-    mpz_mul (loc(z), el(lhs), loc(x)); 
+    mpz_mul (el(z), el(lhs), el(x)); 
 
-    mpz_mod (el(out), loc(z), Fp);
+    mpz_mod (el(out), el(z), Fp);
  
   }
 
@@ -257,10 +264,50 @@ public:
   }
   
 
-int FE_ctx_impl::Cmp_ui (FE_t lhs, size_t rhs)
-{
-  return mpz_cmp_ui (el(lhs), rhs); 
-}
+  int FE_ctx_impl::Cmp_ui (FE_t lhs, size_t rhs)
+  {
+    return mpz_cmp_ui (el(lhs), rhs); 
+  }
+
+  void FE_ctx_impl::LogiAnd (FE_t O, FE_t lhs, FE_t rhs)
+  {
+
+    if (!(O) || !check (lhs) || !check (rhs))
+      return;
+
+    mpz_and (el(O), el(lhs), el(rhs));  
+    
+    
+  }
+  
+  void FE_ctx_impl::LogiShiftR (FE_t x, size_t shift)
+  {
+    if (!check(x))
+      return; 
+
+
+    mpz_div_ui (el(x), el(x), 2*shift); 
+   
+  }
+  
+  void FE_ctx_impl::LogiShiftL (FE_t x, size_t shift)
+  {
+    if (!check(x))
+      return; 
+
+    mpz_mul_ui (el(x), el(x), 2*shift); 
+    
+  }
+
+  bool FE_ctx_impl::LogiBit (FE_t x , size_t pos)
+  {
+    if (!check(x))
+      return false; 
+
+    return (mpz_tstbit (el(x), pos) ? true : false);
+
+
+  }
 
 
   ByteArray& FE_ctx_impl::Raw (ByteArray& out, FE_t x)

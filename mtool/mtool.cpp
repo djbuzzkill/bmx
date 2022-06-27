@@ -145,6 +145,7 @@ void EC_test (std::vector<std::string>& args)
 
   const std::string U = "U.Point"; 
   const std::string V = "V.Point";
+  const std::string N = "N.Point";
   
   const std::string P = "P.Point"; 
   const std::string Q = "Q.Point"; 
@@ -191,9 +192,45 @@ void EC_test (std::vector<std::string>& args)
   }
 
 
-  printf ("sizeof(size_t): %zu\n", sizeof(size_t));
-  
-  printf ("sizeof(int): %zu \n", sizeof(int));
+
+  {
+    POUT("Ex. 4");
+    FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+
+    checkres ("[]", EC->DefPoint_ui(A, 192,  105));
+    checkres ("[]", EC->DefPoint_ui(B, 143, 98)); 
+    checkres ("[]", EC->DefPoint_ui(X, 47, 71));
+    checkres ("[]", EC->DefPoint_ui(Y, 47, 71));
+    checkres ("[]", EC->DefPoint_ui(U, 47, 71));
+    checkres ("[]", EC->DefPoint_ui(V, 47, 71));
+    checkres ("[]", EC->DefPoint_ui(N, 47, 71));
+    
+   
+    EC->Mul_scalar_ui("oA", 2, A);
+    EC->Mul_scalar_ui("oB", 2, B);
+    EC->Mul_scalar_ui("oX", 2, X);
+    EC->Mul_scalar_ui("oY", 4, Y);
+    EC->Mul_scalar_ui("oU", 8, U);
+    EC->Mul_scalar_ui("oV", 20, V);
+    EC->Mul_scalar_ui("oN", 21, N); 
+    
+    
+
+
+    EC->PrintPoint("oA", "oA", FFM::EC_Format::DEC);
+    EC->PrintPoint("oB", "oB", FFM::EC_Format::DEC);
+    EC->PrintPoint("oX", "oX", FFM::EC_Format::DEC);
+    EC->PrintPoint("oY", "oY", FFM::EC_Format::DEC);
+    EC->PrintPoint("oU", "oU", FFM::EC_Format::DEC);
+    EC->PrintPoint("oV", "oV", FFM::EC_Format::DEC);
+ 
+    EC->PrintPoint("oN", "oN", FFM::EC_Format::DEC);
+    
+  }
+
+
+
+
 
 }
 

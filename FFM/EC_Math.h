@@ -30,17 +30,22 @@ namespace FFM
     virtual bool Add (const std::string& O, const std::string& lhs, const std::string& rhs) = 0;
 
     // s*P => R
-    virtual bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P) = 0; 
+    //virtual bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P) = 0; 
     virtual bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P) = 0;
     
     /* virtual bool Coeffs(const char* a, const char* b, size_t base) = 0; */
     /* virtual bool Coeffs_ui (size_t, size_t) = 0; */
 
+  
     virtual bool DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base) = 0;
+    virtual bool CopyPoint (const std::string& sym, const std::string& P) = 0; 
     virtual bool DefPoint_ui (const std::string&, size_t, size_t) = 0;
    
     virtual bool DefElem  (const std::string& sym, const char* strv, size_t base) = 0;
     virtual bool DefElem_ui (const std::string& , size_t x) = 0;
+
+
+   
     // initialize point with elements
     // return to source
     virtual bool UndefPoint (const std::string&) = 0;
