@@ -174,7 +174,8 @@ void EC_test (std::vector<std::string>& args)
     checkres ("A:[47 71]", EC->DefPoint_ui (A, 47, 71)); 
     checkres ("B:[17 56]", EC->DefPoint_ui (B, 17, 56)); 
     checkres ("U:[143 98]", EC->DefPoint_ui (U, 143, 98));
-    checkres ("V:[76 66]", EC->DefPoint_ui (V, 76, 66)); 
+    checkres ("V:[76 66]", EC->DefPoint_ui (V, 76, 66));
+    
 
     //EC->PrintPoint ("X:", X); 
     //EC->PrintPoint ("Y:", Y); 
@@ -384,12 +385,12 @@ void EC_test (std::vector<std::string>& args)
 	 
        }
      
-     if(true) 
+     if(false) 
        {
       POUT("NEW SECTION");
       
-      FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
       
+      FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
       EC->DefPoint_ui(A, 192,  105);
       EC->DefPoint_ui(B, 143, 98); 
       EC->DefPoint_ui(X, 47, 71);
@@ -402,7 +403,7 @@ void EC_test (std::vector<std::string>& args)
       EC->Add("V+N", V, N);
       EC->PrintPoint ("V+N:", "V+N");
       
-      for (unsigned i = 1; i < 32; ++i)
+      for (unsigned i = 1; i < 30; ++i)
 	{
 	  printf ("%i|", i); 
 	  EC->Mul_scalar_ui("oV", i, V);
@@ -411,6 +412,46 @@ void EC_test (std::vector<std::string>& args)
       POUT("<<<<<"); 
     
        }
+
+     if (true)
+       {
+	 
+	 POUT("Ex. 5");
+
+	 
+      FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+      EC->DefPoint_ui(P, 15, 86);
+      EC->DefPoint_ui(Q, 15, 86);
+      int count = 1;
+      bool add_success = true;
+      while (add_success)
+	{
+
+	  add_success = EC->Add(Q, Q, P);
+	  count++;
+	  
+	}
+
+      printf ("Ex.5 count:%i\n", count); 
+      
+       // prime = 223
+	 // a = FieldElement(0, prime)
+	 // b = FieldElement(7, prime)
+	 // x = FieldElement(15, prime)
+	 // y = FieldElement(86, prime)
+	 // p = Point(x, y, a, b)
+	 // inf = Point(None, None, a, b)
+
+	 
+	 
+	 // # create a product variable
+	 // # create a counter variable
+	 // # loop until the product is the point at infinity
+	 // # add the point to the product and increment counter
+	 // # print the counter when exited from loop
+       }
+
+     
     }
 
 }

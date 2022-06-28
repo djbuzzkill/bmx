@@ -21,9 +21,17 @@ namespace FFM
   inline const FE_t& x(const ElemTuple& t) { return std::get<0> (t); }
   inline const FE_t& y(const ElemTuple& t) { return std::get<1> (t); }
 
-
-
+  template<typename Ty>
+  inline bool is_INF (Ty x) { return x < 0 ? true : false; }
   
+  inline ElemTuple& set_INF(ElemTuple& P)
+  {
+    x(P) = x(P) < 0 ? x(P) : -x(P);
+    y(P) = y(P) < 0 ? y(P) : -y(P);
+    return P;
+  }
+
+    
   inline FE_t& a(ElemTuple& t) { return std::get<0> (t); }
   inline FE_t& b(ElemTuple& t) { return std::get<1> (t); }
 
@@ -161,9 +169,10 @@ namespace FFM
     
     
     // Case 0.0: self is the point at infinity, return other
-    if (x(point(lhs)) < 0)
+    if (is_INF(x(point(lhs))))
       {
 	POUT("[case0.0: lhs.x INF]");
+	set_INF(point(out));
 	return false;
       }
     //      
@@ -171,13 +180,25 @@ namespace FFM
    // Case 0.1: other is the point at infinity, return self
    //  if other.x is None:
    //      return 
-   if (x(point(rhs)) < 0)
+    if (is_INF(x(point(rhs))))
      {
        POUT("[case0.1: rhs.x INF]");
+       set_INF(point(out));
        return false;
      }
    
+    if (is_INF (y(point(lhs))))
+      {
+	POUT ("y.lhs is INF");
+	return false;
+      }
 
+
+    if (is_INF (y(point(rhs))))
+      {
+	POUT ("y.rhs is INF");
+	return false;
+      }
      
     const ElemTuple& R = point(rhs); 
     const ElemTuple& L = point(lhs);
@@ -186,7 +207,7 @@ namespace FFM
 	
     // comparisons 
     int cmpx = F->Cmp (x(point(lhs)), x(point(rhs))); 
-    int cmpy = F->Cmp (y(point(rhs)), y(point(rhs)));
+    int cmpy = F->Cmp (y(point(lhs)), y(point(rhs)));
 
     // Case 1: self.x == other.x, self.y != other.y
     // Result is point at infinity
@@ -194,16 +215,18 @@ namespace FFM
     if (cmpx == 0 && cmpy != 0)
       {
 	// POUT("[case1: x1==x2 && y1!=y2");
-	// x(point(out)) = (x(point(out)) < 0 ? x(point(out)) : -x(point(out))); 
-	// y(point(out)) = (x(point(out)) < 0 ? y(point(out)) : -y(point(out))); 
-	POUT("[case1 breakout]"); 
+	POUT("[case1: INF]"); 
+	
+	set_INF (point(out));
+
+	return false;
       }
     //      
     //Case 2: self.x != other.x
     // Formula (x3,y3)==(x1,y1)+(x2,y2)
     else if (cmpx != 0)
       {
-	//POUT("[case2: x1!=x2]"); 
+	POUT("[case2: x1!=x2]"); 
         // POUT("  x1 != x2");
 	
 	// if self.x != other.x:
@@ -231,6 +254,7 @@ namespace FFM
 	F->Sub (u, x(L), xo);
 	F->Mul (v, s, u);
 	F->Sub (yo, v, y(L));
+	
 	// y3=s*(x1-x3)-y1
 
 
@@ -265,16 +289,15 @@ namespace FFM
      }
     else if (cmpx == 0 && cmpy != 0)
       {
-	//POUT("[case4: x1=x2..y vert"); 
         // Case 4: if we are tangent to the vertical lin:
-
-
-	POUT("[case4 breakout]"); 
+	//POUT("[case4:INF]"); 
+	set_INF (point(out));
+	return false;
+	
       }
-    else 
+    else if (cmpx == 0 && cmpy == 0) 
       {
-	//POUT("lhs == rhs"); 
-	//PR("[case3: lhs=rhs]"); 
+	POUT("[case3:lhs==rhs]"); 
 	// Case 3: self == other
         // Formula (x3,y3)=(x1,y1)+(x1,y1)
         // s=(3*x1**2+a)/(2*y1)
@@ -290,8 +313,6 @@ namespace FFM
 	F->Pow_ui(u, x(L), 2);
         F->Mul(t, u, v);
 	F->Add(s_n, t, a(coeffs));
-
-
 
 	F->Set_ui(v, 2);
 	F->Mul (s_d, v, y(L));  
@@ -311,9 +332,8 @@ namespace FFM
 	F->Sub(yo, t, y(L)); 
         // y3=s*(x1-x3)-y1
 
-
 	if (IsPointOnCurve (xo, yo))
-	{
+	  {
 	  if (pt_exists(out))
 	    {
 	      ElemTuple& M = point(out);
@@ -336,7 +356,6 @@ namespace FFM
 	    printf ("POINT NOT ON CURVE|ln:%i\n", __LINE__);
 
 	  }
-	PR("case3 breakout\n"); 
       }
 
 
@@ -385,7 +404,7 @@ namespace FFM
   bool EC_con_impl:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
   {
 
-    //printf ("%s[o:%s, s:%zu, P:%s]\n", __FUNCTION__, O.c_str(), s_, P.c_str());
+    printf ("%s[o:%s, s:%zu, P:%s]\n", __FUNCTION__, O.c_str(), s_, P.c_str());
 
     if ( !pt_exists(P))
       {
@@ -393,17 +412,18 @@ namespace FFM
 	return false;
       }
     
-    char xbuf[256];
-    char ybuf[256];
-    int mcnt = 0; 
+    // std::array<char,128> xbuf;
+    // std::array<char, 128> ybuf;
+  
+    //    int mcnt = 0; 
     size_t scount = s_ - 1;
-    
     CopyPoint (O, P);
     //mcnt++;	
- //F->Format (xbuf, "%Zu", x(point(O)));
- //F->Format (ybuf, "%Zu", y(point(O)));
- //printf ("|%i) %s(x:%s, y:%s)\n", mcnt , O.c_str(), xbuf, ybuf); 
-    while (scount)  
+    //F->Format (xbuf, "%Zu", x(point(O)));
+    //F->Format (ybuf, "%Zu", y(point(O)));
+    //printf ("|%i) %s(x:%s, y:%s)\n", mcnt , O.c_str(), xbuf, ybuf); 
+    bool add_success = true;
+    while (scount && add_success)  
       {
 	// if (scount & 0x1)
 	// {
@@ -414,9 +434,11 @@ namespace FFM
 	// }
 	
 
-	bool addres = Add (O, O, P); 
-	if (addres == false)
-	    printf ("add FAILED\n"); 
+	add_success = Add (O, O, P); 
+	if (add_success == false)
+	  {
+	    printf ("add FAILED\n");
+	  }
 
 	scount--; 
 
@@ -441,7 +463,15 @@ namespace FFM
 
     char xbuf[256];
     char ybuf[256];
-     
+
+
+    // negative element names are define to represent infinity
+    if (ptx < 0 || pty < 0)
+      {
+	// is this correct?
+	return false; 
+      }
+
 
     //F->Format (xbuf, "%Zu", ptx);
     //F->Format (ybuf, "%Zu", pty);
@@ -532,10 +562,18 @@ namespace FFM
     ElemTuple& newpoint = point(sym);   
     x(newpoint) = F->New ();  
     y(newpoint) = F->New ();
-
-    F->Set (x(newpoint), x(point(P)));
-    F->Set (y(newpoint), y(point(P)));
+    if (is_INF(x(point(P))) || is_INF(y(point(P))))
+      {
+	x(newpoint) = -x(newpoint);
+	y(newpoint) = -x(newpoint); 
+      }
+    else
+      {
+	F->Set (x(newpoint), x(point(P)));
+	F->Set (y(newpoint), y(point(P)));
+      }
     
+   
     return true;
   }
 
@@ -674,6 +712,20 @@ namespace FFM
 	return;
       }
 
+    
+
+    if (is_INF (x(point(P))))
+      {
+	printf ("[%s is INF]\n", P.c_str());
+	return; 
+      }
+    if (is_INF (y(point(P))))
+      {
+	printf ("[%s is INF]\n", P.c_str());
+	return; 
+      }
+      
+	    
       
       switch (fmt)
       {

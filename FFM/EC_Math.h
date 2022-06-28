@@ -16,7 +16,8 @@ namespace FFM
     DEC, HEX
   } ;
 
-
+  //
+  //
 
   class EC_context : public FFM::Destructor 
   {
