@@ -142,24 +142,43 @@ namespace FFM
     FE_t t   = dr(F->New());
     FE_t u   = dr(F->New());
     FE_t v   = dr(F->New());
-
-
+    
+    
     FE_t xo  = F->New();
     FE_t yo  = F->New();
+    
+    if (!pt_exists(lhs) )
+      {
+	POUT ("lhs DNE");
+	return false;
+      }
+    
+    if ( !pt_exists(rhs) )
+     {
+       POUT ("rhs DNE");
+       return false;
+     }
+    
+    
+    // Case 0.0: self is the point at infinity, return other
+    if (x(point(lhs)) < 0)
+      {
+	POUT("[case0.0: lhs.x INF]");
+	return false;
+      }
+    //      
+   
+   // Case 0.1: other is the point at infinity, return self
+   //  if other.x is None:
+   //      return 
+   if (x(point(rhs)) < 0)
+     {
+       POUT("[case0.1: rhs.x INF]");
+       return false;
+     }
+   
 
-   if (!pt_exists(lhs) || !pt_exists(rhs) )
-     return false;
-
-
-  
-   // Case 0.0: self is the point at infinity, return other
-    //  if self.x is None:
-    //      return other
-
-    // Case 0.1: other is the point at infinity, return self
-    //  if other.x is None:
-    //      return s290:297:f
-
+     
     const ElemTuple& R = point(rhs); 
     const ElemTuple& L = point(lhs);
     // O != 0
@@ -169,30 +188,31 @@ namespace FFM
     int cmpx = F->Cmp (x(point(lhs)), x(point(rhs))); 
     int cmpy = F->Cmp (y(point(rhs)), y(point(rhs)));
 
-
-    int cmp_y1_0 =  F->Cmp_ui (y(L), 0);
-    
     // Case 1: self.x == other.x, self.y != other.y
     // Result is point at infinity
     // //
     if (cmpx == 0 && cmpy != 0)
       {
-	POUT("x1 == x2 && y1 != y2"); 
-     }
-    
-
-    
+	// POUT("[case1: x1==x2 && y1!=y2");
+	// x(point(out)) = (x(point(out)) < 0 ? x(point(out)) : -x(point(out))); 
+	// y(point(out)) = (x(point(out)) < 0 ? y(point(out)) : -y(point(out))); 
+	POUT("[case1 breakout]"); 
+      }
     //      
     //Case 2: self.x != other.x
     // Formula (x3,y3)==(x1,y1)+(x2,y2)
     else if (cmpx != 0)
-     {
-       // POUT("  x1 != x2");
+      {
+	//POUT("[case2: x1!=x2]"); 
+        // POUT("  x1 != x2");
 	
 	// if self.x != other.x:
 	//   s = (other.y - self.y) / (other.x - self.x)
 	//   x = s**2 - self.x - other.x
 	//   y = s * (self.x - x) - self.y
+	//   return self.__class__(x, y, self.a, self290:297:)
+		//   y = s * (self.x - x) - self.y
+	//   return self.__class__(x, y, self.a, self290:297:)
 	//   return self.__class__(x, y, self.a, self290:297:)
 	
 	
@@ -201,16 +221,16 @@ namespace FFM
 	F->Div (s, s_n, s_d); 
 	// s=(y2-y1)/(x2-x1)
 
+
 	F->Pow_ui(ss, s, 2);
 	F->Sub (u, ss, x(L));
 	F->Sub (xo, u, x(R));
 	// x3=s**2-x1-x2
-
-
+        
+		
 	F->Sub (u, x(L), xo);
 	F->Mul (v, s, u);
 	F->Sub (yo, v, y(L));
-	
 	// y3=s*(x1-x3)-y1
 
 
@@ -240,31 +260,21 @@ namespace FFM
 	else
 	  {
 	    printf ("POINT NOT ON CURVE|ln:%i\n", __LINE__); 
-
 	  }
+	POUT("case4 breakout");
      }
-   
-
-    else if (cmpx == 0 && cmp_y1_0 == 0)
+    else if (cmpx == 0 && cmpy != 0)
       {
-	POUT("x1 == x2...line is vertical");
+	//POUT("[case4: x1=x2..y vert"); 
+        // Case 4: if we are tangent to the vertical lin:
 
-        // Case 4: if we are tangent to the vertical lin290:297:
 
-	if (pt_exists(out))
-	  
-	  {}
-	else
-	  {}
-	  // just fall thru
-
+	POUT("[case4 breakout]"); 
       }
-
-
-    
     else 
-    {
-      // POUT("  lhs == rhs"); 
+      {
+	//POUT("lhs == rhs"); 
+	//PR("[case3: lhs=rhs]"); 
 	// Case 3: self == other
         // Formula (x3,y3)=(x1,y1)+(x1,y1)
         // s=(3*x1**2+a)/(2*y1)
@@ -293,13 +303,6 @@ namespace FFM
 	F->Pow_ui(ss, s, 2);
 	F->Add(u, x(L),  x(L)); 
 
-
-// F->Format (tbuf, "%Zu", x(L)); 
-// printf ("[x1:%s]n:%i|ln:%i\n", tbuf, x(L), __LINE__); 
-// F->Format (tbuf, "%Zu", x(M)); 
-// printf ("{x3:%s]n:%i|ln:%i\n", tbuf, x(M), __LINE__);
-
-
         F->Sub(xo, ss, u);
         // x = s**2 - 2 * self.x
 
@@ -307,7 +310,6 @@ namespace FFM
 	F->Mul(t, s, v);
 	F->Sub(yo, t, y(L)); 
         // y3=s*(x1-x3)-y1
-
 
 
 	if (IsPointOnCurve (xo, yo))
@@ -327,7 +329,6 @@ namespace FFM
 	      x(nupoint) = xo;
 	      y(nupoint) = yo;   
 	    }
-    
 	  return true; 
 	}
 	else
@@ -335,7 +336,7 @@ namespace FFM
 	    printf ("POINT NOT ON CURVE|ln:%i\n", __LINE__);
 
 	  }
-
+	PR("case3 breakout\n"); 
       }
 
 
@@ -343,7 +344,7 @@ namespace FFM
     // F->Del(x(M));
     // F->Del(y(M));
  
-
+    POUT("return end");  
     return false; 
   }
 
@@ -384,17 +385,25 @@ namespace FFM
   bool EC_con_impl:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
   {
 
-    printf ("%s\n", __FUNCTION__);
+    //printf ("%s[o:%s, s:%zu, P:%s]\n", __FUNCTION__, O.c_str(), s_, P.c_str());
 
-    if ( !pt_exists(P) || pt_exists(O))
-      return false;
-
-
+    if ( !pt_exists(P))
+      {
+	POUT ("P=DNE");
+	return false;
+      }
+    
+    char xbuf[256];
+    char ybuf[256];
+    int mcnt = 0; 
     size_t scount = s_ - 1;
     
     CopyPoint (O, P);
-
-    while (scount)
+    //mcnt++;	
+ //F->Format (xbuf, "%Zu", x(point(O)));
+ //F->Format (ybuf, "%Zu", y(point(O)));
+ //printf ("|%i) %s(x:%s, y:%s)\n", mcnt , O.c_str(), xbuf, ybuf); 
+    while (scount)  
       {
 	// if (scount & 0x1)
 	// {
@@ -405,17 +414,17 @@ namespace FFM
 	// }
 	
 
-	if (!Add (O, O, P))
-	  printf ("add FAILED\n"); 
+	bool addres = Add (O, O, P); 
+	if (addres == false)
+	    printf ("add FAILED\n"); 
+
 	scount--; 
 
 
-	char xbuf[256];
-	char ybuf[256];
-	F->Format (xbuf, "%Zu", x(point(O)));
-	F->Format (ybuf, "%Zu", y(point(O)));
-	printf ("%s(x:%s, y:%s)\n", O.c_str(), xbuf, ybuf); 
-	
+	//mcnt++;	
+	//F->Format (xbuf, "%Zu", x(point(O)));
+	//F->Format (ybuf, "%Zu", y(point(O)));
+	//printf ("|%i) %s(x:%s, y:%s)\n", mcnt,  O.c_str(), xbuf, ybuf); 
       }
     
     
@@ -430,28 +439,48 @@ namespace FFM
   bool EC_con_impl::IsPointOnCurve (FE_t ptx, FE_t pty)
   {
 
+    char xbuf[256];
+    char ybuf[256];
+     
+
+    //F->Format (xbuf, "%Zu", ptx);
+    //F->Format (ybuf, "%Zu", pty);
+    //printf ("%s[x:%s, y:%s):", __FUNCTION__, xbuf, ybuf); 
+ 
     ScopeDeleter dr (F); 
     
     FE_t lhs = dr(F->New ());
     FE_t rhs = dr(F->New ());
     FE_t t0  = dr(F->New ());  
     FE_t t1  = dr(F->New ());
+    FE_t t2  = dr(F->New ()); 
+
+
+
     // y^2 = x^3 + ax + b
     
     F->Pow_ui (t0, ptx, 3); 
     F->Mul (t1, a(coeffs), ptx);
-    F->Add (rhs, t0, t1); 
-    F->Add (rhs, rhs, b(coeffs));
+    F->Add (t2, t0, t1); 
+    F->Add (rhs, t2, b(coeffs));
+    // rhs
     
     F->Mul (lhs, pty, pty);
+    // lhs
 
+    
+    //F->Format (xbuf, "%Zu", rhs);
+    //F->Format (ybuf, "%Zu", lhs);
+    //printf ("[%s=%s]", ybuf, xbuf); 
     // lhs > rhs :
     // +
     // lhs = rhs : 0
     // lhs < rhs : - 
     int res = F->Cmp (lhs, rhs);
+    //printf("%s\n", res == 0? "yes" : "no");
 
-   return res == 0;
+
+  return res == 0;
   }
 
   ECConRef Create_EC_context (FEConPtr F, const char* astr, const char* bstr, size_t base) {

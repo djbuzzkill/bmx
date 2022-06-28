@@ -38,7 +38,14 @@ void print_bignum (const char *lbl, FFM::FE_t x, FFM::FEConPtr c) {
   printf ("%s%s\n", lbl, vstr); 
 }
 
-//
+bool checkres (const char* str, bool res)
+{
+  printf ("%s:%s\n", str, res ? "Yes" : "No"); 
+  return res; 
+}
+
+
+
 ////
 void FE_test(std::vector<std::string> &args)
 {
@@ -115,13 +122,6 @@ void FE_test(std::vector<std::string> &args)
 
 
 
-bool checkres (const char* str, bool res)
-{
-  printf ("%s:%s\n", str, res ? "Yes" : "No"); 
-  return res; 
-}
-
-
 
 
 
@@ -151,7 +151,8 @@ void EC_test (std::vector<std::string>& args)
   const std::string Q = "Q.Point"; 
   const std::string R = "R.Point"; 
 
-  // Ex. 1 
+  // Ex. 1
+  if (false)
   { 
     FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
     EC->PrintCoeffs ("Coefficients:", FFM::EC_Format::DEC);
@@ -163,7 +164,7 @@ void EC_test (std::vector<std::string>& args)
     checkres ("[42, 99]"  , EC->DefPoint_ui (X, 42, 99));
   }
   // Ex. 2
-
+  if (false)
   {
     FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
     POUT("Ex. 2");
@@ -191,50 +192,228 @@ void EC_test (std::vector<std::string>& args)
     EC->PrintPoint ("U+V:", R); 
   }
 
+  if (true)
+    { 
+      POUT("Ex.3");
+      
+      // class FieldElementTest(TestCase):
+      //FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10);
+
+      FFM::FEConPtr F31 = FFM::Create_FE_context("31", 10);
+
+      {
+        //  def test_ne(self):
+        //    a = FieldElement(2, 31)
+	//    b = FieldElement(2, 31)
+        //    c = FieldElement(15, 31)
+	//    self.assertEqual(a, b)
+        //    self.assertTrue(a != c)
+        //    self.assertFalse(a != b)
+	FFM::ScopeDeleter dr(F);
+
+	FFM::FE_t eA = dr (F31->New_ui(2));
+	FFM::FE_t eB = dr (F31->New_ui(2));
+	FFM::FE_t eC = dr (F31->New_ui(15));
+	
+	checkres ("A==B", 0 == F31->Cmp(eA, eB));
+	checkres ("A!=C", 0 != F31->Cmp(eA, eC)); 
+	checkres ("A!=B", 0 != F31->Cmp(eA, eB));
+      }
+      
+      {
+        //  def test_add(self):
+        //    a = FieldElement(2, 31)
+        //    b = FieldElement(15, 31)
+        //    self.assertEqual(a + b, FieldElement(17, 31))
+        //    a = FieldElement(17, 31)
+        //    b = FieldElement(21, 31)
+        //    self.assertEqual(a + b, FieldElement(7, 31))
+
+	FFM::ScopeDeleter dr(F);
+	FFM::FE_t eA = dr (F31->New_ui(2));
+	FFM::FE_t eB = dr (F31->New_ui(15));
+	FFM::FE_t eRes = dr (F31->New()); 
+	FFM::FE_t e17 = dr (F31->New_ui(17));
+	F31->Add(eRes, eA, eB);
+        checkres("A+B=17", 0 == F31->Cmp(eRes, e17));
 
 
-  {
-    POUT("Ex. 4");
-    FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+	FFM::FE_t e7 = dr(F31->New_ui(7)); 
+        F31->Set_ui(eA, 17);
+	F31->Set_ui(eB, 21);
+	F31->Add(eRes, eA, eB);
+	checkres("A+B=7", 0 == F31->Cmp (eRes,e7));  
+      }
+      
+     {
+       //  def test_sub(self):
+       //    a = FieldElement(29, 31)
+       //    b = FieldElement(4, 31)
+       //    self.assertEqual(a - b, FieldElement(25, 31))
+       //    a = FieldElement(15, 31)
+       //    b = FieldElement(30, 31)
+       //    self.assertEqual(a - b, FieldElement(16, 31))
+	FFM::ScopeDeleter dr(F);
+	FFM::FE_t eA = dr (F31->New_ui(29));
+	FFM::FE_t eB = dr (F31->New_ui(4));
+	FFM::FE_t e25 = dr(F31->New_ui(25));
+	
+        FFM::FE_t eRes = dr (F31->New()); 
+	F31->Sub (eRes , eA, eB);
+	checkres("A-B=25", 0 == F31->Cmp(eRes, e25)); 
 
-    checkres ("[]", EC->DefPoint_ui(A, 192,  105));
-    checkres ("[]", EC->DefPoint_ui(B, 143, 98)); 
-    checkres ("[]", EC->DefPoint_ui(X, 47, 71));
-    checkres ("[]", EC->DefPoint_ui(Y, 47, 71));
-    checkres ("[]", EC->DefPoint_ui(U, 47, 71));
-    checkres ("[]", EC->DefPoint_ui(V, 47, 71));
-    checkres ("[]", EC->DefPoint_ui(N, 47, 71));
+	F31->Set_ui(eA, 15);
+	F31->Set_ui(eB, 30);
+
+        F31->Sub (eRes, eA, eB); 
+	FFM::FE_t e16 = dr (F31->New_ui(16));
+	checkres("A-B=16", 0 == F31->Cmp(eRes, e16)); 
+     }
+      
+     {
+       //  def test_mul(self):
+       //    a = FieldElement(24, 31)
+       //    b = FieldElement(19, 31)
+       //    self.assertEqual(a * b, FieldElement(22, 31))
+ 	FFM::ScopeDeleter dr(F);
+	FFM::FE_t eA = dr (F31->New_ui(24));
+	FFM::FE_t eB = dr (F31->New_ui(19));
+	FFM::FE_t eRes = dr(F31->New());
+
+        F31->Mul(eRes, eA, eB);
+
+	FFM::FE_t e22 = dr (F31->New_ui(22));
+        checkres("A*B=22", 0 == F31->Cmp(eRes, e22));
+
+     }
+
+     {
+       //  def test_rmul(self):
+       //    a = FieldElement(24, 31) b = 2
+       //    self.assertEqual(b * a, a + a)
+     }
+
+     {
+       // def test_pow(self):
+       //   a = FieldElement(17, 31)
+       //   self.assertEqual(a**3, FieldElement(15, 31))
+       //   a = FieldElement(5, 31)
+       //   b = FieldElement(18, 31)
+       //   self.assertEqual(a**5 * b, FieldElement(16, 31))
+  	FFM::ScopeDeleter dr(F);
+	FFM::FE_t eA = dr (F31->New_ui(17));
+	FFM::FE_t res = dr(F31->New()); 
+        FFM::FE_t r15 = dr (F31->New_ui(15));
+	F31->Pow_ui(res, eA, 3);
+	checkres("a^3=15", 0 == F31->Cmp(res, r15)); 
+		 
+	F31->Set_ui(eA, 5);  
+        FFM::FE_t eB = dr (F31->New_ui(18));
+	FFM::FE_t e16 = dr(F31->New_ui(16));
+
+	F31->Pow_ui(res, eA, 5);
+	F31->Mul(res, res, eB);
+	checkres("A^5*B=16", 0 == F31->Cmp(res, e16));
+     }
+     {
+       //    def test_div(self):
+       //      a = FieldElement(3, 31)
+       //      b = FieldElement(24, 31)
+       //      self.assertEqual(a / b, FieldElement(4, 31))
+       //      a = FieldElement(17, 31)
+       //      self.assertEqual(a **-3, FieldElement(29, 31))
+       //      a = FieldElement(4, 31)
+       //      b = FieldElement(11, 31) self.assertEqual(a **-4 * b, FieldElement(13, 31))
+   	FFM::ScopeDeleter dr(F);
+	FFM::FE_t eA = dr (F31->New_ui(3));
+	FFM::FE_t eB = dr (F31->New_ui(24)); 
+        FFM::FE_t e4 = dr (F31->New_ui(4));
+	FFM::FE_t res= dr (F31->New()); 
+	F31->Div (res, eA, eB); 
+	checkres("A/B=4", 0 == F31->Cmp(res, e4));
+	    
+	F31->Set_ui(eA, 17);
+	FFM::FE_t e29 = dr (F31->New_ui(29));
+	F31->Pow_si(res, eA, -3);
+	checkres ("A^-3=29", 0 == F31->Cmp(res, e29)); 
+        // F31->Set_ui(eB
+     }
+
+
+     if (false) 
+       {
+	 POUT("Ex. 4");
+	 FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+	 
+	 EC->DefPoint_ui(A, 192,  105);
+	 EC->DefPoint_ui(B, 143, 98); 
+	 EC->DefPoint_ui(X, 47, 71);
+	 EC->DefPoint_ui(Y, 47, 71);
+	 EC->DefPoint_ui(U, 47, 71);
+	 EC->DefPoint_ui(V, 47, 71);
+	 EC->DefPoint_ui(N, 47, 152);
+      
+
+	 POUT(">>>>>>"); 
+	 
+	 // checkres ("[!]", EC->DefPoint_ui(R, 47, 152));
+	 // checkres ("[?]", EC->DefPoint_ui("wat", 36, 112));
+	 
+	 EC->Mul_scalar_ui("oA", 2, A);
+	 EC->Mul_scalar_ui("oB", 2, B);
+	 EC->Mul_scalar_ui("oX", 2, X);
+	 EC->Mul_scalar_ui("oY", 4, Y);
+	 EC->Mul_scalar_ui("oU", 8, U);
+	 EC->Mul_scalar_ui("oN", 20, N); 
+	 
+	 EC->PrintPoint(V, V, FFM::EC_Format::DEC);
+	 EC->PrintPoint(N, N, FFM::EC_Format::DEC);
+	 EC->Add ("V+N", V, N); 
+	 
+	 EC->PrintPoint(V, V, FFM::EC_Format::DEC);
+	 EC->PrintPoint(N, N, FFM::EC_Format::DEC);
+	 EC->PrintPoint("V+N", "V+N", FFM::EC_Format::DEC);
+	 //EC->Add (Q, N, R); 
+	 
+	 
+	 //EC->PrintPoint("oA", "oA", FFM::EC_Format::DEC);
+	 //EC->PrintPoint("oB", "oB", FFM::EC_Format::DEC);
+	 //EC->PrintPoint("oX", "oX", FFM::EC_Format::DEC);
+	 //EC->PrintPoint("oY", "oY", FFM::EC_Format::DEC);
+	 //EC->PrintPoint("oU", "oU", FFM::EC_Format::DEC);
+	 
+       }
+     
+     if(true) 
+       {
+      POUT("NEW SECTION");
+      
+      FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
+      
+      EC->DefPoint_ui(A, 192,  105);
+      EC->DefPoint_ui(B, 143, 98); 
+      EC->DefPoint_ui(X, 47, 71);
+      EC->DefPoint_ui(Y, 47, 71);
+      EC->DefPoint_ui(U, 47, 71);
+      EC->DefPoint_ui(V, 47, 71);
+      EC->DefPoint_ui(N, 47, 152);
+      
+      
+      EC->Add("V+N", V, N);
+      EC->PrintPoint ("V+N:", "V+N");
+      
+      for (unsigned i = 1; i < 32; ++i)
+	{
+	  printf ("%i|", i); 
+	  EC->Mul_scalar_ui("oV", i, V);
+	  EC->PrintPoint("oV", "oV", FFM::EC_Format::DEC);
+	}
+      POUT("<<<<<"); 
     
-   
-    EC->Mul_scalar_ui("oA", 2, A);
-    EC->Mul_scalar_ui("oB", 2, B);
-    EC->Mul_scalar_ui("oX", 2, X);
-    EC->Mul_scalar_ui("oY", 4, Y);
-    EC->Mul_scalar_ui("oU", 8, U);
-    EC->Mul_scalar_ui("oV", 20, V);
-    EC->Mul_scalar_ui("oN", 21, N); 
-    
-    
-
-
-    EC->PrintPoint("oA", "oA", FFM::EC_Format::DEC);
-    EC->PrintPoint("oB", "oB", FFM::EC_Format::DEC);
-    EC->PrintPoint("oX", "oX", FFM::EC_Format::DEC);
-    EC->PrintPoint("oY", "oY", FFM::EC_Format::DEC);
-    EC->PrintPoint("oU", "oU", FFM::EC_Format::DEC);
-    EC->PrintPoint("oV", "oV", FFM::EC_Format::DEC);
- 
-    EC->PrintPoint("oN", "oN", FFM::EC_Format::DEC);
-    
-  }
-
-
-
-
+       }
+    }
 
 }
-
-
 
 void SEC256k1_test ()
 {

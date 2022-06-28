@@ -25,7 +25,10 @@ public:
     
     
     void Set (FE_t place, const char* strv, size_t base = 0); 
+
     void Set_ui (FE_t place, size_t v); 
+    void Set_si (FE_t place, long int v); 
+
     void Set (FE_t lval, FE_t rval);
     
     // returning element; 
@@ -37,6 +40,7 @@ public:
     void Div (FE_t out, FE_t lhs, FE_t rhs);
     void Pow (FE_t out, FE_t b, FE_t exp); 
     void Pow_ui (FE_t out, FE_t b, size_t exp); 
+    void Pow_si (FE_t out, FE_t base, long int exp);
     void Inv (FE_t out, FE_t x);
 
 
@@ -65,7 +69,8 @@ public:
     
   public: 
     // size_t num_field_bits;
-    mpz_t  Fp; 
+    mpz_t Fp; 
+    mpz_t Fp_minus_one;
     mpz_t Fp_minus_two; 
     mpz_map elems; 
 
@@ -81,7 +86,10 @@ public:
     mpz_init (Fp); 
     mpz_set_str (Fp, strv, base);
 
+    mpz_init (Fp_minus_one);
+    mpz_sub_ui (Fp_minus_one, Fp, 1);
 
+    
     mpz_init (Fp_minus_two);
     
     mpz_sub_ui (Fp_minus_two, Fp, 2); 
@@ -147,6 +155,18 @@ public:
     mpz_set_ui (el(place), v); 
   }
 
+
+  void FE_ctx_impl::Set_si (FE_t place, long int si)
+  {
+    if (!check(place))
+      return ;
+
+
+    mpz_set_si (el(place), si); 
+    
+
+  }
+  
   // 
   void FE_ctx_impl::Set (FE_t place, const char* strv, size_t base)
   {
@@ -250,12 +270,38 @@ public:
   }
 
 
-  void FE_ctx_impl::Pow_ui (FE_t out, FE_t b, size_t exp)
+  void FE_ctx_impl::Pow_ui (FE_t out, FE_t base, size_t exp_ui)
   {
-    mpz_pow_ui (el(out), el(b), exp);
-    mpz_mod (el(out), el(out), Fp);
+    //    def __pow__(self, exponent):
+    //  n = exponent % (self.prime - 1)
+    //  num = pow(self.num, n, self.prime)
+    //  return self.__class__(num, self.prime)
+
+    ScopeDeleter dr(shared_from_this()); 
+
+    FE_t exp = dr(New_ui(exp_ui)); 
+    FE_t n = dr (New ()); 
+
+    mpz_mod (el(n), el(exp), Fp_minus_one); 
+    mpz_powm (el(out), el(base), el(n), Fp); 
+      
   }
  
+  void FE_ctx_impl:: Pow_si (FE_t out, FE_t base, long int exp)
+  {
+    //def __pow__(self, exponent):
+    //  n = exponent % (self.prime - 1)
+    //  num = pow(self.num, n, self.prime)
+    //  return self.__class__(num, self.prime)
+
+    ScopeDeleter dr (shared_from_this());
+
+    FE_t n = dr(New ());
+    FE_t exponent = dr (New_si(exp)); 
+    mpz_mod (el(n), el(exponent), Fp_minus_one); 
+    mpz_powm (el(out), el(base), el(n), Fp);
+    
+  }
 
 
   int FE_ctx_impl::Cmp (FE_t lhs, FE_t rhs)
