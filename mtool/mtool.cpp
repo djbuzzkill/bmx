@@ -1,44 +1,53 @@
 #include "mtool.h"
+#include "FFM/EC_Math.h"
 
 //#include <glm/glm.hpp>
 //#include <stdio.h>
 
 
 #include <Cx/System.h>
+#include <Hx/Hash.h>
+
+
+#include<array>
 //#include <SDL2/SDL.h>
 //#include <vulkan/vulkan.h>
 
 //#include <openssl/sha.h>
 
-#include <cryptopp/sha.h>
-#include <cryptopp/ripemd.h>
+//#include <crypto++/cryptlib.h>
+//#include <cryptopp/sha.h>
+//#include <cryptopp/ripemd.h>
 
+#include "gcrypt.h"
+//#include "sha2.h"
 
+// big num math
 #include <gmp.h>
 
 // zero mq messaging
 #include <zmq.h>
 
 //  SEC256k1  stuff
-const char kSEC256k1_p_sz[]       = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F";
-const char kSEC256k1_G_x_sz[]     = "0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
-const char kSEC256k1_G_y_sz[]     = "0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8";
+const char kSEC256k1_p_sz[]       = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
+const char kSEC256k1_G_x_sz[]     = "0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
+const char kSEC256k1_G_y_sz[]     = "0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8";
 const char kSEC356k1_coeff_a_sz[] = "0x0";
 const char kSEC256k1_coeff_b_sz[] = "0x7"; 
-
+const char kSEC256k1_n_sz[]       = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"; 
 // y^2 = x^3 +ax^2+b 
 const size_t kField_bit_precision = 256;
 
 
+inline void print_bignum (const char *lbl, FFM::FE_t x, FFM::FEConPtr c) {
 
-void print_bignum (const char *lbl, FFM::FE_t x, FFM::FEConPtr c) {
-
-  char vstr[256]; 
-  c->Format (vstr, "%Zd", x); 
-  printf ("%s%s\n", lbl, vstr); 
+  std::array<char, 128> vstr; 
+  c->Format (std::data(vstr), "%Zd", x); 
+  printf ("%s%s\n", lbl, std::data(vstr)); 
 }
 
-bool checkres (const char* str, bool res)
+
+inline bool checkres (const char* str, bool res)
 {
   printf ("%s:%s\n", str, res ? "Yes" : "No"); 
   return res; 
@@ -46,415 +55,8 @@ bool checkres (const char* str, bool res)
 
 
 
-////
-void FE_test(std::vector<std::string> &args)
-{
-  POUT ("0");
-  FFM::FEConPtr F = FFM::Create_FE_context("97", 10);
-  POUT ("1");  
-  
-  FFM::FE_t
-    x = F->New (),
-    u = F->New (),
-    v = F->New (),
-
-    d = F->New (),
-    m = F->New (),
-    t = F->New (),
-    j = F->New (), 
-    k = F->New (),
-    q = F->New (),
-    z = F->New (),
-    f = F->New(); 
-  POUT ("2");
-
-  
-  F->Set (v, "95", 10);
-  F->Set (m, "45", 10);
-  F->Set (x, "31", 10);
-  
-  F->Mul (k, v, m);
-  F->Mul (q, k, x);
-  
-  print_bignum ("95*45*31=", q, F); 
-
-  // 
-  F->Set (x, "17", 10);
-  F->Set (u, "13", 10);
-  F->Set (v, "19", 10);
-  F->Set (d, "44", 10);
-
-  F->Mul (k, x, u);
-  F->Mul (q, k, v);
-  F->Mul (k, q, d);
-  
-  print_bignum ("17*13*19*44=", k, F);   
-
-  F->Set (v, "12", 10);
-  F->Set (d, "77", 10); 
-  F->Set (m, "49", 10);
-
-  F->Set (k, "12", 10); 
-  for (size_t i = 1 ; i < 7; ++i)
-    F->Mul (k, k, v);
-
-  F->Set (q, "77", 10); 
-  for (size_t i = 1; i < 49; ++i)
-    F->Mul (q, q, d);
-
-  F->Mul (z, k, q); 
-
-  print_bignum ("12^7 * 77^49=", z, F);
- 
-  printf ("sizeof(int): %zd \n", sizeof(int)); 
-  // excercize
-
-  FFM::ByteArray rawnum;
-  F->Raw (rawnum, z);  
-  printf ("rawnum.size (%zu)\n\n  bytes:", rawnum.size ());
-  
-  for (auto x : rawnum)
-    {
-      printf ("%d ", x);
-    }
-  printf ("\n");
-}
 
 
-
-
-
-
-
-void EC_test (std::vector<std::string>& args) 
-{
-  POUT ("0");
-  FFM::FEConPtr F = FFM::Create_FE_context("223", 10);
-
-  // create a curve for y^2=X^3 + 7
-  // FFM::FE_t
-  //   x = F->New (),
-  //   u = F->New (),
-  //   v = F->New (); 
-
-  const std::string A = "A.Point"; 
-  const std::string B = "B.Point";
-  
-  const std::string X = "X.Point"; 
-  const std::string Y = "Y.Point"; 
-
-  const std::string U = "U.Point"; 
-  const std::string V = "V.Point";
-  const std::string N = "N.Point";
-  
-  const std::string P = "P.Point"; 
-  const std::string Q = "Q.Point"; 
-  const std::string R = "R.Point"; 
-
-  // Ex. 1
-  if (false)
-  { 
-    FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
-    EC->PrintCoeffs ("Coefficients:", FFM::EC_Format::DEC);
-    POUT("Ex. 1"); 
-    checkres ("[192, 105]", EC->DefPoint_ui (A, 192, 105));
-    checkres ("[17, 56]"  , EC->DefPoint_ui (B, 17, 56));
-    checkres ("[200, 119]", EC->DefPoint_ui (U, 200, 119));
-    checkres ("[1, 193]"  , EC->DefPoint_ui (V, 1, 193));
-    checkres ("[42, 99]"  , EC->DefPoint_ui (X, 42, 99));
-  }
-  // Ex. 2
-  if (false)
-  {
-    FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
-    POUT("Ex. 2");
-
-    checkres ("X:[170 142]", EC->DefPoint_ui (X, 170, 142)); 
-    checkres ("Y:[60 139]", EC->DefPoint_ui (Y, 60, 139));
-    checkres ("A:[47 71]", EC->DefPoint_ui (A, 47, 71)); 
-    checkres ("B:[17 56]", EC->DefPoint_ui (B, 17, 56)); 
-    checkres ("U:[143 98]", EC->DefPoint_ui (U, 143, 98));
-    checkres ("V:[76 66]", EC->DefPoint_ui (V, 76, 66));
-    
-
-    //EC->PrintPoint ("X:", X); 
-    //EC->PrintPoint ("Y:", Y); 
-    EC->Add (P, X, Y);
-    EC->PrintPoint("X+Y:", P); 
-  
-    //EC->PrintPoint ("A:", A); 
-    //EC->PrintPoint ("B:", B); 
-    EC->Add (Q, A, B);
-    EC->PrintPoint ("A+B:", Q); 
-    
-    //EC->PrintPoint ("U:", U); 
-    //EC->PrintPoint ("V:", V); 
-    EC->Add (R, U, V);
-    EC->PrintPoint ("U+V:", R); 
-  }
-
-  if (true)
-    { 
-      POUT("Ex.3");
-      
-      // class FieldElementTest(TestCase):
-      //FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10);
-
-      FFM::FEConPtr F31 = FFM::Create_FE_context("31", 10);
-
-      {
-        //  def test_ne(self):
-        //    a = FieldElement(2, 31)
-	//    b = FieldElement(2, 31)
-        //    c = FieldElement(15, 31)
-	//    self.assertEqual(a, b)
-        //    self.assertTrue(a != c)
-        //    self.assertFalse(a != b)
-	FFM::ScopeDeleter dr(F);
-
-	FFM::FE_t eA = dr (F31->New_ui(2));
-	FFM::FE_t eB = dr (F31->New_ui(2));
-	FFM::FE_t eC = dr (F31->New_ui(15));
-	
-	checkres ("A==B", 0 == F31->Cmp(eA, eB));
-	checkres ("A!=C", 0 != F31->Cmp(eA, eC)); 
-	checkres ("A!=B", 0 != F31->Cmp(eA, eB));
-      }
-      
-      {
-        //  def test_add(self):
-        //    a = FieldElement(2, 31)
-        //    b = FieldElement(15, 31)
-        //    self.assertEqual(a + b, FieldElement(17, 31))
-        //    a = FieldElement(17, 31)
-        //    b = FieldElement(21, 31)
-        //    self.assertEqual(a + b, FieldElement(7, 31))
-
-	FFM::ScopeDeleter dr(F);
-	FFM::FE_t eA = dr (F31->New_ui(2));
-	FFM::FE_t eB = dr (F31->New_ui(15));
-	FFM::FE_t eRes = dr (F31->New()); 
-	FFM::FE_t e17 = dr (F31->New_ui(17));
-	F31->Add(eRes, eA, eB);
-        checkres("A+B=17", 0 == F31->Cmp(eRes, e17));
-
-
-	FFM::FE_t e7 = dr(F31->New_ui(7)); 
-        F31->Set_ui(eA, 17);
-	F31->Set_ui(eB, 21);
-	F31->Add(eRes, eA, eB);
-	checkres("A+B=7", 0 == F31->Cmp (eRes,e7));  
-      }
-      
-     {
-       //  def test_sub(self):
-       //    a = FieldElement(29, 31)
-       //    b = FieldElement(4, 31)
-       //    self.assertEqual(a - b, FieldElement(25, 31))
-       //    a = FieldElement(15, 31)
-       //    b = FieldElement(30, 31)
-       //    self.assertEqual(a - b, FieldElement(16, 31))
-	FFM::ScopeDeleter dr(F);
-	FFM::FE_t eA = dr (F31->New_ui(29));
-	FFM::FE_t eB = dr (F31->New_ui(4));
-	FFM::FE_t e25 = dr(F31->New_ui(25));
-	
-        FFM::FE_t eRes = dr (F31->New()); 
-	F31->Sub (eRes , eA, eB);
-	checkres("A-B=25", 0 == F31->Cmp(eRes, e25)); 
-
-	F31->Set_ui(eA, 15);
-	F31->Set_ui(eB, 30);
-
-        F31->Sub (eRes, eA, eB); 
-	FFM::FE_t e16 = dr (F31->New_ui(16));
-	checkres("A-B=16", 0 == F31->Cmp(eRes, e16)); 
-     }
-      
-     {
-       //  def test_mul(self):
-       //    a = FieldElement(24, 31)
-       //    b = FieldElement(19, 31)
-       //    self.assertEqual(a * b, FieldElement(22, 31))
- 	FFM::ScopeDeleter dr(F);
-	FFM::FE_t eA = dr (F31->New_ui(24));
-	FFM::FE_t eB = dr (F31->New_ui(19));
-	FFM::FE_t eRes = dr(F31->New());
-
-        F31->Mul(eRes, eA, eB);
-
-	FFM::FE_t e22 = dr (F31->New_ui(22));
-        checkres("A*B=22", 0 == F31->Cmp(eRes, e22));
-
-     }
-
-     {
-       //  def test_rmul(self):
-       //    a = FieldElement(24, 31) b = 2
-       //    self.assertEqual(b * a, a + a)
-     }
-
-     {
-       // def test_pow(self):
-       //   a = FieldElement(17, 31)
-       //   self.assertEqual(a**3, FieldElement(15, 31))
-       //   a = FieldElement(5, 31)
-       //   b = FieldElement(18, 31)
-       //   self.assertEqual(a**5 * b, FieldElement(16, 31))
-  	FFM::ScopeDeleter dr(F);
-	FFM::FE_t eA = dr (F31->New_ui(17));
-	FFM::FE_t res = dr(F31->New()); 
-        FFM::FE_t r15 = dr (F31->New_ui(15));
-	F31->Pow_ui(res, eA, 3);
-	checkres("a^3=15", 0 == F31->Cmp(res, r15)); 
-		 
-	F31->Set_ui(eA, 5);  
-        FFM::FE_t eB = dr (F31->New_ui(18));
-	FFM::FE_t e16 = dr(F31->New_ui(16));
-
-	F31->Pow_ui(res, eA, 5);
-	F31->Mul(res, res, eB);
-	checkres("A^5*B=16", 0 == F31->Cmp(res, e16));
-     }
-     {
-       //    def test_div(self):
-       //      a = FieldElement(3, 31)
-       //      b = FieldElement(24, 31)
-       //      self.assertEqual(a / b, FieldElement(4, 31))
-       //      a = FieldElement(17, 31)
-       //      self.assertEqual(a **-3, FieldElement(29, 31))
-       //      a = FieldElement(4, 31)
-       //      b = FieldElement(11, 31) self.assertEqual(a **-4 * b, FieldElement(13, 31))
-   	FFM::ScopeDeleter dr(F);
-	FFM::FE_t eA = dr (F31->New_ui(3));
-	FFM::FE_t eB = dr (F31->New_ui(24)); 
-        FFM::FE_t e4 = dr (F31->New_ui(4));
-	FFM::FE_t res= dr (F31->New()); 
-	F31->Div (res, eA, eB); 
-	checkres("A/B=4", 0 == F31->Cmp(res, e4));
-	    
-	F31->Set_ui(eA, 17);
-	FFM::FE_t e29 = dr (F31->New_ui(29));
-	F31->Pow_si(res, eA, -3);
-	checkres ("A^-3=29", 0 == F31->Cmp(res, e29)); 
-        // F31->Set_ui(eB
-     }
-
-
-     if (false) 
-       {
-	 POUT("Ex. 4");
-	 FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
-	 
-	 EC->DefPoint_ui(A, 192,  105);
-	 EC->DefPoint_ui(B, 143, 98); 
-	 EC->DefPoint_ui(X, 47, 71);
-	 EC->DefPoint_ui(Y, 47, 71);
-	 EC->DefPoint_ui(U, 47, 71);
-	 EC->DefPoint_ui(V, 47, 71);
-	 EC->DefPoint_ui(N, 47, 152);
-      
-
-	 POUT(">>>>>>"); 
-	 
-	 // checkres ("[!]", EC->DefPoint_ui(R, 47, 152));
-	 // checkres ("[?]", EC->DefPoint_ui("wat", 36, 112));
-	 
-	 EC->Mul_scalar_ui("oA", 2, A);
-	 EC->Mul_scalar_ui("oB", 2, B);
-	 EC->Mul_scalar_ui("oX", 2, X);
-	 EC->Mul_scalar_ui("oY", 4, Y);
-	 EC->Mul_scalar_ui("oU", 8, U);
-	 EC->Mul_scalar_ui("oN", 20, N); 
-	 
-	 EC->PrintPoint(V, V, FFM::EC_Format::DEC);
-	 EC->PrintPoint(N, N, FFM::EC_Format::DEC);
-	 EC->Add ("V+N", V, N); 
-	 
-	 EC->PrintPoint(V, V, FFM::EC_Format::DEC);
-	 EC->PrintPoint(N, N, FFM::EC_Format::DEC);
-	 EC->PrintPoint("V+N", "V+N", FFM::EC_Format::DEC);
-	 //EC->Add (Q, N, R); 
-	 
-	 
-	 //EC->PrintPoint("oA", "oA", FFM::EC_Format::DEC);
-	 //EC->PrintPoint("oB", "oB", FFM::EC_Format::DEC);
-	 //EC->PrintPoint("oX", "oX", FFM::EC_Format::DEC);
-	 //EC->PrintPoint("oY", "oY", FFM::EC_Format::DEC);
-	 //EC->PrintPoint("oU", "oU", FFM::EC_Format::DEC);
-	 
-       }
-     
-     if(false) 
-       {
-      POUT("NEW SECTION");
-      
-      
-      FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
-      EC->DefPoint_ui(A, 192,  105);
-      EC->DefPoint_ui(B, 143, 98); 
-      EC->DefPoint_ui(X, 47, 71);
-      EC->DefPoint_ui(Y, 47, 71);
-      EC->DefPoint_ui(U, 47, 71);
-      EC->DefPoint_ui(V, 47, 71);
-      EC->DefPoint_ui(N, 47, 152);
-      
-      
-      EC->Add("V+N", V, N);
-      EC->PrintPoint ("V+N:", "V+N");
-      
-      for (unsigned i = 1; i < 30; ++i)
-	{
-	  printf ("%i|", i); 
-	  EC->Mul_scalar_ui("oV", i, V);
-	  EC->PrintPoint("oV", "oV", FFM::EC_Format::DEC);
-	}
-      POUT("<<<<<"); 
-    
-       }
-
-     if (true)
-       {
-	 
-	 POUT("Ex. 5");
-
-	 
-      FFM::ECConRef EC = FFM::Create_EC_context (F, "0", "7", 10); 
-      EC->DefPoint_ui(P, 15, 86);
-      EC->DefPoint_ui(Q, 15, 86);
-      int count = 1;
-      bool add_success = true;
-      while (add_success)
-	{
-
-	  add_success = EC->Add(Q, Q, P);
-	  count++;
-	  
-	}
-
-      printf ("Ex.5 count:%i\n", count); 
-      
-       // prime = 223
-	 // a = FieldElement(0, prime)
-	 // b = FieldElement(7, prime)
-	 // x = FieldElement(15, prime)
-	 // y = FieldElement(86, prime)
-	 // p = Point(x, y, a, b)
-	 // inf = Point(None, None, a, b)
-
-	 
-	 
-	 // # create a product variable
-	 // # create a counter variable
-	 // # loop until the product is the point at infinity
-	 // # add the point to the product and increment counter
-	 // # print the counter when exited from loop
-       }
-
-     
-    }
-
-}
 
 void SEC256k1_test ()
 {
@@ -481,10 +83,10 @@ void SEC256k1_test ()
   // F->Add ( 
   // 
   EC->DefPoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0);
-  EC->PrintPoint ("G|HEX:", G, FFM::EC_Format::HEX);
-  EC->PrintPoint ("G|DEC: ", G, FFM::EC_Format::DEC);
+  EC->PrintPoint ("G|HEX:", G, FFM::Format::HEX);
+  EC->PrintPoint ("G|DEC: ", G, FFM::Format::DEC);
   //
-  EC->PrintCoeffs ("eq-> ", FFM::EC_Format::DEC);
+  EC->PrintCoeffs ("eq-> ", FFM::Format::DEC);
   
   
   // EC->DefPoint (R, "0xdeadbeef", "0xdeadf00d", 0);  
@@ -497,7 +99,7 @@ void SEC256k1_test ()
 
   EC->Add (Q, G, G);
   POUT("G+G=Q");
-  EC->PrintPoint ("Q-> ", Q, FFM::EC_Format::HEX);
+  EC->PrintPoint ("Q-> ", Q, FFM::Format::HEX);
 
   
   // EC_Sub (M, Q, G); 
@@ -512,112 +114,196 @@ void SEC256k1_test ()
 
 
 
-void Test_CryptoPP()
+
+
+int test_gcrypt (const std::vector<std::string>& args)
 {
-  int v = 1;
 
-  printf ("v:%i\n", v); 
-  FFM::swap_endian (&v); 
+// void SHA256Init(SHA2_CTX *);
+// void SHA256Transform(uint32_t state[8], const uint8_t [SHA256_BLOCK_LENGTH]);
+// void SHA256Update(SHA2_CTX *, const uint8_t *, size_t);
+// void SHA256Pad(SHA2_CTX *);
+// void SHA256Final(uint8_t [SHA256_DIGEST_LENGTH], SHA2_CTX *);
 
-  printf ("v:%i\n", v); 
+  //SHA2_CTX sha_con;
+  //memset (&sha_con, 0, sizeof (SHA2_CTX));
+
+  std::array<unsigned char> msg;
+
+  
+  gcry_error_t errval =  gcry_md_open (std::data(msg), 0);   
+  //auto hay = gcry_md_hash_buffer; 
+  //SHA256Init (&sha_con);
+  
+  
+  return 0; 
+}
+
+int Test_CryptoPP(const std::vector<std::string>& args)
+{
+  printf ("%s[...]\n", __FUNCTION__); 
+
+
    
-  const unsigned char hash_inp[] = "ji111089323fdsjklf;sa3424211$#@5321r23jkffsdafsaf443243l23;jww";
+  const  char hash_inp[] = "0xA23FD532EG475ADAGFFEG97821ADEFDCBE42GAAFCEFC123564FGSAAAECAB";
   unsigned char outp[64];
   memset (outp, 0, 64);
-
-  // this sha256 is from ssl?
+  printf ("strlen(hash_inp):%zu\n", strlen(hash_inp)); 
+  // this sha256 is from ssl
   //  unsigned char* res = SHA256 (hash_inp, 60 , outp); 
  
-  CryptoPP::SHA256::Transform   (0, 0);  
-  CryptoPP::RIPEMD160::Transform(0, 0); 
+  //CryptoPP::SHA256::Transform   (0, 0);  
+  //iiCryptoPP::RIPEMD160::Transform(0, 0);
+
   // EC_set_curve(eq, , __)
-  
+  return 0;
 }
 
 
-/*
-
-
-void test_gmp(std::vector<std::string> &args)
+int CH3_test(std::vector<std::string> &args)
 {
-  mpz_t bign_a, bign_b, bign_c, bn_res;
-  mpz_init2(bign_a, 256);
-  mpz_init2(bign_b, 256);
-  mpz_init2(bign_c, 256);
-  mpz_init2(bn_res, 256);
+  printf ("%s[args]\n", __FUNCTION__);
 
-  mpz_t bn[32];
-  for (int i = 0; i < 32 ; ++i)
-    mpz_init2(bn[i], 256);
-  
-  const char hex_str[3][67] = {
-    "0x184567afabd2efaefa9864b312343deac43798feadfaf3e3a281a3c23632fda3",
-    "0x4ef57a7e099777ecfdf2ccd0e13c2575e38f73b47a893fd257458a321c905327",
-    "0xee231212feeb009238feed8a9c984f21c1b3b09324b72e7d77a77f3190021fd3"
-  };     
+  FFM::FEConPtr F = FFM::Create_FE_context (kSEC256k1_p_sz);
+  FFM::ECConRef EC = FFM::Create_EC_context (F, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 16);
 
-  mpz_set_str (bign_a, hex_str[0], 0);   
-  mpz_set_str (bign_b, hex_str[1], 0);
+ 
+  if (true) 
+  {   
+    POUT("Ex. 3.6");  
+    const std::string G = "G";
+    const std::string P = "P";
+    
+    checkres ("G",  EC->DefPoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 16));
+    // Verify whether these signatures are valid:
+    // P = (0x887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c,
+    // 0x61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34)
+    const char kP_x_sz[] = "0x887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c";
+    const char kP_y_sz[] = "0x61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
+    
+    checkres ("P", EC->DefPoint (P, kP_x_sz, kP_y_sz, 16));
 
-  gmp_printf ("%s is an big_a %Zd\n", "here", bign_a);
-  gmp_printf ("%s is an big_b %Zd\n", "here", bign_b);
-
-
-  gmp_printf ("a%Z", bign_a );
-  
-  // mpz_add (bign_c, bign_a, bign_b);
-  
-  mpz_set (bn[0], bign_a);       
-  mpz_set (bn[1], bign_b);
+    CryptoPP::PublicKey pk("0x0xf32", "0x223aaaaaaaa");
 
 
-  gmp_printf ("bn0%Z", bn[0]);
-  gmp_printf ("bn1%Z", bn[1]);
-  mpz_mod (bn_res, bn[1], bn[0]);
-
-  gmp_printf("bn1\%bn0 %Z", bn_res); 
+        
 
 
-  mpz_set_ui (bn[2], 123212);       
-  mpz_set_ui (bn[3], 31);
-  gmp_printf ("bn2%Z", bn[2]);
-  gmp_printf ("bn3%Z", bn[3]);
-  mpz_mod (bn_res, bn[2], bn[3]);
+    
+    // # signature 1
+    // z = 0xec208baa0fc1c19f708a9ca96fdeff3ac3f230bb4a7ba4aede4942ad003c0f60
+    // r = 0xac8d1c87e51d0d441be8b3dd5b05c8795b48875dffe00b7ffcfac23010d3a395
+    // s = 0x68342ceff8935ededd102dd876ffd6ba72d6a427a3edb13d26eb0781cb423c
 
-  gmp_printf("bn2\%bn3%Z", bn_res); 
+    // EC->DefElem ("z1", "0xec208baa0fc1c19f708a9ca96fdeff3ac3f230bb4a7ba4aede4942ad003c0f60", 0);
+    // EC->PrintElem ("z1", "z1", FFM::Format::HEX);  
 
-
-
-  gmp_printf ("bn2:%Z", bn[2]);
-  gmp_printf ("bn3:%Z", bn[3]);
-  
-  mpz_mod(bign_c, bign_b, bign_a); 
-  //gmp_printf ("%s is an big_c %Zd\n", "here", bign_c);
-  gmp_printf ("c:%Z", bign_c); 
+    // EC->DefElem ("r1", "0xac8d1c87e51d0d441be8b3dd5b05c8795b48875dffe00b7ffcfac23010d3a395", 0);
+    // EC->PrintElem("r1", "r1", FFM::Format::HEX);
 
 
-  std::vector<unsigned char> c_bin (256, 0x0);
+    // EC->DefElem ("s1", "0x68342ceff8935ededd102dd876ffd6ba72d6a427a3edb13d26eb0781cb423c4", 0); 		 
+    // EC->PrintElem("s1", "s1", FFM::Format::HEX);
 
-  
-  unsigned binsize = mpz_to_binary (c_bin, bign_c); 
-  
-  //
-  // memset (strbuf_256, 0, 256); 
-  
-  // fseek (fraw, 0, SEEK_SET); 
-  printf ("out size: %i\n", binsize) ;
+    // F->Inv (EC->El("s1_inv"), EC->El("s1"));
+    // EC->PrintElem("s1_inv", "s1_inv", FFM::Format::HEX);
+    
+    // F->Mul(EC->El("u1"), EC->El("r1"), EC->El("s1_inv"));
+    // F->Mul(EC->El("v1"), EC->El("z1"), EC->El("S1_inv")); 
 
-  for (int i = 0; i < binsize ; ++i)
-  {
-
-  printf ("char: 0x%x\n", c_bin[i]) ;
-
+    // EC->PrintElem("u1", "u1", FFM::Format::HEX); 
+    // EC->PrintElem("v1", "v1", FFM::Format::HEX); 
+    
+    //EC->Mul_scalar ("u1G", "u1", "G");
+    //EC->Mul_scalar ("v1P", "v1", "P");
+    //EC->Add("R1", "u1G", "v1P");
+    
+    
+    
+    
+    // # signature 2
+    // z = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
+    // r = 0xeff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c
+    // s = 0xc7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6
+    
+    EC->DefElem ("z2", "0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d", 0); 
+    EC->DefElem ("r2", "0xeff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c", 0);
+    EC->DefElem ("s2", "0xc7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6", 0); 		 
+    // uG + vP = R 
+    // u = z/s
+    // v = r/s
+    // s = (z+re)/k
+    
   }
-  
+
+  return 0; 
   
 }
 
-*/
+
+//
+//
+int CH4_test (std::vector<std::string>& args) 
+{
+  printf ("%s[args]\n", __FUNCTION__); 
+
+  FFM::FEConPtr F = FFM::Create_FE_context (kSEC256k1_p_sz);
+  FFM::ECConRef EC = FFM::Create_EC_context (F, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, 16);
+
+
+  const std::string G = "G";
+  const std::string P = "P";
+  
+  checkres ("G",  EC->DefPoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 16));
+
+  if (true)
+    {
+      POUT("Ex. 4.1"); 
+      
+      // Find the Compressed SEC format for the Public Key where the Private Key secrets are:
+      int secr_a = 5000; 
+      int secr_b = 20185;  
+      char secr_c[] = "0xdeadbeef12345";
+
+      struct symstruc {
+
+	  std::string A;  
+	  std::string B;  
+	  std::string C;  
+
+
+        } ;
+
+
+      const std::string  
+	Sec_A = "Sec.A",
+	Sec_B = "Sec.B",  
+	Sec_C = "Sec.C";  
+      
+      
+      EC->DefElem_ui (Sec_A, secr_a);
+      EC->DefElem_ui (Sec_B, secr_b);
+      EC->DefElem    (Sec_C, secr_c, 0);
+
+
+      EC->PrintElem (Sec_A, Sec_A, FFM::Format::DEC); 
+      EC->PrintElem (Sec_B, Sec_B, FFM::Format::DEC);  
+      EC->PrintElem (Sec_C, Sec_C, FFM::Format::HEX);
+
+
+
+      
+    }
+
+
+
+
+
+
+  
+  
+  return 0; 
+}
 
 // ----------------------- main --------------------------
 int main (int argv, char** argc)
@@ -628,8 +314,12 @@ int main (int argv, char** argc)
   // glm::vec3 x = v + v;
 
   // test_gmp (args);
-  //FE_test (args); 
-  EC_test (args);  
+  //FE_test (args);
+  CH3_test(args); 
+  //CH4_test(args); 
+  test_gcrypt(args); 
+  //  Test_CryptoPP(args); 
+  //CH4_test (args);  
   // cx::Mouse_state ms;
   //auto f =   cx::foo  ; 
 

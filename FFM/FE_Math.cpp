@@ -7,6 +7,9 @@
 namespace FFM
 {
 
+  
+  inline bool is_INF (FE_t x) { return (x < 0 ? true : false); }   
+
   class FE_ctx_impl : public  FE_context, public std::enable_shared_from_this<FE_ctx_impl>
   {
 public:
@@ -53,7 +56,7 @@ public:
     void LogiShiftR (FE_t x, size_t shift);
     void LogiShiftL (FE_t x, size_t shift);
     bool LogiBit (FE_t v, size_t pos);
-
+    bool TestBit (FE_t v, size_t pos);  
 
     ByteArray& Raw (ByteArray& out, FE_t); 
     
@@ -225,6 +228,9 @@ public:
     FE_t y = dr (New());
 
 
+    if (is_INF(lhs))
+      {}
+    
     //printf (" [y:%i]\n", y); 
 
 
@@ -355,7 +361,22 @@ public:
 
   }
 
+  bool FE_ctx_impl::TestBit (FE_t x, size_t pos)
+  {
 
+    if (!check(x))
+      {
+	printf ("%s failed..no such element:%i\n", __FUNCTION__, x);  
+	
+	return false;
+      }
+
+    
+    return mpz_tstbit (el(x), pos) == 1 ? true : false; 
+    
+  }
+
+  
   ByteArray& FE_ctx_impl::Raw (ByteArray& out, FE_t x)
   {
     if (!check (x))

@@ -25,6 +25,7 @@ link_directories (
 
 # libs
 add_subdirectory (Cx)
+add_subdirectory (Hx)
 add_subdirectory (FFM)
 
 

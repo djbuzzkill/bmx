@@ -36,12 +36,17 @@ add_executable (mtool
 
 target_link_libraries (mtool
 
+  gcrypt
   FFM
   gmp
   gmpxx
-
+  
   #ssl
-  crypto++
+  #crypt 
+  # crypto++
+  Cx
+  Hx
+
   )
 
 

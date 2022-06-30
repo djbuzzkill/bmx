@@ -59,6 +59,7 @@ namespace FFM
     virtual void LogiShiftR (FE_t x, size_t shift) = 0;
     virtual void LogiShiftL (FE_t x, size_t shift) = 0;
     virtual bool LogiBit (FE_t v, size_t pos) = 0;
+    virtual bool TestBit (FE_t v, size_t pos) = 0;
     
     virtual ByteArray& Raw (ByteArray& out, FE_t) = 0; 
     

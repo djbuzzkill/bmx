@@ -21,8 +21,19 @@ namespace FFM
   inline const FE_t& x(const ElemTuple& t) { return std::get<0> (t); }
   inline const FE_t& y(const ElemTuple& t) { return std::get<1> (t); }
 
-  template<typename Ty>
-  inline bool is_INF (Ty x) { return x < 0 ? true : false; }
+  
+  inline bool is_INF (FE_t x) { return (x < 0 ? true : false); }
+  inline bool is_INF (const ElemTuple& tup) { return is_INF (x(tup)) || is_INF(y(tup)); }
+
+
+  inline ElemTuple& unINF (ElemTuple& tup)
+  {
+    x(tup) = is_INF(x(tup)) ? -x(tup) : x(tup);
+    y(tup) = is_INF(y(tup)) ? -y(tup) : y(tup); 
+    return tup;
+  }
+
+
   
   inline ElemTuple& set_INF(ElemTuple& P)
   {
@@ -47,9 +58,12 @@ namespace FFM
     ~EC_con_impl ();  
    // s * P , 
     bool Add (const std::string& out, const std::string& lhs, const std::string& rhs);
+    bool Add (ElemTuple& out, const ElemTuple& lhs, const ElemTuple& rhs);
+    
     // bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P); 
     bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P); 
     // bool SetCoeffs (const char* a, const char* b, size_t base);
+    bool Mul_scalar (const std::string& O, const std::string& s, const std::string& P);   
     // bool SetCoeffs_ui (size_t, size_t);
 
 
@@ -58,15 +72,20 @@ namespace FFM
     bool CopyPoint (const std::string& sym, const std::string& P); 
     bool DefPoint_ui (const std::string& sym, size_t, size_t); 
 
+    bool DefElem (const std::string& sym, const std::string& sym2);  
     bool DefElem (const std::string& sym, const char*, size_t ) ;
     bool DefElem_ui (const std::string& sym, size_t);
+
+    FE_t El (const std::string& sym);   
+
+
 
     // return to source
     bool UndefPoint (const std::string&) ;
     bool UndefElem  (const std::string&) ;
-    void PrintPoint (const std::string& , const std::string&, EC_Format f = EC_Format::DEC) ;
-    void PrintCoeffs (const std::string&, EC_Format f= EC_Format::DEC); 
-    void PrintElem (const std::string& , const std::string&, EC_Format f= EC_Format::DEC); 
+    void PrintPoint (const std::string& , const std::string&, Format f = Format::DEC) ;
+    void PrintCoeffs (const std::string&, Format f= Format::DEC); 
+    void PrintElem (const std::string& , const std::string&, Format f= Format::DEC); 
     
     
     //  bool EC_IsAtInfinity (const EC_Point& P);
@@ -92,16 +111,13 @@ namespace FFM
 
     ElementMap elmap;
     ElemTuple coeffs;
-    
-
-
-
+  private: 
 
   };
 
   
-      // EC_con_impl (FEConPtr F, const char*, const char*, size_t); 
-    //vir290:297:al ~EC_con_impl (); 
+  // EC_con_impl (FEConPtr F, const char*, const char*, size_t); 
+  //vir290:297:al ~EC_con_impl (); 
   EC_con_impl::EC_con_impl (FEConPtr fc, const char* astr, const char* bstr, size_t base)
       : F(fc)
       , pointmap()
@@ -137,7 +153,34 @@ namespace FFM
  
 
 
-  //
+  FE_t EC_con_impl:: El (const std::string& sym)
+  {
+    if (el_exists(sym))
+      return elem(sym);
+
+    return 0; 
+
+  }
+
+
+  // 
+  
+  
+  //bool EC_con_impl::Add (std::string& out, const std::string& lhs, const std::string& rhs)
+  bool EC_con_impl::Add (ElemTuple& out,const ElemTuple& lhs,const ElemTuple& rhs)
+  {
+    // if ( !pt_exists (out) )
+    // {
+
+    // }
+
+    return false; // Add (point(out), point(lhs) , point (rhs));
+
+  }
+
+  
+  
+  //bool EC_con_impl::Add (const ElemTuple& out,const ElemTuple& lhs,const ElemTuple& rhs)
   bool EC_con_impl::Add (const std::string& out, const std::string& lhs, const std::string& rhs)
   {
     //printf ("%s[out:%s, lhs:%s, rhs:%s] \n", __FUNCTION__, out.c_str(), lhs.c_str(), rhs.c_str());  
@@ -285,6 +328,7 @@ namespace FFM
 	  {
 	    printf ("POINT NOT ON CURVE|ln:%i\n", __LINE__); 
 	  }
+	
 	POUT("case4 breakout");
      }
     else if (cmpx == 0 && cmpy != 0)
@@ -400,7 +444,70 @@ namespace FFM
   // }
 
   //
-  // 
+  //
+
+
+
+  bool EC_con_impl::Mul_scalar (const std::string& O, const std::string& s, const std::string& P)
+  {
+
+    ScopeDeleter dr (F);
+
+    // def __rmul__(self, coefficient):
+    //     coef = coefficient
+    //     current = self
+    //     result = self.__class__(None, None, self.a, self.b)
+    //     while coef:
+    //         if coef & 1:
+    //             result += current
+    //         current += current
+    //         coef >>= 1
+    //     return result
+ 
+    ElemTuple curr;
+    x(curr) = dr(F->New ());
+    y(curr) = dr(F->New ());
+    F->Set (x(curr), x(point(P)));
+    F->Set (y(curr), y(point(P))); 
+	
+    ElemTuple acc;
+    x(acc) = dr (F->New ());
+    y(acc) = dr (F->New ());
+    set_INF (acc); 
+    
+    FE_t coeff = dr (F->New ()); // 
+    F->Set (coeff, elem(s));     // initialize to scalar multiplier
+
+    while (0 != F->Cmp_ui (coeff, 0))
+    {
+      if (F->TestBit (coeff, 0))
+	{
+	  (is_INF(acc) ? CopyPoint (acc, curr) :  Add (acc, acc, curr));
+	}
+      
+      Add (curr, curr, curr);   
+      
+      F->LogiShiftR (coeff, 1); // coeff >>= 1
+    }
+    
+    if (el_exists(O))
+      {
+
+	Set (elem(O), acc); 
+	return true; 
+
+      }
+    else
+      {
+	elem(O) = acc; 
+	return true;
+      }
+    
+
+    return false;
+  }
+
+ 
   bool EC_con_impl:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
   {
 
@@ -411,45 +518,48 @@ namespace FFM
 	POUT ("P=DNE");
 	return false;
       }
-    
+
+
+    ScopeDeleter dr (F);
     // std::array<char,128> xbuf;
     // std::array<char, 128> ybuf;
-  
+    ElemTuple acc;
+    x(acc) = dr(F->New());
+    y(acc) = dr(F->New());
+    set_INF (acc); 
+    
+    ElemTuple cur;
+    x(cur) = dr(F->New());
+    y(cur) = dr(F->New()); 
+    
     //    int mcnt = 0; 
-    size_t scount = s_ - 1;
-    CopyPoint (O, P);
-    //mcnt++;	
-    //F->Format (xbuf, "%Zu", x(point(O)));
-    //F->Format (ybuf, "%Zu", y(point(O)));
-    //printf ("|%i) %s(x:%s, y:%s)\n", mcnt , O.c_str(), xbuf, ybuf); 
-    bool add_success = true;
-    while (scount && add_success)  
+    while (scoeff)  
       {
-	// if (scount & 0x1)
-	// {
-
-	//   POUT ("inwhile_if"); 
-	//   Add(O, O, P);
-	//   numadds++; 
-	// }
-	
-
-	add_success = Add (O, O, P); 
-	if (add_success == false)
+	if (scoeff & 0x1)
 	  {
-	    printf ("add FAILED\n");
+	    is_INF (acc) ? CopyPoint (acc, cur) : Add (acc, acc, cur);
 	  }
 
-	scount--; 
+	Add (cur, cur, cur); 
 
-
-	//mcnt++;	
-	//F->Format (xbuf, "%Zu", x(point(O)));
-	//F->Format (ybuf, "%Zu", y(point(O)));
-	//printf ("|%i) %s(x:%s, y:%s)\n", mcnt,  O.c_str(), xbuf, ybuf); 
+	scoeff >>= 1; 
       }
     
     
+     if (el_exists(O))
+      {
+
+	Set (elem(O), acc); 
+	return true; 
+
+      }
+    else
+      {
+	elem(O) = acc; 
+	return true;
+      }
+    
+
     
     return false; 
   }
@@ -554,27 +664,51 @@ namespace FFM
   }
 
 
-  bool EC_con_impl::CopyPoint(const std::string &sym, const std::string &P)
+  bool EC_con_impl::CopyPoint (const std::string &sym, const std::string &P)
   {
     if (!pt_exists(P))
       return false;
 
-    ElemTuple& newpoint = point(sym);   
-    x(newpoint) = F->New ();  
-    y(newpoint) = F->New ();
+
+    
+    ElemTuple ret; 
+    x(ret) = F->New ();
+    y(ret) = F->New ();
+
+
+    
     if (is_INF(x(point(P))) || is_INF(y(point(P))))
       {
-	x(newpoint) = -x(newpoint);
-	y(newpoint) = -x(newpoint); 
+	x(ret) = -x(ret); 
+	y(ret) = -x(ret); 
       }
     else
       {
-	F->Set (x(newpoint), x(point(P)));
-	F->Set (y(newpoint), y(point(P)));
+	F->Set (x(ret), x(point(P)));
+	F->Set (y(ret), y(point(P)));
+      }
+
+
+    if (pt_exists(sym))
+      {
+	ScopeDeleter dr (F);
+
+	unINF (point(sym));
+	F->Set (x(point(sym)), x(ret));
+	F->Set (y(point(sym)), y(res));
+	dr (x(ret));
+	dr (y(ret)); 
+	return true;
+      }
+    else
+      {
+	x(point(sym)) = x(ret);  
+	y(point(sym)) = y(ret);
+	return true; 
       }
     
-   
-    return true;
+    // wtf
+    return false;
   }
 
  
@@ -583,7 +717,7 @@ namespace FFM
 
     if (pt_exists(sym))
       {
-	// already defined, must undef
+	// already defined, must undef or soemthing
 	return false;
 
       }
@@ -596,24 +730,36 @@ namespace FFM
 	ElemTuple& e = point(sym);
 	x(e) = ptx;
 	y(e) = pty;
-
-	
 	return true;
       }
-    else
-      {
-	F->Del (ptx);
-	F->Del(pty); 
-
-      }
-
     
+
+    F->Del (ptx);
+    F->Del(pty); 
     return false;
   }
  
+  bool EC_con_impl::DefElem (const std::string& sym, const std::string& ssym)
+  {
+
+    if (!el_exists(ssym))
+      {
+	printf ("%s does not exist\n", ssym.c_str()); 
+	return false;
+	
+      }
+    
+    if (!pt_exists(sym))
+      {
+	elem(sym) = F->New ();  	
+      }
+    F->Set (elem(sym), elem(ssym));  
+    return true; 
+  }
+
   bool EC_con_impl::DefElem (const std::string& sym, const char* strv, size_t base)
   {
-    if (!pt_exists(sym))
+    if (!el_exists(sym))
       {
 	elem(sym) = F->New(strv, base);  	
       }
@@ -636,9 +782,7 @@ namespace FFM
 
       }
 
-
     F->Set_ui(elem(sym), v);
-    
     return true; 
   }
 
@@ -700,7 +844,7 @@ namespace FFM
   }
   
   
-  void EC_con_impl::PrintPoint (const std::string& lbl, const std::string& P, EC_Format fmt)
+  void EC_con_impl::PrintPoint (const std::string& lbl, const std::string& P, Format fmt)
   {
     char xs_[256];
     char ys_[256];
@@ -729,13 +873,13 @@ namespace FFM
       
       switch (fmt)
       {
-      case EC_Format::HEX:  
+      case Format::HEX:  
 	F->Format (xs_, "%Zx", x(point(P)));
 	F->Format (ys_, "%Zx", x(point(P)));
 	printf ( "%s[x:0x%s, y:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
 	
-      case EC_Format::DEC: 
+      case Format::DEC: 
 	
       default: 
 	F->Format (xs_, "%Zd", x(point(P)));
@@ -747,18 +891,18 @@ namespace FFM
       
   } 
   
-  void EC_con_impl::PrintElem (const std::string& lbl , const std::string& e, EC_Format fmt )
+  void EC_con_impl::PrintElem (const std::string& lbl , const std::string& e, Format fmt )
   {
     char xs[256];
 
     switch (fmt)
       {
-      case EC_Format::HEX:
+      case Format::HEX:
 	F->Format (xs, "%Zx", elem(e));
 	printf ( "%s[0x%s]\n", lbl.c_str(), xs); 
 	break;
 	
-      case EC_Format::DEC:
+      case Format::DEC:
       default: 
 	F->Format (xs, "%Zd", elem(e));
 	printf ( "%s[%s]\n", lbl.c_str(), xs); 
@@ -769,7 +913,7 @@ namespace FFM
   
 
 
-void EC_con_impl::PrintCoeffs  (const  std::string& lbl , EC_Format fmt)
+void EC_con_impl::PrintCoeffs  (const  std::string& lbl , Format fmt)
   {
 
     char xs_[256];
@@ -777,13 +921,13 @@ void EC_con_impl::PrintCoeffs  (const  std::string& lbl , EC_Format fmt)
 
     switch (fmt)
       {
-      case EC_Format::HEX:
+      case Format::HEX:
 	F->Format (xs_, "%Zx", a(coeffs));
 	F->Format (ys_, "%Zx", b(coeffs));
 	printf ( "%s[a:0x%s, b:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
 	
-      case EC_Format::DEC:
+      case Format::DEC:
       default: 
 	F->Format (xs_, "%Zd", a(coeffs));
 	F->Format (ys_, "%Zd", b(coeffs));
