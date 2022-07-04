@@ -27,7 +27,7 @@ link_directories (
 add_subdirectory (secp256k1)
 add_subdirectory (Cx)
 #add_subdirectory (Hx)
-add_subdirectory (FFM)
+add_subdirectory (ffm)
 
 
 # progs
