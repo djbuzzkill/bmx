@@ -38,15 +38,25 @@ public:
     void   Del  (FE_t id); 
     
     void Add (FE_t out, FE_t lhs, FE_t rhs);
-    void Sub (FE_t out, FE_t lhs, FE_t rhs); 
+    void Sub (FE_t out, FE_t lhs, FE_t rhs);
+    void Sub_ui (FE_t, FE_t, size_t);  
     void Mul (FE_t out, FE_t lhs, FE_t rhs);
+    void MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod);
     void Div (FE_t out, FE_t lhs, FE_t rhs);
     void Pow (FE_t out, FE_t b, FE_t exp); 
     void Pow_ui (FE_t out, FE_t b, size_t exp); 
     void Pow_si (FE_t out, FE_t base, long int exp);
-    void Inv (FE_t out, FE_t x);
+    // void Inv (FE_t out, FE_t x);
+
+    void PowM (FE_t out, FE_t base, FE_t exp, FE_t mod);
+
+    
+    void powM ( mpz_t ou, const mpz_t ba, const mpz_t ex, const mpz_t mo);
 
 
+           
+
+    
     int Cmp (FE_t lhs, FE_t rhs);
     //int Cmp (FE_var lhs, FE_var rhs);
     
@@ -85,17 +95,27 @@ public:
   FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) 
     : elems ()
   {
- 
+    char strb[128];
+    
     mpz_init (Fp); 
     mpz_set_str (Fp, strv, base);
+
+
+    
+    gmp_sprintf  (strb, "%Zu", Fp); 
+    printf ("Fp:%s\n", strb); 
 
     mpz_init (Fp_minus_one);
     mpz_sub_ui (Fp_minus_one, Fp, 1);
 
-    
+    gmp_sprintf  (strb, "%Zu", Fp_minus_one); 
+    printf ("Fp-1:%s\n", strb); 
+
     mpz_init (Fp_minus_two);
-    
     mpz_sub_ui (Fp_minus_two, Fp, 2); 
+    gmp_sprintf  (strb, "%Zu", Fp_minus_two); 
+    printf ("Fp-2:%s\n", strb); 
+
     
  } 
 
@@ -176,7 +196,6 @@ public:
     if (!check (place))
       return ; 
     
-    
     mpz_set_str (el(place), strv, base);
     
   }
@@ -228,8 +247,8 @@ public:
     FE_t y = dr (New());
 
 
-    if (is_INF(lhs))
-      {}
+    if (is_INF(lhs)) {
+    }
     
     //printf (" [y:%i]\n", y); 
 
@@ -240,7 +259,21 @@ public:
     mpz_mod (el(out), el(y), Fp); 
     
   }
- 
+
+  //
+  //
+  void FE_ctx_impl::Sub_ui (FE_t out, FE_t lhs, size_t rhs)
+  {
+    ScopeDeleter dr (shared_from_this());
+    FE_t tmp = dr(New());
+    
+    mpz_sub_ui(el(tmp), el(lhs), rhs);
+
+    mpz_mod (el(out), el(tmp), Fp);  
+  }
+
+  //
+  //
   void FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
   {
     ScopeDeleter dr (shared_from_this());
@@ -249,26 +282,37 @@ public:
     mpz_mod (el(out), el(r), Fp);
   }
   //
+  //
+  void FE_ctx_impl::MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod)
+  {
+    ScopeDeleter dr (shared_from_this());
+    FE_t r = dr (New());  
+    mpz_mul (el(r), el(lhs), el(rhs));
+    mpz_mod (el(out), el(r), el(mod));
+  }
+  //
   // out = (lhs / rhs)%Fp
   void FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
   {
     
     ScopeDeleter dr (shared_from_this());
-    FE_t x = dr (New());
+    FE_t inv_r = dr (New());
     FE_t z = dr (New());
     
-    mpz_powm (el(x), el(rhs), Fp_minus_two, Fp);
+    mpz_powm (el(inv_r), el(rhs), Fp_minus_two, Fp);
 
-    mpz_mul (el(z), el(lhs), el(x)); 
+    mpz_mul (el(z), el(lhs), el(inv_r)); 
 
     mpz_mod (el(out), el(z), Fp);
  
   }
 
-  void FE_ctx_impl::Inv (FE_t out, FE_t x)
-  {
-    mpz_powm (el(out), el(x), Fp_minus_two, Fp);  
-  }
+  // void FE_ctx_impl::Inv (FE_t out, FE_t x)
+  // {
+    
+  //   mpz_powm (el(out), el(x), Fp_minus_two, Fp);  
+
+  // }
 
   void FE_ctx_impl::Pow (FE_t out, FE_t b, FE_t exp)
   {
@@ -309,7 +353,26 @@ public:
     
   }
 
+  //
+  //
+  void FE_ctx_impl::powM (mpz_t out, const mpz_t base, const mpz_t exp, const mpz_t mod) {
+    mpz_powm (out, base, exp, mod);
+  }
 
+  //
+  //
+  void FE_ctx_impl::PowM (FE_t out, FE_t base, FE_t exp, FE_t mod)
+  {
+    if (!check(out)) {printf("%s:invalid out\n", __FUNCTION__);}
+    if (!check(base)){printf("%s:invalid base\n", __FUNCTION__);}
+    if (!check(exp)) {printf("%s:invalid exp\n", __FUNCTION__);}
+    if (!check(mod)) {printf("%s:invalid mod\n", __FUNCTION__);}
+
+    powM (el(out), el(base), el(exp), el(mod)); 
+  }
+  
+  //
+  //
   int FE_ctx_impl::Cmp (FE_t lhs, FE_t rhs)
   {
     return mpz_cmp (el(lhs), el(rhs));
@@ -337,8 +400,8 @@ public:
     if (!check(x))
       return; 
 
-
-    mpz_div_ui (el(x), el(x), 2*shift); 
+    // close enuf?
+    mpz_fdiv_q_ui (el(x), el(x), 2*shift); 
    
   }
   

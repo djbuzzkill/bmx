@@ -45,7 +45,6 @@ target_link_libraries (mtool
   #crypt 
   # crypto++
   Cx
-  Hx
 
   )
 

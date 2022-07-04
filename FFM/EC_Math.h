@@ -21,24 +21,17 @@ namespace FFM
   class EC_context : public FFM::Destructor 
   {
   public:
-
-
-    //virtual ~EC_context (); 
+    // virtual bool Add (const std::string& O, const std::string& lhs, const std::string& rhs) = 0;
+    // O <= A+B 
+    virtual bool AddPoint (const std::string& out, const std::string& lhs, const std::string& rhs) = 0;
     
-    // A+B => O
-
-    virtual bool Add (const std::string& O, const std::string& lhs, const std::string& rhs) = 0;
-
     // s*P => R
-    //virtual bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P) = 0; 
     virtual bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P) = 0;
     virtual bool Mul_scalar (const std::string& O, const std::string& s, const std::string& P) = 0;  
-    /* virtual bool Coeffs(const char* a, const char* b, size_t base) = 0; */
-    /* virtual bool Coeffs_ui (size_t, size_t) = 0; */
 
   
     virtual bool DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base) = 0;
-    virtual bool CopyPoint (const std::string& sym, const std::string& P) = 0; 
+    // virtual bool CopyPoint (const std::string& sym, const std::string& P) = 0; 
     virtual bool DefPoint_ui (const std::string&, size_t, size_t) = 0;
    
     virtual bool DefElem  (const std::string& nsym, const std::string& sym2) = 0;
@@ -56,14 +49,14 @@ namespace FFM
     virtual void PrintPoint (const std::string& , const std::string&, Format f = Format::DEC) = 0;
     virtual void PrintCoeffs (const std::string& , Format fmt= Format::DEC) = 0; 
     virtual void PrintElem (const std::string& , const std::string&, Format f= Format::DEC) = 0; 
-    
+    virtual void PrintElem (const std::string& lbl , FE_t e, Format fmt ) = 0; 
     // virtual ByteArray& PointBinary ()
     // virtual ByteArray& ElemBinary ()
     
      
     //  bool EC_IsAtInfinity (const EC_Point& P);
     // virtual bool IsPointOnCurve (const std::string& eq, const std::string& P) = 0;  
-
+    // virtual bool ECDSA_verify (const char* sz_z, const char* sz_r, const char* sz_s) = 0; 
     //  
   protected:
 
@@ -73,7 +66,7 @@ namespace FFM
   
   typedef std::shared_ptr<EC_context> ECConRef;
 
-  ECConRef Create_EC_context (FEConPtr, const char* a, const char* b, size_t base);
+  ECConRef Create_EC_context (FEConPtr, const char* a, const char* b, const char* order, size_t base);
 
   
 }

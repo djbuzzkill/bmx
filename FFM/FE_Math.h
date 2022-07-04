@@ -36,7 +36,15 @@ namespace FFM
 
     //virtual FE_var Alloc () = 0;
     virtual FE_t New () = 0; 
-    inline FE_t New (const char *strv, size_t base = 0) { FE_t x = New(); if (x) { Set (x, strv, base); } return x; }
+    inline FE_t New (const char *strv, size_t base = 0) {
+
+      FE_t x = New();
+      if (x) {
+	Set (x, strv, base);
+      }
+      return x;
+
+    }
     inline FE_t New_ui (size_t v) { FE_t ui = New(); if (ui) { Set_ui(ui, v); } return ui; }
     inline FE_t New_si (int v) { FE_t si = New (); if (si) { Set_si(si, v); } return si; } 
     //  virtual FE_t New (bytearr& LEraw) = 0;
@@ -65,19 +73,24 @@ namespace FFM
     
     virtual void Add (FE_t out, FE_t lhs, FE_t rhs) = 0;
     virtual void Sub (FE_t out, FE_t lhs, FE_t rhs) = 0; 
+    virtual void Sub_ui (FE_t out, FE_t lhs, size_t) = 0; 
     virtual void Mul (FE_t out, FE_t lhs, FE_t rhs) = 0;
+    virtual void MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod) = 0;
     virtual void Div (FE_t out, FE_t lhs, FE_t rhs) = 0;
     virtual void Pow (FE_t out, FE_t b, FE_t exp) = 0; 
     virtual void Pow_ui (FE_t out, FE_t base, size_t exp) = 0; 
     virtual void Pow_si (FE_t out, FE_t base, long int exp) = 0; 
 
-    virtual void Inv (FE_t out, FE_t x) = 0; 
+
+    virtual void PowM (FE_t out, FE_t base, FE_t exp, FE_t mod) = 0;
+    
+    // virtual void Inv (FE_t out, FE_t x) = 0; 
   };
   
 
 // 
 
-  FEConPtr Create_FE_context (const char* strv, size_t base = 0 /* 0=hex, 2=bin, 10=dec */ );
+  FEConPtr Create_FE_context (const char* strv, size_t base = 0 /* 0=strdef, 2=bin, 10=dec, 16=hex */ );
   
   //
   // 
@@ -85,8 +98,9 @@ namespace FFM
   {
     ScopeDeleter (FEConPtr f) : F(f), std::vector<FE_t>() {}
     FE_t operator() (FE_t e) { push_back (e); return e; }
-    ~ScopeDeleter () {while (size()) { F->Del(back()); pop_back (); }}
+    ~ScopeDeleter () {while (size()) {F->Del(back()); pop_back ();}}
     FEConPtr F;
+    //~ScopeDeleter () {while (size()) { printf("deleting[%i]\n", back()); F->Del(back()); pop_back (); }}
   };
 
 

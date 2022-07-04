@@ -4,13 +4,6 @@
 #include "Common.h"
 #include "Utility.h"
 
-
-#include <array>
-#include <vector>
-#include <string>
-#include <algorithm>
-
-
 // 
 template<typename Ty>
 inline Ty* swap_endian (Ty* x)

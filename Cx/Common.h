@@ -1,5 +1,5 @@
-#ifndef FFM_COMMON_H
-#define FFM_COMMON_H
+#ifndef CX_COMMON_H
+#define CX_COMMON_H
 
 #include <cstdio>
 #include <cstring>
@@ -13,23 +13,6 @@
 #include <functional>
 
 #include <cassert>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #endif
