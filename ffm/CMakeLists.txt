@@ -6,23 +6,23 @@ project (FFM)
 
 set (FFM_SOURCES
 
-  Common.cpp
-  Utility.cpp
-  FE_Math.cpp
-  EC_Math.cpp
+  common.cpp
+  utility.cpp
+  fe_math.cpp
+  ec_math.cpp
   
   )
 
 set (FFM_HEADERS
-  Common.h
-  Utility.h
+  common.h
+  utility.h
 
-  FE_Math.h
-  EC_Math.h
+  fe_math.h
+  ec_math.h
   )
 
 
-add_library (FFM
+add_library (ffm
   ${FFM_SOURCES}
   ${FFM_HEADERS}
   )

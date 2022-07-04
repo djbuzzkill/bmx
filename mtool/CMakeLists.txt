@@ -37,7 +37,7 @@ add_executable (mtool
 target_link_libraries (mtool
 
   gcrypt
-  FFM
+  ffm
   gmp
   gmpxx
   

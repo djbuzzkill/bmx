@@ -12,12 +12,37 @@ namespace FFM
 {
   //
   //
-  enum class Format : int {
-    DEC, HEX } ; 
+  enum class format : int {
+    dec, hex } ; 
 
+  //enum class format : int {
+  //  DEC, HEX } ; 
+
+
+  namespace el {
+
+    typedef std::map<std::string, FE_t> map; 
+  }
   //
   //
+  namespace pt
+  {
+    struct struc : public std::tuple<FE_t, FE_t> {
+ 
+    };
 
+    typedef std::map<std::string, struc> map; 
+
+    inline FE_t& x(struc& t) { return std::get<0> (t); }
+    inline FE_t& y(struc& t) { return std::get<1> (t); } 
+    inline const FE_t& x(const struc& t) { return std::get<0> (t); }
+    inline const FE_t& y(const struc& t) { return std::get<1> (t); }
+
+   
+
+  }
+  
+ 
   class EC_context : public FFM::Destructor 
   {
   public:
@@ -46,10 +71,10 @@ namespace FFM
     virtual bool UndefPoint (const std::string&) = 0;
     virtual bool UndefElem  (const std::string&) = 0;
    
-    virtual void PrintPoint (const std::string& , const std::string&, Format f = Format::DEC) = 0;
-    virtual void PrintCoeffs (const std::string& , Format fmt= Format::DEC) = 0; 
-    virtual void PrintElem (const std::string& , const std::string&, Format f= Format::DEC) = 0; 
-    virtual void PrintElem (const std::string& lbl , FE_t e, Format fmt ) = 0; 
+    virtual void PrintPoint (const std::string& , const std::string&, format f = format::dec) = 0;
+    virtual void PrintCoeffs (const std::string& , format fmt= format::dec) = 0; 
+    virtual void PrintElem (const std::string& , const std::string&, format f= format::dec) = 0; 
+    virtual void PrintElem (const std::string& lbl , FE_t e, format fmt ) = 0; 
     // virtual ByteArray& PointBinary ()
     // virtual ByteArray& ElemBinary ()
     
@@ -66,7 +91,19 @@ namespace FFM
   
   typedef std::shared_ptr<EC_context> ECConRef;
 
-  ECConRef Create_EC_context (FEConPtr, const char* a, const char* b, const char* order, size_t base);
+  ECConRef Create_EC_context (FEConPtr,
+			      const char* a,
+			      const char* b,
+			      const char* order,
+			      size_t base);
+
+  ECConRef Create_EC_context (FEConPtr,
+			      el::map& em,
+			      pt::map& pm,
+			      const char* a,
+			      const char* b,
+			      const char* order,
+			      size_t base);
 
   
 }

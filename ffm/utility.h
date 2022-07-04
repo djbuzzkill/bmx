@@ -19,6 +19,9 @@
 
 namespace FFM
 {
+
+  typedef std::map<std::string, std::string> propmap; 
+  
 // 
 template<typename Ty>
 inline Ty* swap_endian (Ty* x)
