@@ -1,30 +1,30 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION  3.0)
 
-project (Cx)
+project (aframe)
 
 
-set (CX_SOURCES
-  Common.cpp
-  Utility.cpp
-  Hash.cpp
-  Task.cpp
-  System.cpp
+set (AF_SOURCES
+  common.cpp
+  utility.cpp
+  hash.cpp
+  task.cpp
+  system.cpp
 )
 
 
-set (CX_HEADERS
-  Common.h
-  Utility.h
-  Hash.h
-  Task.h
-  System.h
+set (AF_HEADERS
+  common.h
+  utility.h
+  hash.h
+  task.h
+  system.h
   )
 
 
-add_library (Cx
-  ${CX_SOURCES}
-  ${CX_HEADERS}
+add_library (aframe
+  ${AF_SOURCES}
+  ${AF_HEADERS}
   )
 
 

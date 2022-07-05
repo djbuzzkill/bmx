@@ -1,5 +1,5 @@
-#ifndef CX_INCLUDE
-#define CX_INCLUDE
+#ifndef AF_INCLUDE
+#define AF_INCLUDE
 
 
 #include "Utility.h"

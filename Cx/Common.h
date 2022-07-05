@@ -1,5 +1,5 @@
-#ifndef CX_COMMON_H
-#define CX_COMMON_H
+#ifndef AF_COMMON_H
+#define AF_COMMON_H
 
 #include <cstdio>
 #include <cstring>
