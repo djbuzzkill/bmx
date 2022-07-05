@@ -29,9 +29,9 @@ target_link_libraries (rumbum
   gmp
   gmpxx
   
-  Cx
+  aframe 
   crypto++
-  FFM
+  ffm
   )
 
 

@@ -1,18 +1,29 @@
 
-#ifndef CX_UTILITY_INCLUDE
-#define CX_UTILITY_INCLUDE
+#ifndef AF_UTILITY_INCLUDE
+#define AF_UTILITY_INCLUDE
+
+
+#include "common.h"
 
 
 
-#include "Common.h"
 
-
-
-
-inline bool checkres (const char* str, bool res)
+namespace af
 {
-  printf ("%s:%s\n", str, res ? "TRUE" : "FALSE"); 
-  return res; 
+  //
+  inline void checkres (const std::string& label, bool cond) {
+
+    printf ("%s:%s\n", label.c_str(), (cond ? "true" : "false")); 
+      
+  }
+  
+  // uc -> hex
+  std::string hex_uc (unsigned char c);
+
+  // hex -> uc
+  unsigned char uc_hex (const std::string& chars); 
+
 }
+
 
 #endif

@@ -2,9 +2,9 @@
 #define FFM_INCLUDE
 
 
-#include "Utility.h"
-#include "FE_Math.h"
-#include "EC_Math.h"
+#include "utility.h"
+#include "fe_math.h"
+#include "ec_math.h"
 
 
 #endif

@@ -1,10 +1,10 @@
-#include "FE_Math.h"
+#include "fe_math.h"
 
 
 #include <gmp.h>
 
 
-namespace FFM
+namespace ffm
 {
 
   

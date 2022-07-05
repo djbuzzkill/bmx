@@ -1,23 +1,15 @@
-#ifndef EC_UTILITY_H
-#define EC_UTILITY_H
+#ifndef FFM_UTILITY_H
+#define FFM_UTILITY_H
 
-#include "Common.h"
-#include "Utility.h"
-
-
-#include <array>
-#include <vector>
-#include <string>
-#include <algorithm>
-
-
+#include "common.h"
+#include "utility.h"
 
 
 #define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
 #define PR(s) printf("%s", (s));  
 
 
-namespace FFM
+namespace ffm
 {
 
   typedef std::map<std::string, std::string> propmap; 

@@ -25,7 +25,7 @@ link_directories (
 
 # libs
 add_subdirectory (secp256k1)
-add_subdirectory (Cx)
+add_subdirectory (aframe)
 #add_subdirectory (Hx)
 add_subdirectory (ffm)
 

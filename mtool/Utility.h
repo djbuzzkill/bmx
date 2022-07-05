@@ -1,8 +1,8 @@
-#ifndef EC_UTILITY_H
-#define EC_UTILITY_H
+#ifndef FFM_UTILITY_H
+#define FFM_UTILITY_H
 
-#include "Common.h"
-#include "Utility.h"
+#include "common.h"
+#include "utility.h"
 
 // 
 template<typename Ty>

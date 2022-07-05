@@ -3,7 +3,7 @@
 
 
 
-#include <FFM/FFM.h>
-
+#include <ffm/ffm.h>
+#include <aframe/af.h>
 
 #endif

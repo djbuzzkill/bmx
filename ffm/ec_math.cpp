@@ -1,11 +1,11 @@
-#include "EC_Math.h"
-#include "FFM/FE_Math.h"
+#include "ec_math.h"
+#include "ffm/fe_math.h"
 
 #include <gmp.h>
 
 #include <tuple>
 
-namespace FFM
+namespace ffm
 {
 
 
@@ -47,21 +47,26 @@ namespace FFM
 
 
     // initialize point with elements
-    bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
+    //bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
     // bool CopyPoint (const std::string& sym, const std::string& P); 
-    bool DefPoint_ui (const std::string& sym, size_t, size_t); 
+    //bool DefPoint_ui (const std::string& sym, size_t, size_t); 
 
-    bool DefElem (const std::string& sym, const std::string& sym2);  
-    bool DefElem (const std::string& sym, const char*, size_t ) ;
-    bool DefElem_ui (const std::string& sym, size_t);
+    bool MakeElem (const std::string& sym, const std::string& sym2);  
+    bool MakeElem (const std::string& sym, const char*, size_t ) ;
+    bool MakeElem_ui (const std::string& sym, size_t);
+    bool SetElem (const std::string& dst, const std::string& src);  
 
-    FE_t El (const std::string& sym);   
-
-
-
+    
+    bool MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base);
+    bool MakePoint (const std::string& sym, const std::string& xel, const std::string& yel);
+    bool MakePoint_ui (const std::string& sym, size_t xval, size_t yval); 
+    bool SetPoint (const std::string& sym, const std::string& xel, const std::string& yel);
+    bool CopyPoint (const std::string& lhs, const std::string& rhs); 
     // return to source
-    bool UndefPoint (const std::string&) ;
-    bool UndefElem  (const std::string&) ;
+    bool DelPoint (const std::string&) ;
+    bool DelElem  (const std::string&) ;
+
+
     void PrintPoint (const std::string& , const std::string&, format f = format::dec) ;
     void PrintCoeffs (const std::string&, format f= format::dec); 
     void PrintElem (const std::string& , const std::string&, format f= format::dec); 
@@ -73,7 +78,9 @@ namespace FFM
 
 //  bool EC_IsAtInfinity (const EC_Point& P);
     bool IsPointOnCurve (FE_t, FE_t); 
-
+    bool IsPointOnCurve (const std::string& xco, const std::string& yco);   
+    bool IsPointOnCurve (const std::string& P);  
+ 
     // bool ECDSA_verify (const char* sz_z, const char* sz_r, const char* sz_s);
     
     // -------------------------------------------------------------------
@@ -158,7 +165,7 @@ namespace FFM
   };
 
   // EC_con_impl (FEConPtr F, const char*, const char*, size_t); 
-  EC_con_impl::EC_con_impl (FEConPtr fc, const char* astr, const char* bstr, const char* n_sz, size_t base)
+  EC_con_imp1::EC_con_imp1 (FEConPtr fc, const char* astr, const char* bstr, const char* n_sz, size_t base)
       : F(fc)
       , pointmap()
       , coeffs ()
@@ -170,15 +177,15 @@ namespace FFM
       b(coeffs) = F->New(bstr, base);
       
       printf ("%s\n", __FUNCTION__);
-      printElem ("  order(n):", n, Format::HEX);
+      printElem ("  order(n):", n, format::hex);
 
 
-      PrintCoeffs ("  coeffs:", Format::HEX);  
+      PrintCoeffs ("  coeffs:", format::hex);  
     }
     
   //
   //
-  EC_con_impl:: ~EC_con_impl ()
+  EC_con_imp1:: ~EC_con_imp1 ()
     {
       for (auto& p : pointmap) {
 	F->Del (x(p.second));
@@ -194,18 +201,6 @@ namespace FFM
       F->Del (n);
     }
  
-  //
-  //
-  FE_t EC_con_impl:: El (const std::string& sym)
-  {
-    if (el_exists(sym))
-      return elem(sym);
-
-    return 0; 
-
-  }
-
- 
   // 
   ECConRef Create_EC_context (FEConPtr F, const char* astr, const char* bstr, const char* order, size_t base) {
 
@@ -214,9 +209,7 @@ namespace FFM
    return ret; 
   }
 
-
-
-  bool EC_con_imp1::DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base )
+  bool EC_con_imp1::MakePoint (const std::string& sym, const char* strx, const char* stry, size_t base )
   {
     if (pt_exists(sym))
       {
@@ -236,10 +229,31 @@ namespace FFM
     dr(pty); 
     return false; 
   }
+ 
+  // 
+  bool EC_con_imp1::MakePoint (const std::string& sym, const std::string& xel, const std::string& yel) {
+
+    if (pt_exists(sym)) { 
+      printf ("[%s] %s already defined \n", __FUNCTION__, sym.c_str());
+      return false;
+    }
+    if (!el_exists(xel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, xel.c_str());
+      return false;
+    }
+    if (!el_exists(yel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, yel.c_str());
+      return false;
+    }
+
+    return setPoint (pointmap[sym], elem(xel), elem(yel));
+    
+    
+  }
 
   //
   //
-  bool EC_con_imp1::DefPoint_ui (const std::string& sym, size_t px, size_t py)
+  bool EC_con_imp1::MakePoint_ui (const std::string& sym, size_t px, size_t py)
   {
 
     if (pt_exists(sym))
@@ -263,7 +277,42 @@ namespace FFM
     return false;
   }
  
-  bool EC_con_imp1::DefElem (const std::string& sym, const std::string& ssym) {
+  // 
+  bool EC_con_imp1::SetPoint (const std::string& sym, const std::string& xel, const std::string& yel) {
+
+    if (!pt_exists(sym)) { 
+      printf ("[%s] %s DNE\n", __FUNCTION__, sym.c_str());
+      return false;
+    }
+    if (!el_exists(xel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, xel.c_str());
+      return false;
+    }
+    if (!el_exists(yel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, yel.c_str());
+      return false;
+    }
+
+    return setPoint (pointmap[sym], elem(xel), elem(yel));
+    
+  }
+
+  bool EC_con_imp1::CopyPoint (const std::string& lhs, const std::string& rhs) {
+
+    if (!pt_exists(lhs)) { 
+      printf ("[%s] %s DNE\n", __FUNCTION__, lhs.c_str());
+      return false;
+    }
+ 
+    if (!pt_exists(rhs)) { 
+      printf ("[%s] %s DNE\n", __FUNCTION__, rhs.c_str());
+      return false;
+    }
+    
+    return copyPoint(point(lhs), point(rhs));  
+  }
+ 
+  bool EC_con_imp1::MakeElem (const std::string& sym, const std::string& ssym) {
 
     if (!el_exists(ssym)) {
       printf ("%s does not exist\n", ssym.c_str()); 
@@ -280,7 +329,7 @@ namespace FFM
   
 
   
-  bool EC_con_impl::DefElem (const std::string& sym, const char* strv, size_t base) {
+  bool EC_con_imp1::MakeElem (const std::string& sym, const char* strv, size_t base) {
     if (!el_exists(sym)) {
       elem(sym) = F->New(strv, base);  	
     }
@@ -292,7 +341,7 @@ namespace FFM
   }
   
   // return to source
-  bool EC_con_imp1::DefElem_ui (const std::string& sym, size_t v) {
+  bool EC_con_imp1::MakeElem_ui (const std::string& sym, size_t v) {
     if (!el_exists(sym)) {
 	elem(sym) = F->New(); 
 
@@ -302,9 +351,21 @@ namespace FFM
     return true; 
   }
 
+  bool EC_con_imp1::SetElem (const std::string& dst, const std::string& src) {
+    if (!el_exists(src)) {
+      return false;
+    }
 
+    if (!el_exists(dst)) {
+      return false;
+    }
 
-  bool EC_con_impl::UndefPoint (const std::string& sym)
+    F->Set (elem(dst), elem(src)); 
+    return true; 
+  }
+    
+
+  bool EC_con_imp1::DelPoint (const std::string& sym)
   {
     if (pt_exists (sym)) 
       {
@@ -321,7 +382,7 @@ namespace FFM
     return false; 
   }
   
-  bool EC_con_imp1::UndefElem (const std::string& sym) {
+  bool EC_con_imp1::DelElem (const std::string& sym) {
     if (el_exists(sym)) {
 
       ElementMap::iterator it = elmap.find (sym);
@@ -812,18 +873,36 @@ namespace FFM
     int res = F->Cmp (lhs, rhs);
     //printf("%s\n", res == 0? "yes" : "no");
 
-    
-    //printElem ("lhs", lhs, Format::HEX);
-    //printElem ("rhs", rhs, Format::HEX);
-
-    
-    F->Format (xbuf, "%Zx", ptx);
-    F->Format (ybuf, "%Zx", pty); 
+    //F->Format (xbuf, "%Zx", ptx);
+    //F->Format (ybuf, "%Zx", pty); 
 
     //printf ("%s[%s, %s]:%s\n", __FUNCTION__, xbuf, ybuf, (res == 0? "true" : "false") ); 
     return res == 0;
   }
+  
+  bool EC_con_imp1::IsPointOnCurve (const std::string& xco, const std::string& yco) {
+    if (!el_exists (xco)) {
+      return false;
+    }
+    
+    if (!el_exists (yco)) {
+      return false;
+    }
 
+    return IsPointOnCurve(elem(xco), elem(yco));
+
+  }
+  
+  bool EC_con_imp1::IsPointOnCurve (const std::string& P) {
+
+    if (!pt_exists(P)) {
+	return false;
+      }
+    
+    return IsPointOnCurve (x(point(P)), y(point(P)));
+
+  }
+ 
   /* 
      
   //bool EC_con_impl::Add (const elem_tuple& out,const elem_tuple& lhs,const elem_tuple& rhs)
@@ -1041,7 +1120,6 @@ namespace FFM
     //bool Add (const std::string& out, const std::string& lhs, const std::string& rhs);
     bool AddPoint (const std::string& out, const std::string& lhs, const std::string& rhs);
     
-    bool addPoint (elem_tuple& out, const elem_tuple& lhs, const elem_tuple& rhs);
      
     // bool Mul_scalar (const std::string& O, const std::string& s,  const std::string& P); 
     bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P); 
@@ -1051,62 +1129,74 @@ namespace FFM
 
 
     // initialize point with elements
-    bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
+    //bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
     // bool CopyPoint (const std::string& sym, const std::string& P); 
-    bool DefPoint_ui (const std::string& sym, size_t, size_t); 
+    // bool DefPoint_ui (const std::string& sym, size_t, size_t); 
 
-    bool DefElem (const std::string& sym, const std::string& sym2);  
-    bool DefElem (const std::string& sym, const char*, size_t ) ;
-    bool DefElem_ui (const std::string& sym, size_t);
+    bool MakeElem (const std::string& sym, const std::string& sym2);  
+    bool MakeElem (const std::string& sym, const char*, size_t ) ;
+    bool MakeElem_ui (const std::string& sym, size_t);
+    bool SetElem (const std::string& dst, const std::string& src);
 
-    FE_t El (const std::string& sym);   
+    bool MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base);
+    bool MakePoint (const std::string& sym, const std::string& xel, const std::string& yel);
+    bool MakePoint_ui (const std::string& sym, size_t xval, size_t yval); 
+    bool SetPoint (const std::string& sym, const std::string& xel, const std::string& yel);
+    bool CopyPoint (const std::string& lhs, const std::string& rhs);
 
 
+   // return to source
+    bool DelPoint (const std::string&) ;
+    bool DelElem  (const std::string&) ;
 
-    // return to source
-    bool UndefPoint (const std::string&) ;
-    bool UndefElem  (const std::string&) ;
     void PrintPoint (const std::string& , const std::string&, format f = format::hex) ;
-    void PrintCoeffs (const std::string&, format f= Format::DEC); 
+    void PrintCoeffs (const std::string&, format f= format::dec); 
     void PrintElem (const std::string& , const std::string&, format f= format::dec); 
     void PrintElem (const std::string& , FE_t, format f= format::dec); 
 
-    void printElem (const std::string&, FE_t e, Format f); 
+    void printElem (const std::string&, FE_t e, format f); 
     void printPoint (const std::string& lbl, const pt::struc& P, format fmt);
     
 
 //  bool EC_IsAtInfinity (const EC_Point& P);
     bool IsPointOnCurve (FE_t, FE_t); 
-
     // bool ECDSA_verify (const char* sz_z, const char* sz_r, const char* sz_s);
-    
+    bool IsPointOnCurve (const std::string& xco, const std::string& yco);  
+    bool IsPointOnCurve (const std::string& P);
+ 
     // -------------------------------------------------------------------
     //
-    inline bool pt_exists (const std::string& s) { return pointmap.count(s) ? true : false; }
+    inline bool ptexs (const std::string& s) { return pointmap.count(s) ? true : false; }
     //inline bool co_exists (const std::string& s) { return curvemap.count(s) ? true : false; }
-    inline bool el_exists (const std::string& s) { return elmap.count(s) ? true : false; }
+    inline bool elexs (const std::string& s) { return elmap.count(s) ? true : false; }
 
     pt::struc& point (const std::string& name) { return pointmap[name]; }
     const pt::struc& point (const std::string& name) const { return pointmap.at(name); }
     FE_t& elem (const std::string& name) { return elmap[name]; }
     const FE_t& elem  (const std::string& name) const { return elmap.at(name); }
  
-   inline bool is_INF (FE_t x) { return (x < 0 ? true : false); }
-    inline bool is_INF (const pt::struc& tup) { return is_INF (x(tup)) || is_INF(y(tup)); }
+    inline bool isINF (FE_t x) { return (x < 0 ? true : false); }
+    inline bool isINF (const pt::struc& tup) { return isINF (x(tup)) || isINF(y(tup)); }
 
-
+    inline pt::struc& setINF(pt::struc& P)
+    {
+      x(P) = x(P) < 0 ? x(P) : -x(P);
+      y(P) = y(P) < 0 ? y(P) : -y(P);
+      return P;
+    }
+ 
     inline pt::struc& unINF (pt::struc& tup) {
-      x(tup) = is_INF(x(tup)) ? -x(tup) : x(tup);
-      y(tup) = is_INF(y(tup)) ? -y(tup) : y(tup); 
+      x(tup) = isINF(x(tup)) ? -x(tup) : x(tup);
+      y(tup) = isINF(y(tup)) ? -y(tup) : y(tup); 
       return tup;
     }
     
     inline bool makePoint (pt::struc& place, FE_t xo, FE_t yo) {
-      if (is_INF(xo)) {
+      if (isINF(xo)) {
 	// should we say something
       }
       
-      if (is_INF(yo)) {
+      if (isINF(yo)) {
 	// should we say something
       }
 
@@ -1117,9 +1207,9 @@ namespace FFM
     }
 
     
-    inline bool makePoint (pt::struc& place, const ps::struc& rhs) {
-      return makePoint (place, x(rhs), y(rhs)); 
-    }
+    //inline bool makePoint (pt::struc& place, const pt::struc& rhs) {
+    //  return makePoint (place, x(rhs), y(rhs)); 
+    //}
 
     
     // copy value data
@@ -1139,32 +1229,26 @@ namespace FFM
       return setPoint (lhs, x(rhs), y(rhs)); 
     }
 
+    bool addPoint (pt::struc& out, const pt::struc& lhs, const pt::struc& rhs);
    
-    inline pt::struc& set_INF(pt::struc& P)
-    {
-      x(P) = x(P) < 0 ? x(P) : -x(P);
-      y(P) = y(P) < 0 ? y(P) : -y(P);
-      return P;
-    }
-    
-    
-    //    typedef std::map<std::string, elem_tuple> PointMap;
+   //    typedef std::map<std::string, elem_tuple> PointMap;
     //typedef std::map<std::string, elem_tuple> CurveMap;
     //typedef std::map<std::string, FE_t> ElementMap; 
-    FEConPtr F;  
-    pt::map& const pointmap;
+    FEConPtr F;
+    
+    pt::map&  pointmap;
 
-    el::map& const elmap;
+    el::map&  elmap;
 
     pt::struc coeffs;
-    // FE_t      n; 
+    FE_t      n; 
   private: 
 
   };
 
 
 // 
-  ECConRef Create_EC_context (FEConPtr F, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char* order, size_t base) {
+  ECConRef Create_EC_context (FEConPtr F, el::map&  em, pt::map& pm, const char* astr, const char* bstr, const char* order, size_t base) {
 
     ECConRef ret (std::make_shared<EC_con_imp2> (F, em, pm, astr, bstr, order, base));
 
@@ -1172,27 +1256,32 @@ namespace FFM
   }
 
   // EC_con_impl (FEConPtr F, const char*, const char*, size_t); 
-  EC_con_imp2::EC_con_impl (FEConPtr fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char* n_sz, size_t base)
+  EC_con_imp2::EC_con_imp2 (FEConPtr fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char* n_sz, size_t base)
       : F(fc)
       , elmap (em)
       , pointmap(pm)
       , coeffs ()
 	//, curvemap()dd
 	 {
-      n = F->New (n_sz, base); 
+      n = F->New (n_sz, base);
+      elmap["n"] = n;
+      
       a(coeffs) = F->New(astr, base);
       b(coeffs) = F->New(bstr, base);
+      elmap["coeff.a"] = a(coeffs);
+      elmap["coeff.b"] = b(coeffs); 
+
       
       printf ("%s\n", __FUNCTION__);
-      printElem ("  order(n):", n, Format::HEX);
+      printElem ("  order(n):", n, format::hex);
 
 
-      PrintCoeffs ("  coeffs:", Format::HEX);  
+      PrintCoeffs ("  coeffs:", format::hex);  
     }
     
   //
   //
-  EC_con_impl:: ~EC_con_impl ()
+  EC_con_imp2:: ~EC_con_imp2 ()
     {
       for (auto& p : pointmap) {
 	F->Del (x(p.second));
@@ -1205,87 +1294,102 @@ namespace FFM
       
       F->Del (a(coeffs)); 
       F->Del (b(coeffs));
-      F->Del (n);
     }
  
   //
   //
-  FE_t EC_con_impl:: El (const std::string& sym)
-  {
-    if (el_exists(sym))
-      return elem(sym);
-
-    return 0; 
-
+  bool EC_con_imp2::MakePoint_ui (const std::string& sym, size_t _x, size_t _y) {
+    
+    if (ptexs(sym)) {
+      return false;  
+      printf ("%s[sym:%s] : %s already defined\n", __FUNCTION__, sym.c_str(), sym.c_str()); 
+    }
+    
+    return makePoint (point(sym), F->New_ui(_x), F->New_ui(_y)); 
   }
 
  
+ //
+  //
+  bool EC_con_imp2::MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base)  {
+
+    if (ptexs(sym)) {
+      printf ("%s[sym:%s] : %s already defined\n", __FUNCTION__, sym.c_str(), sym.c_str()); 
+      // already defined, must undef or soemthing
+      return false;
+    }
+   
+    return makePoint (point(sym),F->New (xstr, base),F->New(ystr, base));
+  }
+
+
   // 
-  ECConRef Create_EC_context (FEConPtr F, const char* astr, const char* bstr, const char* order, size_t base) {
+  bool EC_con_imp2::MakePoint (const std::string& sym, const std::string& xel, const std::string& yel) {
 
-    ECConRef ret (std::make_shared<EC_con_impl_1> (F, astr, bstr, order, base));
+    if (pointmap.exs(sym)) { 
+      printf ("[%s] %s already defined\n", __FUNCTION__, sym.c_str());
+      return false;
+    }
 
-   return ret; 
+    if (!elmap.exs(xel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, xel.c_str());
+      return false;
+    }
+    if (!elmap.exs(yel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, yel.c_str());
+      return false;
+    }
+
+    return setPoint (pointmap[sym], elem(xel), elem(yel));
   }
 
 
+  // 
+  bool EC_con_imp2::SetPoint (const std::string& sym, const std::string& xel, const std::string& yel) {
 
-  bool EC_con_impl::DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base )
-  {
-    if (pt_exists(sym))
-      {
-	// must undef first
-	return false; 
-      }
-
-    ScopeDeleter dr (F); 
-    FE_t ptx = F->New(strx, base);
-    FE_t pty = F->New(stry, base);
-
-    if (IsPointOnCurve(ptx, pty)) {    
-      return makePoint (point(sym), ptx, pty); 
+    if (!pointmap.exs(sym)) { 
+      printf ("[%s] %s DNE\n", __FUNCTION__, sym.c_str());
+      return false;
+    }
+    if (!elmap.exs(xel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, xel.c_str());
+      return false;
+    }
+    if (!elmap.exs(yel)) {
+      printf ("[%s] %s DNE\n", __FUNCTION__, yel.c_str());
+      return false;
     }
 
-    dr(ptx);
-    dr(pty); 
-    return false; 
+    return setPoint (pointmap[sym], elem(xel), elem(yel));
+    
+    
   }
 
   //
-  //
-  bool EC_con_impl::DefPoint_ui (const std::string& sym, size_t px, size_t py)
-  {
+  bool EC_con_imp2::CopyPoint (const std::string& lhs, const std::string& rhs) {
 
-    if (pt_exists(sym))
-      {
-	// already defined, must undef or soemthing
-	return false;
-
-      }
-      
-    ScopeDeleter dr (F); 
-    FE_t ptx = F->New_ui (px);
-    FE_t pty = F->New_ui (py);
-    
-    if (IsPointOnCurve(ptx, pty)) {
-      return makePoint (point(sym), ptx, pty);
+    if (!pointmap.exs(lhs)) { 
+      printf ("[%s] %s DNE\n", __FUNCTION__, lhs.c_str());
+      return false;
+    }
+ 
+    if (!pointmap.exs(rhs)) { 
+      printf ("[%s] %s DNE\n", __FUNCTION__, rhs.c_str());
+      return false;
     }
     
-
-    dr (ptx);
-    dr (pty); 
-    return false;
+    return copyPoint(point(lhs), point(rhs));  
   }
  
-  bool EC_con_impl::DefElem (const std::string& sym, const std::string& ssym) {
+  bool EC_con_imp2::MakeElem (const std::string& sym, const std::string& ssym) {
 
-    if (!el_exists(ssym)) {
+    if (!elexs(ssym)) {
       printf ("%s does not exist\n", ssym.c_str()); 
       return false;
       
     }
     
-    if (!pt_exists(sym)) {
+    if (!ptexs(sym)) {
       elem(sym) = F->New ();  	
     }
     F->Set (elem(sym), elem(ssym));  
@@ -1294,8 +1398,8 @@ namespace FFM
   
 
   
-  bool EC_con_impl::DefElem (const std::string& sym, const char* strv, size_t base) {
-    if (!el_exists(sym)) {
+  bool EC_con_imp2::MakeElem (const std::string& sym, const char* strv, size_t base) {
+    if (!elexs(sym)) {
       elem(sym) = F->New(strv, base);  	
     }
     else {
@@ -1306,8 +1410,8 @@ namespace FFM
   }
   
   // return to source
-  bool EC_con_impl::DefElem_ui (const std::string& sym, size_t v) {
-    if (!el_exists(sym)) {
+  bool EC_con_imp2::MakeElem_ui (const std::string& sym, size_t v) {
+    if (!elexs(sym)) {
 	elem(sym) = F->New(); 
 
       }
@@ -1316,13 +1420,25 @@ namespace FFM
     return true; 
   }
 
+  bool EC_con_imp2::SetElem (const std::string& dst, const std::string& src) {
+    if (!elexs(src)) {
+      return false;
+    }
 
+    if (!elexs(dst)) {
+      return false;
+    }
 
-  bool EC_con_impl::UndefPoint (const std::string& sym)
+    F->Set (elem(dst), elem(src)); 
+    return true; 
+  }
+ 
+
+  bool EC_con_imp2::DelPoint (const std::string& sym)
   {
-    if (pt_exists (sym)) 
+    if (ptexs (sym)) 
       {
-	PointMap::iterator it = pointmap.find (sym);
+	pt::map::iterator  it = pointmap.find (sym);
 	if (it != pointmap.end ())
 	  {
 	    F->Del (x(it->second));
@@ -1335,10 +1451,11 @@ namespace FFM
     return false; 
   }
   
-  bool EC_con_impl::UndefElem (const std::string& sym) {
-    if (el_exists(sym)) {
+  bool EC_con_imp2::DelElem (const std::string& sym) {
+    if (elexs(sym)) {
 
-      ElementMap::iterator it = elmap.find (sym);
+
+      el::map::iterator it = elmap.find (sym);
 
       if (it != elmap.end ()) {
 	F->Del (it->second);
@@ -1351,24 +1468,24 @@ namespace FFM
   
   //
   //
-  void EC_con_impl::printPoint (const std::string& lbl, const elem_tuple& P, Format fmt) {
+  void EC_con_imp2::printPoint (const std::string& lbl, const pt::struc& P, format fmt) {
     char xs_[256];
     char ys_[256];
 
 
-    if (is_INF (P)) {
+    if (isINF (P)) {
       printf ("[%s is INF]\n", lbl.c_str());
       return; 
     }
       
     switch (fmt) {
-    case Format::HEX:  
+    case format::hex:  
       F->Format (xs_, "%Zx", x(P));
       F->Format (ys_, "%Zx", y(P));
       printf ( "%s[x:0x%s, y:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
       break;
       
-    case Format::DEC: 
+    case format::dec: 
       
     default: 
       F->Format (xs_, "%Zd", x(P));
@@ -1382,9 +1499,9 @@ namespace FFM
 
   //
   //
-  void EC_con_impl::PrintPoint (const std::string& lbl, const std::string& P, Format fmt)
+  void EC_con_imp2::PrintPoint (const std::string& lbl, const std::string& P, format fmt)
   {
-     if (!pt_exists(P)) {
+     if (!ptexs(P)) {
       printf ("%s: \"%s\" is not defined\n", lbl.c_str(), P.c_str()); 
       return;
     }
@@ -1394,18 +1511,18 @@ namespace FFM
   } 
 
   //
-  void EC_con_impl::printElem (const std::string& lbl, FE_t e, Format fmt)
+  void EC_con_imp2::printElem (const std::string& lbl, FE_t e, format fmt)
   {
      char xs[256];
 
     switch (fmt)
       {
-      case Format::HEX:
+      case format::hex:
 	F->Format (xs, "%Zx", e);
 	printf ( "%s[0x%s]\n", lbl.c_str(), xs); 
 	break;
 	
-      case Format::DEC:
+      case format::dec:
       default: 
 	F->Format (xs, "%Zd", e);
 	printf ( "%s[%s]\n", lbl.c_str(), xs); 
@@ -1415,21 +1532,21 @@ namespace FFM
   }
 
   //
-  void EC_con_impl::PrintElem (const std::string& lbl , FE_t e, Format fmt )
+  void EC_con_imp2::PrintElem (const std::string& lbl , FE_t e, format fmt )
   {
     printElem (lbl, e, fmt); 
   }
   
   //
   //
-  void EC_con_impl::PrintElem (const std::string& lbl , const std::string& e, Format fmt)
+  void EC_con_imp2::PrintElem (const std::string& lbl , const std::string& e, format fmt)
   {
     printElem (lbl, elem(e), fmt); 
   }
   
   //
   //
-  void EC_con_impl::PrintCoeffs  (const  std::string& lbl , Format fmt)
+  void EC_con_imp2::PrintCoeffs  (const  std::string& lbl , format fmt)
   {
 
     char xs_[256];
@@ -1437,13 +1554,13 @@ namespace FFM
 
     switch (fmt)
       {
-      case Format::HEX:
+      case format::hex:
 	F->Format (xs_, "%Zx", a(coeffs));
 	F->Format (ys_, "%Zx", b(coeffs));
 	printf ( "%s[a:0x%s, b:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
 	
-      case Format::DEC:
+      case format::dec:
       default: 
 	F->Format (xs_, "%Zd", a(coeffs));
 	F->Format (ys_, "%Zd", b(coeffs));
@@ -1454,7 +1571,7 @@ namespace FFM
  
   //
   // 
-  bool EC_con_impl::addPoint (elem_tuple& out,const elem_tuple& lhs,const elem_tuple& rhs)
+  bool EC_con_imp2::addPoint (pt::struc& out,const pt::struc& lhs,const pt::struc& rhs)
   {
     //printf ("%s[lhs:<%i, %i>, rhs:<%i, %i>]\n", __FUNCTION__, x(lhs), y(lhs), x(rhs), y(rhs)); 
     
@@ -1474,27 +1591,27 @@ namespace FFM
     
     //
     //
-    if (is_INF(x(lhs))) {
+    if (isINF(x(lhs))) {
       // Case 0.0: self is the point at infinity, return other
       POUT("[case0.0: lhs.x INF]");
-      set_INF(out);
+      setINF(out);
       return false;
     }
     
-    if (is_INF(x(rhs))) {
+    if (isINF(x(rhs))) {
       POUT("[case0.1: rhs.x INF]");
       // Case 0.1: other is the point at infinity, return self
-      set_INF(out);
+      setINF(out);
       return false;
     }
     
-    if (is_INF (y(lhs))) {
+    if (isINF (y(lhs))) {
       POUT ("y.lhs is INF");
       return false;
     }
    
     
-    if (is_INF (y(rhs))) {
+    if (isINF (y(rhs))) {
       POUT ("y.rhs is INF");
       return false;
     }
@@ -1518,7 +1635,7 @@ namespace FFM
       // POUT("[case1: x1==x2 && y1!=y2");
       //POUT("[case1: INF]"); 
       
-      set_INF (out);
+      setINF (out);
       
       return false;
     }
@@ -1551,7 +1668,7 @@ namespace FFM
     }
     else if (cmpx == 0 && cmpy != 0) {
       // Case 4: if we are tangent to the vertical lin:
-      set_INF (out);
+      setINF (out);
       return false;
       
     }
@@ -1638,26 +1755,26 @@ namespace FFM
 
   //
   //
-  bool EC_con_impl::AddPoint (const std::string& out, const std::string& lhs, const std::string& rhs)
+  bool EC_con_imp2::AddPoint (const std::string& out, const std::string& lhs, const std::string& rhs)
   {
     //printf ("%s[out:%s, lhs:%s, rhs:%s] \n", __FUNCTION__, out.c_str(), lhs.c_str(), rhs.c_str());  
     ScopeDeleter dr (F);
-    if (!pt_exists(lhs) ) {
+    if (!ptexs(lhs) ) {
       POUT ("lhs DNE");
       return false;
     }
     
-    if ( !pt_exists(rhs) ) {
+    if ( !ptexs(rhs) ) {
       POUT ("rhs DNE");
       return false;
     }
     
-    elem_tuple res;
+    pt::struc res;
     x(res) = F->New ();
     y(res) = F->New (); 
 
     if (addPoint (res, point(lhs), point(rhs))) {
-      return (pt_exists (out) ? setPoint (point(out), dr(x(res)), dr(y(res))) : makePoint (point(out), res));
+      return (ptexs (out) ? setPoint (point(out), dr(x(res)), dr(y(res))) : makePoint (point(out), x(res), y(res)));
     }
     
     printf ("%s[out:%s, lhs:%s, rhs:%s] ....FAILED \n", __FUNCTION__, out.c_str(), lhs.c_str(), rhs.c_str());  
@@ -1667,27 +1784,27 @@ namespace FFM
   //
   //
 
-  bool EC_con_impl::Mul_scalar (const std::string& O, const std::string& s, const std::string& P) {
+  bool EC_con_imp2::Mul_scalar (const std::string& O, const std::string& s, const std::string& P) {
     //printf ("%s[%s, %s, %s]\n", __FUNCTION__, O.c_str(), s.c_str(), P.c_str()); 
-    if (!pt_exists(P)) {
+    if (!ptexs(P)) {
       printf ("point %s DNE\n", P.c_str());
       return false;
     }
-    if (!el_exists(s)) {
+    if (!elexs(s)) {
       printf ("element %s DNE\n", s.c_str());
       return false; 
     }
 
     ScopeDeleter dr (F);
-    elem_tuple curr;
+    pt::struc  curr; 
     x(curr) = F->New ();
     y(curr) = F->New ();
     copyPoint (curr, point(P)); 
     //printPoint ("  curr", curr, Format::HEX); 
-    elem_tuple acc;
+    pt::struc acc;
     x(acc) = F->New ();
     y(acc) = F->New ();
-    set_INF (acc); 
+    setINF (acc); 
     //printPoint ("  acc", acc, Format::HEX); 
     FE_t coeff = dr (F->New ()); // 
     F->Set (coeff, elem(s));     // initialize to scalar multiplier
@@ -1700,7 +1817,7 @@ namespace FFM
     while (0 != F->Cmp_ui (coeff, 0) && iteration_count++ < max_iteration_limit ) { //  && dbg_count < 260)
       //printElem ("++coeff++", coeff, Format::HEX);
       if (F->TestBit (coeff, 0)) {
-	bool res = (is_INF(acc) ? copyPoint (acc, curr) : addPoint (acc, acc, curr)); 
+	bool res = (isINF(acc) ? copyPoint (acc, curr) : addPoint (acc, acc, curr)); 
       }
     
       addPoint (curr, curr, curr);   
@@ -1713,13 +1830,13 @@ namespace FFM
     }
     printf ( "[%s|iterator_count:%zu]\n", __FUNCTION__, iteration_count);
   
-    if (pt_exists(O)) {
+    if (ptexs(O)) {
       dr(x(acc));
       dr(y(acc));
       return copyPoint (point(O), acc); 
     }
     else {
-      return makePoint(point(O), acc);  
+      return makePoint(point(O), x(acc), y(acc));  
     }
     
   
@@ -1728,22 +1845,22 @@ namespace FFM
 
   //
   //
-  bool EC_con_impl:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
+  bool EC_con_imp2:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
   {
     printf ("%s[o:%s, s:%zu, P:%s]\n", __FUNCTION__, O.c_str(), s_, P.c_str());
-    if ( !pt_exists(P))
+    if ( !ptexs(P))
       {
 	POUT ("P=DNE");
 	return false;
       }
 
     ScopeDeleter dr (F);
-    elem_tuple acc;
+    pt::struc acc;
     x(acc) = F->New();
     y(acc) = F->New();
-    set_INF (acc); 
+    setINF (acc); 
     
-    elem_tuple cur;
+    pt::struc cur;
     x(cur) = dr(F->New());
     y(cur) = dr(F->New()); 
     copyPoint (cur, point(P)); 
@@ -1764,13 +1881,13 @@ namespace FFM
     }
     
     
-     if (pt_exists(O)) {
+     if (ptexs(O)) {
        dr(x(acc));
        dr(y(acc));
        return copyPoint (point(O), acc); 
      }
      else {
-       return  makePoint(point(O), acc);  
+       return  makePoint(point(O), x(acc), y(acc));  
      }
    
      
@@ -1780,7 +1897,7 @@ namespace FFM
   
   //
   //
-  bool EC_con_impl::IsPointOnCurve (FE_t ptx, FE_t pty)
+  bool EC_con_imp2::IsPointOnCurve (FE_t ptx, FE_t pty)
   {
     //printf ("%s:[%i, %i]|ln:%i\n", __FUNCTION__, ptx, pty, __LINE__);
     //printf ("%s[x:%s, y:%s):", __FUNCTION__, xbuf, ybuf); 
@@ -1838,7 +1955,28 @@ namespace FFM
     return res == 0;
   }
 
+   
+  bool EC_con_imp2::IsPointOnCurve (const std::string& xco, const std::string& yco) {
+    if (!elexs (xco)) {
+      return false;
+    }
+    
+    if (!elexs (yco)) {
+      return false;
+    }
 
+    return IsPointOnCurve(elem(xco), elem(yco));
 
+  }
+  
+  bool EC_con_imp2::IsPointOnCurve (const std::string& P) {
+
+    if (!ptexs(P)) {
+	return false;
+      }
+    
+    return IsPointOnCurve (x(point(P)), y(point(P)));
+
+  }
  
 } // FFM namespace 

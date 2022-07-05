@@ -5,7 +5,8 @@
 #include "ffm/ffm.h"
 
 
-// #include "Utility.h"
+
+
 class secp256k1
 {
 public:
@@ -21,10 +22,10 @@ protected:
 
 
  
-  FFM::FEConPtr F;
-  FFM::ECConRef EC;
-  FFM::el::map elmap;
-  FFM::pt::map ptmap; 
+  ffm::FEConPtr F;
+  ffm::ECConRef EC;
+  ffm::el::map elems;
+  ffm::pt::map points; 
   
 }; 
 

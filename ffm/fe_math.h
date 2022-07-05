@@ -1,12 +1,12 @@
-#ifndef FE_MATH_H
-#define FE_MATH_H
+#ifndef FFM_FE_MATH_H
+#define FFM_FE_MATH_H
 
 
-#include "Common.h"
-#include "Utility.h"
+#include "common.h"
+#include "utility.h"
 
 
-namespace FFM
+namespace ffm
 {
   class FE_context;
 
@@ -22,7 +22,7 @@ namespace FFM
   inline bool FE_Infinity (FE_t x) { return (x < 0 ? true : false); }
   //inline bool FE_Infinity (FE_t x) { return FE_Infinity (x.name()); }
   //
-  class FE_context : public FFM::Destructor
+  class FE_context : public ffm::Destructor
   {
   protected:
     FE_context () {}
@@ -90,7 +90,7 @@ namespace FFM
 
 // 
 
-  FEConPtr Create_FE_context (const char* strv, size_t base = 0 /* 0=strdef, 2=bin, 10=dec, 16=hex */ );
+  FEConPtr Create_FE_context (const char* strv, size_t base = 0 /* 0=strdef'd, 2=bin, 10=dec, 16=hex */ );
   
   //
   // 

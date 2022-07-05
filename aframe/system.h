@@ -1,14 +1,8 @@
+#ifndef AF_SYSTEM_H
+#define AF_SYSTEM_H
 
 
-
-#include <cstddef>
-
-
-#ifndef INTRODUCING_SYSTEM_H
-#define INTRODUCING_SYSTEM_H
-
-
-namespace cx 
+namespace af 
 {
   class Window ;          
   class GraphicsDisplay;    
@@ -22,15 +16,14 @@ namespace cx
   int foo ();
   
    //
-   class Destructor 
-      {
-   public: 
-
-      virtual ~Destructor () = 0; 
+   struct Destructor {
+     
+     virtual ~Destructor () = 0; 
 
    protected: 
-
-      Destructor  (){}
+     
+     Destructor () {
+     }
    }; 
 
    //
@@ -162,9 +155,8 @@ namespace cx
 
    //
    //
-   inline bool Is_keydown (KB_scan_code ky, const Keyboard_state& kb)
-   {
-      return kb.scan_code[ky ] ? true : false; 
+   inline bool Is_keydown (KB_scan_code ky, const Keyboard_state& kb) {
+     return kb.scan_code[ky ] ? true : false; 
    }
 
    
@@ -184,8 +176,8 @@ namespace cx
     SR_Exit = 0,  
   }; 
   
-  class SystemContext 
-  { 
+  class SystemContext { 
+
   protected: 
     
     SystemContext () { 
@@ -194,23 +186,23 @@ namespace cx
   public: 
     
     
-    // deprecated by GraphicsWindow
-    virtual cx::Window*				   Create_window		(WindowListener*, const char* title) = 0; 
-    virtual cx::GraphicsWindow*   Create_GraphicsWindow (WindowListener*, const char* title, int wd, int ht, bool fullscreen) = 0; 
-    virtual void                  Poll_input           (Mouse_state& m, Keyboard_state& k) = 0;  
+    // // deprecated by GraphicsWindow
+    // virtual Window* Create_window		(WindowListener*, const char* title) = 0; 
+    // virtual *   Create_GraphicsWindow (WindowListener*, const char* title, int wd, int ht, bool fullscreen) = 0; 
+    // virtual void                  Poll_input           (Mouse_state& m, Keyboard_state& k) = 0;  
     
-    // virtual OIS::InputManager* Create_input_system (Window*) = 0;   // OIS input manager
-    // should be called Dispatch_WindowEvents ()
+    // // virtual OIS::InputManager* Create_input_system (Window*) = 0;   // OIS input manager
+    // // should be called Dispatch_WindowEvents ()
     
-    virtual bool	   DispatchEvents	() = 0; 
+    // virtual bool	   DispatchEvents	() = 0; 
     
-    // timer
-    virtual  unsigned long long   GetTimerTicks        () = 0; 
-    virtual  unsigned long long   GetTimerFrequencyHz  () = 0;
+    // // timer
+    // virtual  unsigned long long   GetTimerTicks        () = 0; 
+    // virtual  unsigned long long   GetTimerFrequencyHz  () = 0;
 
-		// Request_system ();
-		virtual void	   SysReq			(SystemRequest req) = 0; 
-		}; 
+    // 		// Request_system ();
+    // 		virtual void	   SysReq			(SystemRequest req) = 0; 
+  }; 
 
    // Time_tracker 
    struct Time_tracker {
@@ -227,12 +219,12 @@ namespace cx
 
       bool Reset (SystemContext* sys)
       {
-         if (freq_ticks = sys->GetTimerFrequencyHz  ())
-         {
-            freq_Hz     = 1.0 / (freq_ticks); 
-            prev_ticks  = sys->GetTimerTicks ();
-            return true;
-         }
+         // if (freq_ticks = sys->GetTimerFrequencyHz  ())
+         // {
+         //    freq_Hz     = 1.0 / (freq_ticks); 
+         //    prev_ticks  = sys->GetTimerTicks ();
+         //    return true;
+         // }
          return false; 
 
       }
@@ -240,18 +232,18 @@ namespace cx
 
       double GetDt (SystemContext* sys)
       {
-         acc_ticks = sys->GetTimerTicks (); 
-         u64 elapsed_ = acc_ticks - prev_ticks;
-         prev_ticks  = acc_ticks; 
-         return elapsed_ * freq_Hz; 
+         // acc_ticks = sys->GetTimerTicks (); 
+         // u64 elapsed_ = acc_ticks - prev_ticks;
+         // prev_ticks  = acc_ticks; 
+         // return elapsed_ * freq_Hz; 
+	return 0.0; 
       }
 
    }; 
 
   //
   // WindowListener
-  class WindowListener
-  {
+  struct WindowListener {
   protected: 
     WindowListener () {
     }
@@ -262,26 +254,10 @@ namespace cx
     virtual void OnWindowActivate	(bool activate) = 0; 
   }; 
   
-  //
-  // AppWindow 
-  class Window 
-  {
-  public: 
-    
-    //
-    // funcs
-    virtual size_t	Get_WindowID () = 0; 
-    virtual void	Show	(bool show)		= 0; 
-    virtual void	SetPos	(int x, int y)	= 0; 
-    
-  protected: 
-    Window () { 
-    }
-  }; 
   
   //
   // GraphicsDisplay - roughly a graphics device
-  class GraphicsDisplay
+  struct GraphicsDisplay
   {
   public: 
     
@@ -296,10 +272,11 @@ namespace cx
   }; 
   
   //
-  class GraphicsWindow : public Window, public GraphicsDisplay
-  {
+  struct GraphicsWindow : public GraphicsDisplay {
   protected: 
-    GraphicsWindow () {}
+    GraphicsWindow () {
+
+    }
     
   }; 
   

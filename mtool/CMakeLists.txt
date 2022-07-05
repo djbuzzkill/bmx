@@ -13,16 +13,16 @@ project (mtool)
 set (MTOOL_HEADER_FILES
   mtool.h
 
-  Common.h
-  Utility.h
+#  common.h
+#  utility.h
 #  EC_Math.h
 #  FE_Math.h
   )
 	
 set (MTOOL_SOURCE_FILES
   mtool.cpp
-  Common.cpp
-  Utility.cpp
+#  common.cpp
+#  utility.cpp
 #  FE_Math.cpp
 #  EC_Math.cpp
 
@@ -36,15 +36,16 @@ add_executable (mtool
 
 target_link_libraries (mtool
 
-  gcrypt
+  aframe
   ffm
+  
+  gcrypt
   gmp
   gmpxx
   
   #ssl
   #crypt 
   # crypto++
-  Cx
 
   )
 
