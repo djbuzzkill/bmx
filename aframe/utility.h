@@ -11,6 +11,7 @@
 namespace af
 {
   
+  typedef std::vector<unsigned char> bytearray; 
   typedef std::array<unsigned char, 32> byte32; 
 
   //

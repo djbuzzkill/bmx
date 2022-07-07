@@ -6,7 +6,8 @@ project (gx)
 
 # include
 include_directories (
-  ./
+
+  ${CMAKE_SOURCE_DIR}
   )
 
 add_definitions (-DCMAKE_EXPORT_COMPILE_COMMANDS=1)
@@ -33,3 +34,10 @@ add_subdirectory (SECzy)
 # progs
 add_subdirectory (mtool)
 add_subdirectory (rum)
+
+
+
+#message (STATUS "${CMAKE_BINARY_DIR}")
+#message (STATUS "${CMAKE_SOURCE_DIR}")
+#message (STATUS "${CMAKE_CURRENT_BINARY_DIR}")
+#message (STATUS "${CMAKE_CURRENT_SOURCE_DIR}")

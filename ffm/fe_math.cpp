@@ -13,26 +13,31 @@ namespace ffm
   class FE_ctx_impl : public  FE_context, public std::enable_shared_from_this<FE_ctx_impl>
   {
 public:
+    // FE_ctx_impl (FE_t& Fp, const char*, size_t); 
     FE_ctx_impl (const char*, size_t); 
     ~FE_ctx_impl ();
     
     
   public:
+    FE_t p (); 
+
     char* Format (char* out, const char* fmt, FE_t x); 
     void Print (const char* msg, FE_t x);
     bool IsValid (FE_t); 
+
+
     
     // get new element
     FE_t New  ();
     // FE_t New  (const char *hexv, size_t base);
     
     
-    void Set (FE_t place, const char* strv, size_t base = 0); 
+    void Set (FE_t place, const char* strv, size_t base); 
 
     void Set_ui (FE_t place, size_t v); 
     void Set_si (FE_t place, long int v); 
 
-    void Set_bin (FE_t lval, const unsigned char* bin, bool BE, size_t len); 
+    void Set_bin (FE_t lval, const unsigned char* bin, unsigned len, bool isLE); 
     void Set (FE_t lval, FE_t rval);
     
     // returning element; 
@@ -50,16 +55,8 @@ public:
     // void Inv (FE_t out, FE_t x);
 
     void PowM (FE_t out, FE_t base, FE_t exp, FE_t mod);
-
-    
-    void powM ( mpz_t ou, const mpz_t ba, const mpz_t ex, const mpz_t mo);
-
     bool Rand (FE_t out, FE_t f);
-    
-
-           
-
-    
+      
     int Cmp (FE_t lhs, FE_t rhs);
     //int Cmp (FE_var lhs, FE_var rhs);
     
@@ -71,7 +68,17 @@ public:
     bool LogiBit (FE_t v, size_t pos);
     bool TestBit (FE_t v, size_t pos);  
 
-    ByteArray& Raw (ByteArray& out, bool, FE_t); 
+    bytearray& Raw (bytearray& out, FE_t, bool isLE); 
+    //
+    //
+    inline void powM (mpz_t out, const mpz_t base, const mpz_t exp, const mpz_t mod) {
+      mpz_powm (out, base, exp, mod);
+    }
+
+    inline void sub_ui (mpz_t out, const mpz_t lhs, size_t rhs, mpz_t tmp) {
+      mpz_sub_ui(tmp, lhs, rhs);
+      mpz_mod (out, tmp, el(Fp));  
+    }
     
     inline __mpz_struct* el (FE_t x) { return &elems[x]; }
     //inline __mpz_struct* el (FE_t x) { return el(x.name()); }
@@ -85,61 +92,60 @@ public:
     
   public: 
     // size_t num_field_bits;
-    mpz_t Fp; 
-    mpz_t Fp_minus_one;
-    mpz_t Fp_minus_two; 
+    FE_t Fp; 
+    FE_t Fp_minus_one;
+    FE_t Fp_minus_two; 
     mpz_map elems; 
     gmp_randstate_t randstate;
-
     
  };
 
 
 
   
-  FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) 
-    : elems ()
-  {
-    char strb[128];
-    
-    mpz_init (Fp); 
-    mpz_set_str (Fp, strv, base);
-
+  FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) : elems () {
+    char strb[256];
+    printf ("%s(strv:%s, base:%zu)\n", __FUNCTION__, strv, base);  
+    // 
     gmp_randinit_default (randstate); 
+    //mpz_set_str (Fp, strv, base);
 
+    Fp = New ();
+    Fp_minus_one = New ();
+    Fp_minus_two = New ();
+    FE_t tmp = New ();
     
-    gmp_sprintf  (strb, "%Zu", Fp); 
-    printf ("Fp:%s\n", strb); 
+    Set (Fp, strv, base); 
+    gmp_sprintf  (strb, "%Zu", el(Fp)); 
+    printf ("  Fp:%s\n", strb); 
+   
+    sub_ui (el(Fp_minus_one), el(Fp), 1, el(tmp));
+    gmp_sprintf  (strb, "%Zu", el(Fp_minus_one)); 
+    printf ("  Fp-1:%s\n", strb); 
 
-    mpz_init (Fp_minus_one);
-    mpz_sub_ui (Fp_minus_one, Fp, 1);
+    sub_ui (el(Fp_minus_two), el(Fp), 2, el(tmp));
+    gmp_sprintf  (strb, "%Zu", el(Fp_minus_two)); 
+    printf ("  Fp-2:%s\n", strb); 
 
-    gmp_sprintf  (strb, "%Zu", Fp_minus_one); 
-    printf ("Fp-1:%s\n", strb); 
+    Del (tmp); 
 
-    mpz_init (Fp_minus_two);
-    mpz_sub_ui (Fp_minus_two, Fp, 2); 
-    gmp_sprintf  (strb, "%Zu", Fp_minus_two); 
-    printf ("Fp-2:%s\n", strb); 
+  } 
 
-    
- } 
-
-  FE_ctx_impl::~FE_ctx_impl ()
-  {
+  FE_ctx_impl::~FE_ctx_impl () {
+    //printf ("%s\n", __FUNCTION__);  
   }
 
-
+  FE_t FE_ctx_impl::p () {
+    return Fp;
+  } 
   
-  char* FE_ctx_impl::Format (char* out, const char* fmt, FE_t x)
-  {
+  char* FE_ctx_impl::Format (char* out, const char* fmt, FE_t x) {
     gmp_sprintf (out, fmt, el(x));
     return out; 
   }
 
 
-  void FE_ctx_impl:: Print (const char* msg, FE_t x)
-  {
+  void FE_ctx_impl:: Print (const char* msg, FE_t x) {
     
     if (!check (x))
       return; 
@@ -163,13 +169,10 @@ public:
   // allocate new field element
   FE_t FE_ctx_impl::New ()
   {
-    // 0 is forbidden name
-    FE_t name = 1; 
-    for (; elems.count (name); ++name);
-    //FE_t ret;
-    //ret.name() = name;
+    FE_t name = 1; // 0 is forbidden name
 
-    //std::get<1>(ret) = shared_from_this (); 
+    for (; elems.count (name); ++name);
+
     mpz_init (el(name));
     
     return name; 
@@ -208,95 +211,105 @@ public:
 
   void FE_ctx_impl ::Set (FE_t lv, FE_t rv)
   {
-    if (!check (lv) || !check (rv))
-      {
+    if (!check (lv) || !check (rv)) {
 	// error
       return; 
-      }
+    }
     
     mpz_set(el(lv), el(rv)); 
 
   }
   
-  void FE_ctx_impl:: Set_bin (FE_t lval, const unsigned char* bin, bool BE, size_t len) {
-    printf ("%s:IMPLEMNTS PLZ\n", __FUNCTION__);  
-     }
+  void FE_ctx_impl:: Set_bin (FE_t lval, const unsigned char* bin, unsigned len, bool isLE) {
 
+    unsigned       lenbin = len; 
+    unsigned char* uclen  = reinterpret_cast<unsigned char*> (&lenbin);
+    bytearray      bytes (len+6, 0); 
 
-  
-  // returning element; 
-  void FE_ctx_impl::Del(FE_t x)
-  {
-    //printf ("DELETER[%i]\n", x);
+    printf ("len:%u\n", len); 
     
-    mpz_map::iterator it = elems.find (x); 
-    
-    if (it != elems.end())
-      {
-	mpz_clear ( el(x) ); 
-	elems.erase (it); 
-      }
+    bytes[0] = uclen[3];
+    bytes[1] = uclen[2];
+    bytes[2] = uclen[1];
+    bytes[3] = uclen[0];
+
+    printf ("bytes.size: %zu\n", bytes.size()); 
+
+    FILE* fp = fmemopen (std::data(bytes), bytes.size(), "rb") ;
+
+    if (isLE) { // strv is LE
+      std::reverse_copy (bin, bin+len, &bytes[4]); 
+    }
+    else {
+      std::copy (bin, bin+len, &bytes[4]); 
+    }
+
+    size_t res = mpz_inp_raw (el(lval), fp);
+   // Function: size_t mpz_inp_raw (mpz_t rop, FILE *stream)
+    // Input from stdio stream stream in the format written by mpz_out_raw, and put
+    // the result in rop. Return the number of bytes read, or if an error occurred, return 0.
+    // This routine can read the output from mpz_out_raw also from GMP 1, in spite of changes
+    // necessary for compatibility between 32-bit and 64-bit machines.
+    fflush (fp); 
+    fclose (fp); 
   }
 
+  // returning element; 
+  void FE_ctx_impl::Del(FE_t x) {
+    //printf ("DELETER[%i]\n", x);
+    mpz_map::iterator it = elems.find (x); 
+    // 
+    if (it != elems.end()) {
+      mpz_clear ( el(x) ); 
+      elems.erase (it); 
+    }
+  }
+  
   //
   //  out = (lhs + rhs)%Fp
   // out = (lhs - rhs)%Fp
   // out = 1/x
-  void FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs)
-  {
+  void FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs) {
     ScopeDeleter dr (shared_from_this());
+    FE_t z = dr (New()); 
 
-    FE_t z = dr(New()); 
     mpz_add (el(z), el(lhs), el(rhs) ); 
-    mpz_mod (el(out),el(z), Fp);
-     
+    mpz_mod (el(out),el(z), el(Fp));
   }
  
-  void FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs)
-  {
-    //    printf ("%s[out:%i, lhs:%i, rhs:%i]\n",__FUNCTION__, out, lhs, rhs); 
-    ScopeDeleter dr (shared_from_this());
-    FE_t y = dr (New());
-
-
+  void FE_ctx_impl::Sub (FE_t out, FE_t lhs, FE_t rhs) {
     if (is_INF(lhs)) {
     }
-    
-    //printf (" [y:%i]\n", y); 
+    ScopeDeleter dr (shared_from_this());
+    FE_t y = dr(New());
+   
+    mpz_sub (el(y), el(lhs), el(rhs));
+    mpz_mod (el(out), el(y), el(Fp)); 
+  }
 
+  //
+  //
 
  
-    mpz_sub (el(y), el(lhs), el(rhs));
-    
-    mpz_mod (el(out), el(y), Fp); 
-    
-  }
-
-  //
-  //
-  void FE_ctx_impl::Sub_ui (FE_t out, FE_t lhs, size_t rhs)
-  {
+  void FE_ctx_impl::Sub_ui (FE_t out, FE_t lhs, size_t rhs) {
     ScopeDeleter dr (shared_from_this());
     FE_t tmp = dr(New());
-    
-    mpz_sub_ui(el(tmp), el(lhs), rhs);
 
-    mpz_mod (el(out), el(tmp), Fp);  
+    sub_ui (el(out), el(lhs), rhs, el(tmp)); 
   }
 
   //
   //
-  void FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs)
-  {
+  void FE_ctx_impl::Mul (FE_t out, FE_t lhs, FE_t rhs) {
     ScopeDeleter dr (shared_from_this());
-    FE_t r = dr (New());  
+    FE_t r = dr(New());  
     mpz_mul (el(r), el(lhs), el(rhs));
-    mpz_mod (el(out), el(r), Fp);
+    mpz_mod (el(out), el(r), el(Fp));
+
   }
   //
   //
-  void FE_ctx_impl::MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod)
-  {
+  void FE_ctx_impl::MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod) {
     ScopeDeleter dr (shared_from_this());
     FE_t r = dr (New());  
     mpz_mul (el(r), el(lhs), el(rhs));
@@ -304,19 +317,17 @@ public:
   }
   //
   // out = (lhs / rhs)%Fp
-  void FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs)
-  {
+  void FE_ctx_impl::Div (FE_t out, FE_t lhs, FE_t rhs) {
     
     ScopeDeleter dr (shared_from_this());
-    FE_t inv_r = dr (New());
-    FE_t z = dr (New());
+    FE_t inv_r   = dr(New());
+    FE_t z       = dr(New());
     
-    mpz_powm (el(inv_r), el(rhs), Fp_minus_two, Fp);
+    mpz_powm (el(inv_r), el(rhs), el(Fp_minus_two), el(Fp));
 
     mpz_mul (el(z), el(lhs), el(inv_r)); 
 
-    mpz_mod (el(out), el(z), Fp);
- 
+    mpz_mod (el(out), el(z), el(Fp));
   }
 
   // void FE_ctx_impl::Inv (FE_t out, FE_t x)
@@ -328,25 +339,23 @@ public:
 
   void FE_ctx_impl::Pow (FE_t out, FE_t b, FE_t exp)
   {
-    mpz_powm (el(out), el(b), el(exp), Fp); 
+    mpz_powm (el(out), el(b), el(exp), el(Fp)); 
   }
 
 
   void FE_ctx_impl::Pow_ui (FE_t out, FE_t base, size_t exp_ui)
   {
-    //    def __pow__(self, exponent):
+    //def __pow__(self, exponent):
     //  n = exponent % (self.prime - 1)
     //  num = pow(self.num, n, self.prime)
     //  return self.__class__(num, self.prime)
 
-    ScopeDeleter dr(shared_from_this()); 
+    ScopeDeleter dr (shared_from_this()); 
+    FE_t exp = dr (New_ui(exp_ui)); 
+    FE_t n   = dr (New ()); 
 
-    FE_t exp = dr(New_ui(exp_ui)); 
-    FE_t n = dr (New ()); 
-
-    mpz_mod (el(n), el(exp), Fp_minus_one); 
-    mpz_powm (el(out), el(base), el(n), Fp); 
-      
+    mpz_mod (el(n), el(exp), el(Fp_minus_one)); 
+    mpz_powm (el(out), el(base), el(n), el(Fp)); 
   }
  
   void FE_ctx_impl:: Pow_si (FE_t out, FE_t base, long int exp)
@@ -356,19 +365,15 @@ public:
     //  num = pow(self.num, n, self.prime)
     //  return self.__class__(num, self.prime)
 
-    ScopeDeleter dr (shared_from_this());
+    //ScopeDeleter dr (this);
 
-    FE_t n = dr(New ());
-    FE_t exponent = dr (New_si(exp)); 
-    mpz_mod (el(n), el(exponent), Fp_minus_one); 
-    mpz_powm (el(out), el(base), el(n), Fp);
+    FE_t n = New ();
+    FE_t exponent =  New_si(exp); 
+    mpz_mod (el(n), el(exponent), el(Fp_minus_one)); 
+    mpz_powm (el(out), el(base), el(n), el(Fp));
+    Del (exp);
+    Del (n); 
     
-  }
-
-  //
-  //
-  void FE_ctx_impl::powM (mpz_t out, const mpz_t base, const mpz_t exp, const mpz_t mod) {
-    mpz_powm (out, base, exp, mod);
   }
 
   //
@@ -417,17 +422,25 @@ public:
     if (!check(x))
       return; 
 
+    ScopeDeleter dr (shared_from_this()); 
+    FE_t base = dr (New_ui (2));
+    FE_t den  = dr (New ()); 
+    
     // close enuf?
-    mpz_fdiv_q_ui (el(x), el(x), 2*shift); 
+    mpz_powm_ui (el(den), el(base), shift , el(Fp));
+    mpz_fdiv_q (el(x), el(x), el(den)); 
    
   }
   
-  void FE_ctx_impl::LogiShiftL (FE_t x, size_t shift)
-  {
+  void FE_ctx_impl::LogiShiftL (FE_t x, size_t shift) {
     if (!check(x))
-      return; 
+      return;
+    ScopeDeleter dr (shared_from_this()); 
+    FE_t base = dr (New_ui (2));
+    FE_t out  = dr (New ()); 
 
-    mpz_mul_ui (el(x), el(x), 2*shift); 
+    mpz_powm_ui (el(out), el(base), shift , el(Fp));
+    mpz_mul (el(x), el(x), el(out)); 
     
   }
 
@@ -457,58 +470,58 @@ public:
   }
 
   
-  ByteArray& FE_ctx_impl::Raw (ByteArray& out, bool isBE, FE_t x)
-  {
-    if (!check (x))
-      return out;
+bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
 
-
-    const size_t buffersize = 256;  
-    ByteArray tmp (buffersize, 0);
-
-    
-   FILE* memfile = fmemopen (&tmp[0], 256, "w+");
+  if (!check (x))
+    return out;
+  //Function: mp_bitcnt_t mpz_popcount (const mpz_t op)
+  //If op>=0, return  the population count of op, which  is the number
+  //of 1 bits in the binary  representation. If op<0, the number of 1s
+  //is  infinite,  and  the  return  value  is  the  largest  possible
+  //mp_bitcnt_t.
+  size_t numbits    = mpz_popcount (el(x));
+  size_t sizeOf_val = (numbits/8) + (numbits % 8 ? 1 : 0) ; 
+  // !! +6  
+  bytearray tmp (sizeOf_val+6, 0);
+  FILE* memf  = fmemopen (std::data(tmp), sizeOf_val+6, "wb+"); 
    
-   if ( !memfile )
-     {
-       
-       printf ("fmemopen failed\n"); 
-       
-       return out; 
-     }
-
-
-   char numbytes_BE[4]; 
-   unsigned& numbytes = reinterpret_cast<unsigned&> (numbytes_BE);
-
-   int out_size =  mpz_out_raw (memfile, el(x));
-   fclose  (memfile);
-   
-   printf ("out_size:%i\n", out_size);
+   if (!memf ) {
+     printf ("fmemopen failed\n"); 
+     return out; 
+   }
   
-   numbytes_BE[0] = tmp[3];
-   numbytes_BE[1] = tmp[2];
-   numbytes_BE[2] = tmp[1];
-   numbytes_BE[3] = tmp[0];
-   
-   printf ("numbytes:%u\n", numbytes);
+   unsigned       numbytes    = 0;
+   unsigned char* numbytes_LE = reinterpret_cast<unsigned char*> (&numbytes); 
+   //  
+   int out_size = mpz_out_raw (memf, el(x));
+   fflush (memf);  
+   fclose (memf);
+   // Output op on stdio stream stream, in raw binary format. The
+   // integer is written in a portable format, with 4 bytes of size
+   // information, and that many bytes of limbs. Both the size and the
+   // limbs are written in decreasing significance order (i.e., in
+   // big-endian).
+   numbytes_LE[0] = tmp[3];
+   numbytes_LE[1] = tmp[2];
+   numbytes_LE[2] = tmp[1];
+   numbytes_LE[3] = tmp[0];
+ 
+   out.resize(numbytes, 0);
 
+   std::copy (&tmp[4], &tmp[4+sizeOf_val], out.begin ());
 
-   out.resize(numbytes);    
-   for (unsigned i = 0; i < numbytes; ++i)
-     {
-    
-       out[i] = tmp[4 + numbytes - 1 - i]; 
-     }
+   if (want_LE)  {
+     std::reverse (out.begin(), out.end());
+   }
 
    return out;
   }
 
   //
   //
-  FEConPtr Create_FE_context (const char* strv, size_t base )
-  {
-    FEConPtr ret (std::make_shared<FE_ctx_impl>( strv, base )); 
+  FEConRef Create_FE_context (const char* strv, size_t base ) {
+
+    FEConRef ret (std::make_shared<FE_ctx_impl>( strv, base )); 
     
     return ret;
   }

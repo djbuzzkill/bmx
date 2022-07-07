@@ -34,8 +34,7 @@ namespace ffm
   }
   //
   //
-  namespace pt
-  {
+  namespace pt {
     // 
     struct struc : public std::tuple<FE_t, FE_t> {
     };
@@ -47,14 +46,12 @@ namespace ffm
     inline const FE_t& y(const struc& t) { return std::get<1> (t); }
     
     //  
-    struct map : public  std::map< std::string, struc>
-    {
+    struct map : public  std::map< std::string, struc> {
       inline bool exs (const std::string& s) { return count(s) ? true : false; }
       //inline bool co_exists (const std::string& s) { return curvemap.count(s) ? true : false; }
 
       //pt::struc& p (const std::string& name) { return (*this)[name]; }
       const pt::struc& pt (const std::string& name) const { return at(name); }
- 
     }; 
 
     inline bool is_INF (FE_t x) { return (x < 0 ? true : false); }
@@ -63,8 +60,7 @@ namespace ffm
   
   //
   //
-  class EC_context : public Destructor 
-  {
+  class EC_context : public Destructor {
   public:
     // virtual bool Add (const std::string& O, const std::string& lhs, const std::string& rhs) = 0;
     // O <= A+B 

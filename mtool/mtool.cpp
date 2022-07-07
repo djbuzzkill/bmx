@@ -75,7 +75,7 @@ bool ECDSA_Sign (ffm::el::map& em, ffm::pt::map& pm, ffm::FEConPtr F, ffm::ECCon
   em["1/k"] = k_inv; 
 
   
-  ByteArray r_raw, s_raw;
+  bytearray r_raw, s_raw;
   // kG = R
   EC->MakePoint_ui (R, 0, 0); // <-- we should just make a plain 'alloc-point'
   EC->Mul_scalar (R, "k", G); // we want R.x
@@ -158,7 +158,7 @@ bool ECDSA_Verify (ffm::el::map& elmap, ffm::pt::map& pointmap, ffm::FEConPtr F,
 }
   
  
-int CH3_test(std::vector<std::string> &args)
+int CH3_Ex(std::vector<std::string> &args)
 {
   printf ("%s[args]\n", __FUNCTION__);
 
@@ -233,16 +233,16 @@ int CH3_test(std::vector<std::string> &args)
   
   //EC->PrintPoint("R1:", "R1", ffm::format::HEX);
   //EC->PrintElem ("r1:", "r1", ffm::format::HEX);
-    
+  
    
-    //EC->DefElem ("z2", "0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d", 0); 
-    //EC->DefElem ("r2", "0xeff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c", 0);
-    //EC->DefElem ("s2", "0xc7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6", 0); 		 
-    // uG + vP = R 
-    // u = z/s
-    // v = r/s
-    // s = (z+re)/k
-
+  //EC->DefElem ("z2", "0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d", 0); 
+  //EC->DefElem ("r2", "0xeff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c", 0);
+  //EC->DefElem ("s2", "0xc7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6", 0); 		 
+  // uG + vP = R 
+  // u = z/s
+  // v = r/s
+  // s = (z+re)/k
+  
   printf ("leaving:%s\n", __FUNCTION__); 
   return 0; 
   
@@ -302,7 +302,8 @@ int CH4_test (std::vector<std::string>& args)
   return 0; 
 }
 
-
+//
+//
 void print_digest (const std::array<unsigned char, 32>& dig) {
   for (auto& c : dig) {
     std::string hx = af::hex_uc(c);
@@ -311,8 +312,8 @@ void print_digest (const std::array<unsigned char, 32>& dig) {
   }
 }
 
-
-
+//
+//
 int test_gcrypt (const std::vector<std::string>& args)
 {
   printf ("\n%s:begin\n", __FUNCTION__); 
@@ -328,17 +329,59 @@ int test_gcrypt (const std::vector<std::string>& args)
   
   print_digest (rnd2); 
 
-   
-
-
-
-
- 
   printf ( "\n%s:end\n", __FUNCTION__); 
   return 0; 
 }
 
+void printbytes (const std::string& lbl, const ffm::bytearray& bytes)
+{
+  //printf ("%s|size(bytes):%zu\n", bytes.size()); 
+  printf ("bytes.size:%zu\n", bytes.size()); 
+  // printf ("%s\n", bytes.size()); 
+  for (int i = 0; i < bytes.size(); ++i)
+    printf ("%s[%i]:%x\n", lbl.c_str(), i, bytes[i]);
+  
+}
 
+//
+//
+//
+
+int test_binary (const std::vector<std::string> &args) {
+
+  printf ("\n%s:begin\n", __FUNCTION__);
+
+  using namespace ffm;
+
+  el::map em;
+  pt::map pm;
+
+  FEConPtr F = Create_FE_context ( kSEC256k1_p_sz, 0 );
+  ECConRef EC = Create_EC_context(F, em, pm, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
+  
+  ScopeDeleter dr (F);
+  FE_t vara = dr(F->New_ui(1));
+  
+  bytearray bina, binb, binc; 
+
+  F->Print ("Fp:", F->p()); 
+  //  F->LogiShiftL(vara, 248);
+  //printbytes ("bina", bina); 
+
+	       
+  F->Raw (binb, F->p(), false); 
+  printbytes( "p", binb);
+	    
+  FE_t varnew = F->New (); 
+  printf ("binb.size:%zu\n", binb.size());  
+  F->Set_bin (varnew, std::data(binb), binb.size(), false); 
+
+  F->Print ("[new_var]:", varnew);
+
+  
+  // print number 1, is it at first or last byte
+  return 0;
+}
 
 
 // ----------------------- main --------------------------
@@ -351,9 +394,14 @@ int main (int argv, char** argc)
 
   // test_gmp (args);
   //FE_test (args);
-  //CH3_test(args); 
- 
-  test_gcrypt (args);
+
+  test_binary (args);
+  
+  POUT("in between");
+  
+  //CH3_Ex(args);
+    // test_gcrypt (args);
+  POUT("af between");
   
   //CH4_test(args); 
   // test_gcrypt(args); 

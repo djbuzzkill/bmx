@@ -185,20 +185,21 @@ namespace ffm
     
   //
   //
-  EC_con_imp1:: ~EC_con_imp1 ()
-    {
-      for (auto& p : pointmap) {
-	F->Del (x(p.second));
-	F->Del (y(p.second));
-      }
+  EC_con_imp1:: ~EC_con_imp1 () {
+    printf ("%s\n", __FUNCTION__);  
 
-      for (auto e : elmap) {
-	F->Del(e.second); 
-      }
+    for (auto& p : pointmap) {
+      F->Del (x(p.second));
+      F->Del (y(p.second));
+    }
+
+    for (auto e : elmap) {
+      F->Del(e.second); 
+    }
       
-      F->Del (a(coeffs)); 
-      F->Del (b(coeffs));
-      F->Del (n);
+    F->Del (a(coeffs)); 
+    F->Del (b(coeffs));
+    F->Del (n);
     }
  
   // 
@@ -1281,20 +1282,20 @@ namespace ffm
     
   //
   //
-  EC_con_imp2:: ~EC_con_imp2 ()
-    {
-      for (auto& p : pointmap) {
-	F->Del (x(p.second));
-	F->Del (y(p.second));
-      }
-
-      for (auto e : elmap) {
-	F->Del(e.second); 
-      }
-      
-      F->Del (a(coeffs)); 
-      F->Del (b(coeffs));
+  EC_con_imp2:: ~EC_con_imp2 () {
+    //printf ("%s\n", __FUNCTION__);  
+    for (auto& p : pointmap) {
+      F->Del (x(p.second));
+      F->Del (y(p.second));
     }
+    
+    for (auto e : elmap) {
+      F->Del(e.second); 
+    }
+    
+    F->Del (a(coeffs)); 
+    F->Del (b(coeffs));
+  }
  
   //
   //

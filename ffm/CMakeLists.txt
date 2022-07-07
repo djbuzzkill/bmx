@@ -4,6 +4,15 @@ CMAKE_MINIMUM_REQUIRED(VERSION  3.1)
 project (FFM)
 
 
+
+message (STATUS "FFM:${CMAKE_CURRENT_SOURCE_DIR}")
+message (STATUS "FFM:${CMAKE_SOURCE_DIR}")
+
+include_directories (
+  ${CMAKE_SOURCE_DIR}
+  )
+
+
 set (FFM_SOURCES
 
   common.cpp

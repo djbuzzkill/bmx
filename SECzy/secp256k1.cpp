@@ -109,12 +109,7 @@ namespace SECxy {
   }
   
   
-
-  bool secp256k1::Sign (unsigned char* z, unsigned char* r) {
-    return false; 
-    
-  }
-  
+ 
   //
   //
   bool secp256k1::Sign (Signature& sig, const PrivateKey& prik, const digest32& z)  {
