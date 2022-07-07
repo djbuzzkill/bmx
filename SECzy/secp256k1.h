@@ -3,33 +3,50 @@
 
 #include "common.h"
 #include "ffm/ffm.h"
+#include "aframe/af.h"
 
 
+namespace SECxy {
 
-
-class secp256k1
-{
-public:
-
-  secp256k1 ();
-  ~secp256k1 ();
+  typedef af::digest32 digest32;  
   
-  bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
- 
-  bool Sign (unsigned char* z, unsigned char* r); 
+  struct PrivateKey {
+    af::byte32 sec;
+  }; 
+
+  struct PublicKey {
+    af::byte32 x;
+    af::byte32 y;
+  }; 
   
-protected:
-
-
- 
-  ffm::FEConPtr F;
-  ffm::ECConRef EC;
-  ffm::el::map elems;
-  ffm::pt::map points; 
+  struct Signature {
+    af::byte32 s;
+    af::byte32 r; 
+  };
   
-}; 
+    
+  class secp256k1 {
+    //  
+  public:
+    
+    secp256k1 ();
+    ~secp256k1 ();
+    
+    bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
+    bool Sign (unsigned char* z, unsigned char* r); 
+    
+    bool Sign (Signature& sig, const PrivateKey&, const digest32& z);
+    bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
 
+  protected:
+    
+    ffm::FEConPtr F;
+    ffm::ECConRef EC;
+    ffm::el::map elems;
+    ffm::pt::map points; 
+  }; 
+  
 
-
+}
 
 #endif

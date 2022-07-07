@@ -62,7 +62,38 @@
 	 
 (setq use-package-always-ensure t)
 
-;; no line numbers for these buffers
+;;; https://github.com/Alexander-Miller/treemacs/issues/164
+(with-eval-after-load 'treemacs
+
+  (defun treemacs-ignore-example (filename absolute-path)
+    (or (string-match "/Blender" absolute-path)
+	(string-match "/Bullet_platform" absolute-path)
+	(string-match "/OpenGL_system" absolute-path)
+	(string-match "/Rn_" absolute-path)
+	(string-match "/ninjabuild" absolute-path)
+	(string-match "/Debug" absolute-path)
+	(string-match "/Release" absolute-path)
+
+	(string-match "/shader" absolute-path)
+	(string-match "/spux" absolute-path)
+	(string-match "/spux_SDL2" absolute-path)
+	(string-match "/res" absolute-path)
+	(string-match "/SDL2_platform" absolute-path)
+	(string-match "/Hx" absolute-path)
+	(string-match "/Ma_" absolute-path)
+	(string-match "Terrain_renderer" absolute-path)
+	(string-match "Ma_" absolute-path)
+
+	(string-match "/test_Mars" absolute-path)
+	(string-match "/data" absolute-path)
+	(string-match "/Charon" absolute-path)
+	(string-match "/Dx" absolute-path)))
+
+  (add-to-list 'treemacs-ignored-file-predicates #'treemacs-ignore-example))
+
+
+
+; no line numbers for these buffers
 (dolist (mode '(org-mode-hook
 		term-mode-hook
                 shell-mode-hook
@@ -169,7 +200,8 @@
 
    "f" '(:ignore f :which-key "file operations")
    "fp" '(find-file-at-point :which-key "open file at point")
-
+   "fr" '(recentf-open-files :which-key "open recent file list")
+   "fm" '(recentf-open-more-files :which-key "open more recent files")
    ))
 
 
@@ -183,7 +215,7 @@
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-
+  (define-key evil-insert-state-map (kbd "C-d") 'evil-delete-char) 
 
 ;;(global-set-key (kbd "C-m") 'set-mark-command)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
@@ -202,7 +234,7 @@
 
 ;; comment/uncomment code
 (use-package evil-nerd-commenter
-  :bind ("M-/" . evilc-comment-or-uncomment-lines))
+  :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
 
 ;;
@@ -254,24 +286,48 @@
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+;; Α α, Β β, Γ γ, Δ δ, Ε ε, Ζ ζ, Η η, Θ θ, Ι ι, Κ κ, Λ λ, Μ μ, Ν ν, Ξ ξ, Ο ο, Π π, Ρ ρ, Σ σ/ς, Τ τ, Υ υ, Φ φ, Χ χ, Ψ ψ, Ω ω.
+
+
+
+
+
+(defun e9/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
 
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
+  :hook (lsp-mode . e9/lsp-mode-setup)
+
   :init (setq lsp-keymap-prefix "C-c l")
-  :config (lsp-enable-which-key-integration))
+  :config (lsp-enable-which-key-integration t))
 
 
+;; 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui)
   :custom (lsp-ui-doc-position 'bottom))
 
+
+;;
 (use-package lsp-treemacs
   :after lsp)
 
 
 
+
+
+;;
 (use-package dap-mode)
+
+;; https://github.com/emacs-lsp/dap-mode/issues/442
+(require 'dap-gdb-lldb)
+
+
+;; ?? is this needed ??
+;; (require 'dap-node)
 
 ;;
 (use-package company
@@ -283,18 +339,22 @@
   (:map lsp-mode-map
 	("<tab>" . company-indent-or-complete-common))
   :custom
-  (company-minimum-prefix-length 1)
+  (company-minimum-prefix-length 2)
   (company-idle-delay 0.0))
 
 
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+;;(use-package company-box
+;; :hook (company-mode . company-box-mode))
 
 
 ;;
 (use-package lsp-ivy)
 
+
+
+
+;; (add-to-list 'auto-mode-alist '("\\.h\\'" . cc-mode))
 
 ;;
 (use-package projectile
@@ -304,9 +364,16 @@
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
-  (when (file-directory-p "~/owens_lake")
-    (setq projectile-project-search-path '("~/owens_lake")))
+  (when (file-directory-p "~/owenslake")
+    (setq projectile-project-search-path '("~/owenslake")))
   (setq projectile-switch-project-action #'projectile-dired))
+
+
+
+;;
+;; (use-package treemacs-projectile
+
+
 ;;   
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
@@ -314,27 +381,24 @@
 ;;
 (use-package magit
   :commands (magit-status magit-get-currennt-branch)
+;;  :init
+;;  (bind-key "C-x g" 'magit-status)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-
 
 ;;
 ;; evil collection
  (use-package evil-collection
    :after magit)
 
-
+;;
 ;;
 (use-package term
   :config
   (setq explicit-shell-filename "bash")
   (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
   
-
-
 ;;
-  
 (use-package eterm-256color
   :hook (term-mode . eterm-256color-mode))
 
@@ -371,7 +435,12 @@
 (use-package eshell
   :hook (eshell-first-time-mode . 'e9/configure-eshell)
   :config (eshell-git-prompt-use-theme 'robbyrussell))
-  
+
+
+
+
+;;(use-package cc-mode
+;;  :mode "\\.cpp\\'")
 
 ;;
 (use-package python-mode
@@ -391,10 +460,10 @@
 ;; 
 (use-package flycheck
   :ensure t
-  :init (global-flycheck-mode))
+  :init (global-flycheck-mode t))
 
 ;; Common Lisp/Slime
-(add-to-list 'load-path "~/owens_lake/slime")
+(add-to-list 'load-path "~/owenlake/slime")
 ;;(setq  inferior-lisp-program "~/bin/sbcl")
 
 

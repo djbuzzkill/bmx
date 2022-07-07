@@ -21,35 +21,34 @@ namespace
   const char n_minus_2[] = "n-2"; 
 }
 
-secp256k1::secp256k1 ()
-  : elems ()
-  , points()
-{
- 
-  F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
-  EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+namespace SECxy {
 
-  
-  ffm::ScopeDeleter dr (F);
-  ffm::FE_t t0 = dr (F->New ()); 
-  //checkres ("G", EC->DefPoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
-  //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
- 
-  //F->Set (t0, "0x2", 0);
-  //EC->DefElem ("n-2", 
-   
-}
+  secp256k1::secp256k1 () : elems (), points() { 
+    
+    F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
+    EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+    
+    
+    ffm::ScopeDeleter dr (F);
+    ffm::FE_t t0 = dr (F->New ()); 
+    //checkres ("G", EC->DefPoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
+    //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
+    
+    //F->Set (t0, "0x2", 0);
+    //EC->DefElem ("n-2", 
+    
+  }
 
-secp256k1::~secp256k1 ()
-{
-
-}
+  //
+  //
+  secp256k1::~secp256k1 () {
+    
+  }
 
  
   //
   //
-bool secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)
-  {
+  bool SECxy::secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)  {
     // uG + vP = R 
     // u = z/s
     // v = r/s
@@ -57,6 +56,7 @@ bool secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)
     ffm::ScopeDeleter dr (F);
 
     
+
     ffm::FE_t z = dr (F->New(sz_z, 0));
     ffm::FE_t r = dr (F->New(sz_r, 0));
     ffm::FE_t s = dr (F->New(sz_s, 0));
@@ -110,9 +110,23 @@ bool secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)
   
   
 
-bool secp256k1::Sign (unsigned char* z, unsigned char* r)
-{
-  return false; 
+  bool secp256k1::Sign (unsigned char* z, unsigned char* r) {
+    return false; 
+    
+  }
+  
+  //
+  //
+  bool secp256k1::Sign (Signature& sig, const PrivateKey& prik, const digest32& z)  {
+    return false; 
+  }
+  
+
+  //
+  //
+  bool secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z) {
+    return false; 
+  }
 
 }
- 
+

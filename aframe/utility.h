@@ -10,6 +10,9 @@
 
 namespace af
 {
+  
+  typedef std::array<unsigned char, 32> byte32; 
+
   //
   inline void checkres (const std::string& label, bool cond) {
 

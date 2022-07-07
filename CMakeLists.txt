@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.1)
 
 project (gx)
 
@@ -24,12 +24,12 @@ link_directories (
   )
 
 # libs
-add_subdirectory (secp256k1)
 add_subdirectory (aframe)
-#add_subdirectory (Hx)
 add_subdirectory (ffm)
+add_subdirectory (SECzy)
+#add_subdirectory (Hx)
 
 
 # progs
 add_subdirectory (mtool)
-add_subdirectory (rumbum)
+add_subdirectory (rum)

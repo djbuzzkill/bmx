@@ -95,6 +95,7 @@ namespace ffm
     // return to source
     virtual bool DelPoint (const std::string&) = 0;
     virtual bool DelElem  (const std::string&) = 0;
+
    
     virtual void PrintPoint (const std::string& , const std::string&, format f = format::dec) = 0;
     virtual void PrintCoeffs (const std::string& , format fmt= format::dec) = 0; 

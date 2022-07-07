@@ -1,37 +1,38 @@
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
-project (rumbum)
+project (rum)
 
 
 
 add_compile_options (-g -O0 )
 
-#set ("CMAKE_CXX_FLAGS=-g -00")
-#set ("CMAKE_C_FLAGS=-g -00")
+#set ("CMAKE_CXX_FLAGS=-g -O0")
+#set ("CMAKE_C_FLAGS=-g -O0")
 
   
-set (RUMBUM_HEADER_FILES
-  rumbum.h
+set (RUM_HEADER_FILES
+  rum.h
  )
 	
-set (RUMBUM_SOURCE_FILES
-  rumbum.cpp
+set (RUM_SOURCE_FILES
+  rum.cpp
   )
 
-add_executable (rumbum
-  ${RUMBUM_HEADER_FILES}
-  ${RUMBUM_SOURCE_FILES}
+add_executable (rum
+  ${RUM_HEADER_FILES}
+  ${RUM_SOURCE_FILES}
   )
 
 
-target_link_libraries (rumbum
+target_link_libraries (rum
   gmp
   gmpxx
   
   aframe 
   crypto++
   ffm
+  SECzy
   )
 
 

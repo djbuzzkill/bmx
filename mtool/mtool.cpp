@@ -11,7 +11,7 @@
 //#include <cryptopp/sha.h>
 //#include <cryptopp/ripemd.h>
 
-#include "sha2.h"
+//#include "sha2.h"
 
 // big num math
 // #include <gmp.h>
@@ -45,6 +45,54 @@ inline void print_bignum (const char *lbl, ffm::FE_t x, ffm::FEConPtr c) {
 
 
 
+bool ECDSA_Sign (ffm::el::map& em, ffm::pt::map& pm, ffm::FEConPtr F, ffm::ECConRef EC, const unsigned char* z_bin, const unsigned char* priv_k) 
+{
+  using namespace ffm;
+  // eG = P
+  
+  const std::string G = "G"; 
+  const std::string P = "P";
+  const std::string R = "R";
+  const std::string n = "n";
+  
+  ScopeDeleter dr (F); 
+  // kG = R
+  FE_t
+    prk = dr(F->New_bin (priv_k, true, 32)),
+    z = dr (F->New_bin (z_bin, true, 32)), 
+    s = dr (F->New ()),
+    r = dr (F->New ()),
+    k = dr (F->New ()),
+    tmp = dr(F->New()),
+    snum = dr (F->New ()),
+    k_inv = dr (F->New ());
+
+  F->Rand (k, em[n]);
+  em["k"] = k; 
+
+
+  F->PowM (k_inv, k, em["n-2"], em[n]);  
+  em["1/k"] = k_inv; 
+
+  
+  ByteArray r_raw, s_raw;
+  // kG = R
+  EC->MakePoint_ui (R, 0, 0); // <-- we should just make a plain 'alloc-point'
+  EC->Mul_scalar (R, "k", G); // we want R.x
+
+  // s = (z+re)/k
+  F->Mul (tmp, pt::x(pm[R]), prk);
+  F->Add (snum, z, tmp);
+  F->Mul (s, snum, k_inv);  
+
+  // get the binary , sig is (r,s) => sig(r,s) 
+  F->Raw (r_raw, true, pt::x(pm[R]));
+  F->Raw (s_raw, true, s);  
+    
+  
+ return false; 
+  
+}
 
 
 bool ECDSA_Verify (ffm::el::map& elmap, ffm::pt::map& pointmap, ffm::FEConPtr F, ffm::ECConRef EC, const char* sz_z, const char* sz_r, const char* sz_s) {
@@ -65,6 +113,8 @@ bool ECDSA_Verify (ffm::el::map& elmap, ffm::pt::map& pointmap, ffm::FEConPtr F,
   ffm::FE_t s_inv = dr(F->New());
   
   const std::string n = "n"; 
+  const std::string u = "u"; 
+  const std::string v = "v";
   const std::string vP = "vP";
   const std::string uG = "uG"; 
   
@@ -76,15 +126,13 @@ bool ECDSA_Verify (ffm::el::map& elmap, ffm::pt::map& pointmap, ffm::FEConPtr F,
   F->PowM (s_inv, s, n_minus_2, elmap[n]); 
   EC->PrintElem ("s_inv", s_inv, ffm::format::hex); 
   
-  ffm::FE_t u = F->New ();
-  F->MulM (u, z, s_inv, elmap[n]);
-  elmap["u"] = u;
+  EC->MakeElem_ui("u", 0);
+  F->MulM (elmap["u"], z, s_inv, elmap[n]);
+
+  EC->MakeElem_ui ("v", 0);
+  F->MulM (elmap["v"], r, s_inv, elmap[n]);
   
-  ffm::FE_t v = F->New ();
-  F->MulM (v, r, s_inv, elmap[n]);
-  elmap["v"] = v; 
-  
-  EC->MakePoint_ui (uG, 0,  0);
+  EC->MakePoint_ui (uG, 0, 0);
   bool uG_res = EC->Mul_scalar (uG, "u", "G");
   
   EC->MakePoint_ui (vP, 0, 0);
@@ -165,9 +213,26 @@ int CH3_test(std::vector<std::string> &args)
       af::checkres ("sig b", true == ECDSA_Verify (elmap, pointmap, F, EC, sz_z2, sz_r2, sz_s2)); 
     }
   }
+
   
-    //EC->PrintPoint("R1:", "R1", ffm::format::HEX);
-    //EC->PrintElem ("r1:", "r1", ffm::format::HEX);
+  if (true) {
+    POUT ("Ex. 3.7"); 
+
+    ffm::el::map El;
+    ffm::pt::map Pt;
+
+    ffm::FEConPtr F = ffm::Create_FE_context (kSEC256k1_p_sz, 0);
+    ffm::ECConRef EC = ffm::Create_EC_context (F, El, Pt, kSEC356k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
+
+    const unsigned char z_bin[] = ""; // where do we get this from
+
+    const unsigned char prk_bin[32] = {};
+
+    af::checkres ("sign a", ECDSA_Sign (El, Pt, F, EC, z_bin, prk_bin));
+  }
+  
+  //EC->PrintPoint("R1:", "R1", ffm::format::HEX);
+  //EC->PrintElem ("r1:", "r1", ffm::format::HEX);
     
    
     //EC->DefElem ("z2", "0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d", 0); 
@@ -240,13 +305,17 @@ int CH4_test (std::vector<std::string>& args)
 
 void print_digest (const std::array<unsigned char, 32>& dig) {
   for (auto& c : dig) {
-    printf ("[%i|0x%s]\n", c, af::hex_uc(c).c_str());
+    std::string hx = af::hex_uc(c);
+    
+    printf ("[%i|0x%s|%i]\n", c, hx.c_str(), af::uc_hex (hx));
   }
 }
 
+
+
 int test_gcrypt (const std::vector<std::string>& args)
 {
-  printf ("%s\n", __FUNCTION__); 
+  printf ("\n%s:begin\n", __FUNCTION__); 
  
   af::digest32 rnd1, rnd2;
 
@@ -259,8 +328,13 @@ int test_gcrypt (const std::vector<std::string>& args)
   
   print_digest (rnd2); 
 
-    
-  printf ( "exiting %s\n", __FUNCTION__); 
+   
+
+
+
+
+ 
+  printf ( "\n%s:end\n", __FUNCTION__); 
   return 0; 
 }
 

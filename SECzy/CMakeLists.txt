@@ -1,7 +1,7 @@
 
-CMAKE_MINIMUM_REQUIRED(VERSION  3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION  3.1)
 
-project (secp256k1)
+project (SECzy)
 
 
 set (SECP256K1_SOURCES
@@ -14,7 +14,7 @@ set (SECP256K1_HEADERS
   common.h
   )
 
-add_library (secp256k1
+add_library (SECzy
   ${SECP256K1_SOURCES}
   ${SECP256K1_HEADERS}
   )

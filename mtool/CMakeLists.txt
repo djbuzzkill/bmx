@@ -1,13 +1,13 @@
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 project (mtool)
 
 
 
 
-#set ("CMAKE_CXX_FLAGS=-g -00")
-#set ("CMAKE_C_FLAGS=-g -00")
+#set ("CMAKE_CXX_FLAGS=-g -O0")
+#set ("CMAKE_C_FLAGS=-g -O0")
 
   
 set (MTOOL_HEADER_FILES
@@ -38,15 +38,14 @@ target_link_libraries (mtool
 
   aframe
   ffm
-  
+  SECzy 
+
   gcrypt
   gmp
   gmpxx
-  
   #ssl
   #crypt 
   # crypto++
-
   )
 
 

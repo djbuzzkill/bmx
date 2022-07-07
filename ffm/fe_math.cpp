@@ -32,6 +32,7 @@ public:
     void Set_ui (FE_t place, size_t v); 
     void Set_si (FE_t place, long int v); 
 
+    void Set_bin (FE_t lval, const unsigned char* bin, bool BE, size_t len); 
     void Set (FE_t lval, FE_t rval);
     
     // returning element; 
@@ -53,6 +54,8 @@ public:
     
     void powM ( mpz_t ou, const mpz_t ba, const mpz_t ex, const mpz_t mo);
 
+    bool Rand (FE_t out, FE_t f);
+    
 
            
 
@@ -68,7 +71,7 @@ public:
     bool LogiBit (FE_t v, size_t pos);
     bool TestBit (FE_t v, size_t pos);  
 
-    ByteArray& Raw (ByteArray& out, FE_t); 
+    ByteArray& Raw (ByteArray& out, bool, FE_t); 
     
     inline __mpz_struct* el (FE_t x) { return &elems[x]; }
     //inline __mpz_struct* el (FE_t x) { return el(x.name()); }
@@ -86,8 +89,10 @@ public:
     mpz_t Fp_minus_one;
     mpz_t Fp_minus_two; 
     mpz_map elems; 
+    gmp_randstate_t randstate;
 
-  };
+    
+ };
 
 
 
@@ -100,6 +105,7 @@ public:
     mpz_init (Fp); 
     mpz_set_str (Fp, strv, base);
 
+    gmp_randinit_default (randstate); 
 
     
     gmp_sprintf  (strb, "%Zu", Fp); 
@@ -211,6 +217,12 @@ public:
     mpz_set(el(lv), el(rv)); 
 
   }
+  
+  void FE_ctx_impl:: Set_bin (FE_t lval, const unsigned char* bin, bool BE, size_t len) {
+    printf ("%s:IMPLEMNTS PLZ\n", __FUNCTION__);  
+     }
+
+
   
   // returning element; 
   void FE_ctx_impl::Del(FE_t x)
@@ -371,6 +383,11 @@ public:
     powM (el(out), el(base), el(exp), el(mod)); 
   }
   
+  bool FE_ctx_impl::Rand (FE_t out, FE_t f)
+  {
+    mpz_urandomm (el(out), randstate, el(f)); 
+    return true; 
+  }
   //
   //
   int FE_ctx_impl::Cmp (FE_t lhs, FE_t rhs)
@@ -440,7 +457,7 @@ public:
   }
 
   
-  ByteArray& FE_ctx_impl::Raw (ByteArray& out, FE_t x)
+  ByteArray& FE_ctx_impl::Raw (ByteArray& out, bool isBE, FE_t x)
   {
     if (!check (x))
       return out;
