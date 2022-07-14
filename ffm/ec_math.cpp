@@ -45,6 +45,7 @@ namespace ffm
     bool Mul_scalar (const std::string& O, const std::string& s, const std::string& P);   
     // bool SetCoeffs_ui (size_t, size_t);
 
+    bool Mul_scalar (const std::string& O, FE_t s, const std::string& P); 
 
     // initialize point with elements
     //bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
@@ -57,6 +58,7 @@ namespace ffm
     bool SetElem (const std::string& dst, const std::string& src);  
 
     
+    bool MakePoint (const std::string& sym, FE_t, FE_t); 
     bool MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base);
     bool MakePoint (const std::string& sym, const std::string& xel, const std::string& yel);
     bool MakePoint_ui (const std::string& sym, size_t xval, size_t yval); 
@@ -252,6 +254,16 @@ namespace ffm
     
   }
 
+  bool EC_con_imp1::MakePoint (const std::string& sym, FE_t x, FE_t y) {
+    if (pt_exists(sym)) {
+      return false;  
+      printf ("%s[sym:%s] : %s already defined\n", __FUNCTION__, sym.c_str(), sym.c_str()); 
+    }
+ 
+
+    return makePoint (point(sym), x, y); 
+  }
+ 
   //
   //
   bool EC_con_imp1::MakePoint_ui (const std::string& sym, size_t px, size_t py)
@@ -725,6 +737,20 @@ namespace ffm
       printf ("element %s DNE\n", s.c_str());
       return false; 
     }
+    return Mul_scalar (O, elem(s), P); 
+
+  }
+
+  bool EC_con_imp1::Mul_scalar (const std::string& O, FE_t s, const std::string& P) {
+    //printf ("%s[%s, %s, %s]\n", __FUNCTION__, O.c_str(), s.c_str(), P.c_str()); 
+    if (!pt_exists(P)) {
+      printf ("point %s DNE\n", P.c_str());
+      return false;
+    }
+    if (!F->IsValid(s)) {
+      printf ("multiplier \'s\' is invalid\n" );
+      return false; 
+    }
 
     ScopeDeleter dr (F);
     elem_tuple curr;
@@ -738,7 +764,7 @@ namespace ffm
     set_INF (acc); 
     //printPoint ("  acc", acc, Format::HEX); 
     FE_t coeff = dr (F->New ()); // 
-    F->Set (coeff, elem(s));     // initialize to scalar multiplier
+    F->Set (coeff, s);     // initialize to scalar multiplier
     //printElem("  coeff", coeff, Format::HEX); 
     //printElem ("coeff start:", coeff, Format::DEC); 
     //size_t dbg_count = 0;
@@ -1128,6 +1154,7 @@ namespace ffm
     bool Mul_scalar (const std::string& O, const std::string& s, const std::string& P);   
     // bool SetCoeffs_ui (size_t, size_t);
 
+    bool Mul_scalar (const std::string& O, FE_t s, const std::string& P); 
 
     // initialize point with elements
     //bool DefPoint (const std::string& sym, const char* a, const char* , size_t) ;
@@ -1139,6 +1166,7 @@ namespace ffm
     bool MakeElem_ui (const std::string& sym, size_t);
     bool SetElem (const std::string& dst, const std::string& src);
 
+    bool MakePoint (const std::string& sym, FE_t, FE_t); 
     bool MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base);
     bool MakePoint (const std::string& sym, const std::string& xel, const std::string& yel);
     bool MakePoint_ui (const std::string& sym, size_t xval, size_t yval); 
@@ -1241,14 +1269,14 @@ namespace ffm
 
     el::map&  elmap;
 
-    pt::struc coeffs;
-    FE_t      n; 
+    FE_t coeff_a;
+    FE_t coeff_b;
   private: 
 
   };
 
 
-// 
+  // 
   ECConRef Create_EC_context (FEConPtr F, el::map&  em, pt::map& pm, const char* astr, const char* bstr, const char* order, size_t base) {
 
     ECConRef ret (std::make_shared<EC_con_imp2> (F, em, pm, astr, bstr, order, base));
@@ -1260,41 +1288,49 @@ namespace ffm
   EC_con_imp2::EC_con_imp2 (FEConPtr fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char* n_sz, size_t base)
       : F(fc)
       , elmap (em)
-      , pointmap(pm)
-      , coeffs ()
-	//, curvemap()dd
-	 {
-      n = F->New (n_sz, base);
-      elmap["n"] = n;
-      
-      a(coeffs) = F->New(astr, base);
-      b(coeffs) = F->New(bstr, base);
-      elmap["coeff.a"] = a(coeffs);
-      elmap["coeff.b"] = b(coeffs); 
+      , pointmap(pm) {
 
-      
-      printf ("%s\n", __FUNCTION__);
-      printElem ("  order(n):", n, format::hex);
-
-
-      PrintCoeffs ("  coeffs:", format::hex);  
-    }
+    elmap["n"] = F->New (n_sz, base);
+    elmap["Fp"] = F->p();
+    
+    elmap["coeff.a"] = coeff_a = F->New(astr, base);
+    elmap["coeff.b"] = coeff_b = F->New(bstr, base);
+    
+    
+    //   printf ("%s\n", __FUNCTION__);
+    printElem ("  order(n):", elmap["n"], format::hex);
+    //   PrintCoeffs ("  coeffs:", format::hex);  
+  }
     
   //
   //
   EC_con_imp2:: ~EC_con_imp2 () {
     //printf ("%s\n", __FUNCTION__);  
-    for (auto& p : pointmap) {
-      F->Del (x(p.second));
-      F->Del (y(p.second));
-    }
+    // for (auto& p : pointmap) {
+    //   F->Del (x(p.second));
+    //   F->Del (y(p.second));
+    // }
     
-    for (auto e : elmap) {
-      F->Del(e.second); 
-    }
+    // for (auto e : elmap) {
+    //   F->Del(e.second); 
+    // }
     
-    F->Del (a(coeffs)); 
-    F->Del (b(coeffs));
+    // F->Del (a(coeffs)); 
+    // F->Del (b(coeffs));
+
+  }
+
+
+  //
+  //
+  bool EC_con_imp2::MakePoint (const std::string& sym, FE_t x, FE_t y) {
+
+    if (ptexs(sym)) {
+      return false;  
+      printf ("%s[sym:%s] : %s already defined\n", __FUNCTION__, sym.c_str(), sym.c_str()); 
+    }
+
+    return makePoint (point(sym), x, y); 
   }
  
   //
@@ -1315,7 +1351,7 @@ namespace ffm
   bool EC_con_imp2::MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base)  {
 
     if (ptexs(sym)) {
-      printf ("%s[sym:%s] : %s already defined\n", __FUNCTION__, sym.c_str(), sym.c_str()); 
+      printf ("%s|ln:%i[sym:%s] : %s already defined\n", __FUNCTION__, __LINE__, sym.c_str(), sym.c_str()); 
       // already defined, must undef or soemthing
       return false;
     }
@@ -1556,15 +1592,15 @@ namespace ffm
     switch (fmt)
       {
       case format::hex:
-	F->Format (xs_, "%Zx", a(coeffs));
-	F->Format (ys_, "%Zx", b(coeffs));
+	F->Format (xs_, "%Zx", coeff_a);
+	F->Format (ys_, "%Zx", coeff_b);
 	printf ( "%s[a:0x%s, b:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
 	
       case format::dec:
       default: 
-	F->Format (xs_, "%Zd", a(coeffs));
-	F->Format (ys_, "%Zd", b(coeffs));
+	F->Format (xs_, "%Zd", coeff_a);
+	F->Format (ys_, "%Zd", coeff_b);
 	printf ( "%s[a:%s, b:%s]\n", lbl.c_str(), xs_, ys_ ); 
 	break;
       }	
@@ -1572,13 +1608,10 @@ namespace ffm
  
   //
   // 
-  bool EC_con_imp2::addPoint (pt::struc& out,const pt::struc& lhs,const pt::struc& rhs)
-  {
+  bool EC_con_imp2::addPoint (pt::struc& out,const pt::struc& lhs,const pt::struc& rhs) {
     //printf ("%s[lhs:<%i, %i>, rhs:<%i, %i>]\n", __FUNCTION__, x(lhs), y(lhs), x(rhs), y(rhs)); 
-    
     ScopeDeleter dr (F);
-    
-    FE_t s = dr(F->New());
+    FE_t s   = dr(F->New());
     FE_t s_n = dr(F->New());
     FE_t s_d = dr(F->New());
     FE_t ss  = dr(F->New());
@@ -1592,27 +1625,27 @@ namespace ffm
     
     //
     //
-    if (isINF(x(lhs))) {
+    if (isINF(pt::x(lhs))) {
       // Case 0.0: self is the point at infinity, return other
       POUT("[case0.0: lhs.x INF]");
       setINF(out);
       return false;
     }
     
-    if (isINF(x(rhs))) {
+    if (isINF(pt::x(rhs))) {
       POUT("[case0.1: rhs.x INF]");
       // Case 0.1: other is the point at infinity, return self
       setINF(out);
       return false;
     }
     
-    if (isINF (y(lhs))) {
+    if (isINF (pt::y(lhs))) {
       POUT ("y.lhs is INF");
       return false;
     }
    
     
-    if (isINF (y(rhs))) {
+    if (isINF (pt::y(rhs))) {
       POUT ("y.rhs is INF");
       return false;
     }
@@ -1712,7 +1745,7 @@ namespace ffm
       F->Pow_ui(u, x(lhs), 2);
       F->Mul(t, u, v);
 
-      F->Add(s_n, t, a(coeffs));
+      F->Add(s_n, t, coeff_a);
       
       F->Set_ui(v, 2);
       F->Mul (s_d, v, y(lhs));  
@@ -1785,15 +1818,17 @@ namespace ffm
   //
   //
 
-  bool EC_con_imp2::Mul_scalar (const std::string& O, const std::string& s, const std::string& P) {
+  bool EC_con_imp2::Mul_scalar (const std::string& O, FE_t s, const std::string& P) {
+
     //printf ("%s[%s, %s, %s]\n", __FUNCTION__, O.c_str(), s.c_str(), P.c_str()); 
     if (!ptexs(P)) {
       printf ("point %s DNE\n", P.c_str());
       return false;
     }
-    if (!elexs(s)) {
-      printf ("element %s DNE\n", s.c_str());
-      return false; 
+
+    if (!F->IsValid(s)){
+      printf ("multiplier \'s\' is invalid\n" );
+      return false;
     }
 
     ScopeDeleter dr (F);
@@ -1808,28 +1843,30 @@ namespace ffm
     setINF (acc); 
     //printPoint ("  acc", acc, Format::HEX); 
     FE_t coeff = dr (F->New ()); // 
-    F->Set (coeff, elem(s));     // initialize to scalar multiplier
+    F->Set (coeff, s);     // initialize to scalar multiplier
     //printElem("  coeff", coeff, Format::HEX); 
     //printElem ("coeff start:", coeff, Format::DEC); 
     //size_t dbg_count = 0;
     const size_t max_iteration_limit = 2048; 
     size_t iteration_count = 0; 
 
-    while (0 != F->Cmp_ui (coeff, 0) && iteration_count++ < max_iteration_limit ) { //  && dbg_count < 260)
+    while (0 != F->Cmp_ui (coeff, 0)) { //  && dbg_count < 260)
       //printElem ("++coeff++", coeff, Format::HEX);
       if (F->TestBit (coeff, 0)) {
 	bool res = (isINF(acc) ? copyPoint (acc, curr) : addPoint (acc, acc, curr)); 
       }
-    
-      addPoint (curr, curr, curr);   
-    
+      
+      bool addres = addPoint (curr, curr, curr);
+
+      if (!addres)
+	break; 
+      
+      iteration_count++;
+      
       F->LogiShiftR (coeff, 1); // coeff >>= 1
     
-      //PrintElem ("coeff loop:", coeff, Format::DEC);
-      //printf ("debug_count:%zu\n", dbg_count); 
-      //dbg_count++;
     }
-    printf ( "[%s|iterator_count:%zu]\n", __FUNCTION__, iteration_count);
+    // printf ( "[%s|iterator_count:%zu]\n", __FUNCTION__, iteration_count);
   
     if (ptexs(O)) {
       dr(x(acc));
@@ -1844,11 +1881,28 @@ namespace ffm
     return false;
   }
 
+
+  bool EC_con_imp2::Mul_scalar (const std::string& O, const std::string& s, const std::string& P) {
+    //printf ("%s[%s, %s, %s]\n", __FUNCTION__, O.c_str(), s.c_str(), P.c_str()); 
+    if (!ptexs(P)) {
+      printf ("point %s DNE\n", P.c_str());
+      return false;
+    }
+
+    if (!elexs(s)) {
+      printf ("elem %s DNE\n", s.c_str());
+      return false;
+    }
+     
+    
+    return Mul_scalar (O, elem(s), P); 
+
+  }  
   //
   //
   bool EC_con_imp2:: Mul_scalar_ui (const std::string& O, size_t s_, const std::string& P)
   {
-    printf ("%s[o:%s, s:%zu, P:%s]\n", __FUNCTION__, O.c_str(), s_, P.c_str());
+    //    printf ("%s[o:%s, s:%zu, P:%s]\n", __FUNCTION__, O.c_str(), s_, P.c_str());
     if ( !ptexs(P))
       {
 	POUT ("P=DNE");
@@ -1926,9 +1980,9 @@ namespace ffm
     // y^2 = x^3 + ax + b
     
     F->Pow_ui (t0, ptx, 3); 
-    F->Mul (t1, a(coeffs), ptx);
-    F->Add (t2, t0, t1); 
-    F->Add (rhs, t2, b(coeffs));
+    F->Mul    (t1, coeff_a, ptx);
+    F->Add    (t2, t0, t1); 
+    F->Add    (rhs, t2, coeff_b);
     // rhs
     
     F->Mul (lhs, pty, pty);

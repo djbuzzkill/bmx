@@ -69,17 +69,14 @@ namespace ffm
     // s*P => R
     virtual bool Mul_scalar_ui (const std::string& O, size_t s, const std::string& P) = 0;
     virtual bool Mul_scalar (const std::string& O, const std::string& s, const std::string& P) = 0;  
-
+    virtual bool Mul_scalar (const std::string& O, FE_t s, const std::string& P) = 0;  
   
-    // virtual bool DefPoint (const std::string& sym, const char* strx, const char* stry, size_t base) = 0;
-    // virtual bool CopyPoint (const std::string& sym, const std::string& P) = 0; 
-    //virtual bool DefPoint_ui (const std::string&, size_t, size_t) = 0;
-   
     virtual bool MakeElem  (const std::string& sym, const std::string& src) = 0;
     virtual bool MakeElem  (const std::string& sym, const char* strv, size_t base) = 0;
     virtual bool MakeElem_ui (const std::string& , size_t x) = 0;
     virtual bool SetElem (const std::string& dst, const std::string& src) = 0;
     
+    virtual bool MakePoint (const std::string& sym, FE_t, FE_t) = 0;
     virtual bool MakePoint_ui (const std::string& sym, size_t x, size_t y) = 0;
     virtual bool MakePoint (const std::string& sym, const char* xstr, const char* ystr, size_t base) = 0;
     virtual bool MakePoint (const std::string& sym, const std::string& xel, const std::string& yel) = 0;

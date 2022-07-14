@@ -6,22 +6,22 @@
 #include "aframe/af.h"
 
 
-namespace SECxy {
+namespace SECzy {
 
   typedef af::digest32 digest32;  
   
   struct PrivateKey {
-    af::byte32 sec;
+    ffm::fixnum32 sec;
   }; 
 
   struct PublicKey {
-    af::byte32 x;
-    af::byte32 y;
+    ffm::fixnum32 x;
+    ffm::fixnum32 y;
   }; 
   
   struct Signature {
-    af::byte32 s;
-    af::byte32 r; 
+    ffm::fixnum32 s;
+    ffm::fixnum32 r; 
   };
   
     
@@ -33,7 +33,7 @@ namespace SECxy {
     ~secp256k1 ();
     
     bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
-    bool Sign (unsigned char* z, unsigned char* r); 
+    // bool Sign (unsigned char* z, unsigned char* r); 
     
     bool Sign (Signature& sig, const PrivateKey&, const digest32& z);
     bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 

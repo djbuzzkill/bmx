@@ -49,6 +49,13 @@ public:
     void Mul (FE_t out, FE_t lhs, FE_t rhs);
     void MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod);
     void Div (FE_t out, FE_t lhs, FE_t rhs);
+  
+    void Div_ui (FE_t, FE_t, size_t); 
+
+    void SAdd (FE_t out, FE_t lhs, FE_t rhs);
+    void SMul (FE_t out, FE_t lhs, FE_t rhs); 
+  
+
     void Pow (FE_t out, FE_t b, FE_t exp); 
     void Pow_ui (FE_t out, FE_t b, size_t exp); 
     void Pow_si (FE_t out, FE_t base, long int exp);
@@ -105,7 +112,7 @@ public:
   
   FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) : elems () {
     char strb[256];
-    printf ("%s(strv:%s, base:%zu)\n", __FUNCTION__, strv, base);  
+    // printf ("%s(strv:%s, base:%zu)\n", __FUNCTION__, strv, base);  
     // 
     gmp_randinit_default (randstate); 
     //mpz_set_str (Fp, strv, base);
@@ -117,15 +124,15 @@ public:
     
     Set (Fp, strv, base); 
     gmp_sprintf  (strb, "%Zu", el(Fp)); 
-    printf ("  Fp:%s\n", strb); 
+    // printf ("  Fp:%s\n", strb); 
    
     sub_ui (el(Fp_minus_one), el(Fp), 1, el(tmp));
     gmp_sprintf  (strb, "%Zu", el(Fp_minus_one)); 
-    printf ("  Fp-1:%s\n", strb); 
+    // printf ("  Fp-1:%s\n", strb); 
 
     sub_ui (el(Fp_minus_two), el(Fp), 2, el(tmp));
     gmp_sprintf  (strb, "%Zu", el(Fp_minus_two)); 
-    printf ("  Fp-2:%s\n", strb); 
+    // printf ("  Fp-2:%s\n", strb); 
 
     Del (tmp); 
 
@@ -221,19 +228,18 @@ public:
   }
   
   void FE_ctx_impl:: Set_bin (FE_t lval, const unsigned char* bin, unsigned len, bool isLE) {
-
+   
     unsigned       lenbin = len; 
     unsigned char* uclen  = reinterpret_cast<unsigned char*> (&lenbin);
     bytearray      bytes (len+6, 0); 
 
-    printf ("len:%u\n", len); 
     
     bytes[0] = uclen[3];
     bytes[1] = uclen[2];
     bytes[2] = uclen[1];
     bytes[3] = uclen[0];
 
-    printf ("bytes.size: %zu\n", bytes.size()); 
+    //printf ("bytes.size: %zu\n", bytes.size()); 
 
     FILE* fp = fmemopen (std::data(bytes), bytes.size(), "rb") ;
 
@@ -270,7 +276,7 @@ public:
   // out = (lhs - rhs)%Fp
   // out = 1/x
   void FE_ctx_impl::Add (FE_t out, FE_t lhs, FE_t rhs) {
-    ScopeDeleter dr (shared_from_this());
+    ScopeDeleter dr  (shared_from_this());
     FE_t z = dr (New()); 
 
     mpz_add (el(z), el(lhs), el(rhs) ); 
@@ -307,6 +313,22 @@ public:
     mpz_mod (el(out), el(r), el(Fp));
 
   }
+
+
+
+
+  void FE_ctx_impl::SAdd (FE_t out, FE_t lhs, FE_t rhs) {
+    mpz_add (el(out), el(lhs), el(rhs) ); 
+
+  }
+  void FE_ctx_impl::SMul (FE_t out, FE_t lhs, FE_t rhs) {
+
+    mpz_mul (el(out), el(lhs), el(rhs));
+
+  }
+
+
+
   //
   //
   void FE_ctx_impl::MulM (FE_t out, FE_t lhs, FE_t rhs, FE_t mod) {
@@ -330,6 +352,15 @@ public:
     mpz_mod (el(out), el(z), el(Fp));
   }
 
+  // out:mpz_t = num:mpz_t / den:size_t
+  void FE_ctx_impl::Div_ui (FE_t out, FE_t num, size_t den) {
+    // Function: unsigned long int mpz_fdiv_q_ui (mpz_t q, const mpz_t n, unsigned long int d)   
+    ScopeDeleter dr (shared_from_this());
+    FE_t tmp = dr(New());
+    mpz_fdiv_q_ui (el(tmp), el(num), den);
+    mpz_mod(el(out), el(tmp), el(Fp)); 
+  }
+
   // void FE_ctx_impl::Inv (FE_t out, FE_t x)
   // {
     
@@ -337,14 +368,12 @@ public:
 
   // }
 
-  void FE_ctx_impl::Pow (FE_t out, FE_t b, FE_t exp)
-  {
+  void FE_ctx_impl::Pow (FE_t out, FE_t b, FE_t exp) {
     mpz_powm (el(out), el(b), el(exp), el(Fp)); 
   }
 
 
-  void FE_ctx_impl::Pow_ui (FE_t out, FE_t base, size_t exp_ui)
-  {
+  void FE_ctx_impl::Pow_ui (FE_t out, FE_t base, size_t exp_ui) {
     //def __pow__(self, exponent):
     //  n = exponent % (self.prime - 1)
     //  num = pow(self.num, n, self.prime)
@@ -358,28 +387,24 @@ public:
     mpz_powm (el(out), el(base), el(n), el(Fp)); 
   }
  
-  void FE_ctx_impl:: Pow_si (FE_t out, FE_t base, long int exp)
-  {
+  void FE_ctx_impl:: Pow_si (FE_t out, FE_t base, long int exp) {
     //def __pow__(self, exponent):
     //  n = exponent % (self.prime - 1)
     //  num = pow(self.num, n, self.prime)
     //  return self.__class__(num, self.prime)
 
-    //ScopeDeleter dr (this);
+    ScopeDeleter dr (shared_from_this());
 
-    FE_t n = New ();
-    FE_t exponent =  New_si(exp); 
+    FE_t n = dr (New ());
+    FE_t exponent =  dr(New_si(exp)); 
     mpz_mod (el(n), el(exponent), el(Fp_minus_one)); 
     mpz_powm (el(out), el(base), el(n), el(Fp));
-    Del (exp);
-    Del (n); 
     
   }
 
   //
   //
-  void FE_ctx_impl::PowM (FE_t out, FE_t base, FE_t exp, FE_t mod)
-  {
+  void FE_ctx_impl::PowM (FE_t out, FE_t base, FE_t exp, FE_t mod) {
     if (!check(out)) {printf("%s:invalid out\n", __FUNCTION__);}
     if (!check(base)){printf("%s:invalid base\n", __FUNCTION__);}
     if (!check(exp)) {printf("%s:invalid exp\n", __FUNCTION__);}
@@ -388,37 +413,35 @@ public:
     powM (el(out), el(base), el(exp), el(mod)); 
   }
   
-  bool FE_ctx_impl::Rand (FE_t out, FE_t f)
-  {
+  bool FE_ctx_impl::Rand (FE_t out, FE_t f) {
     mpz_urandomm (el(out), randstate, el(f)); 
     return true; 
   }
   //
   //
-  int FE_ctx_impl::Cmp (FE_t lhs, FE_t rhs)
-  {
+  int FE_ctx_impl::Cmp (FE_t lhs, FE_t rhs) {
+
+    // Function: int mpz_cmp (const mpz_t op1, const mpz_t op2)
+    // Function: int mpz_cmp_d (const mpz_t op1, double op2)
+    // Macro: int mpz_cmp_si (const mpz_t op1, signed long int op2)
+    // Macro: int mpz_cmp_ui (const mpz_t op1, unsigned long int op2)
+    // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 = op2, or a negative value if op1 < op2.
     return mpz_cmp (el(lhs), el(rhs));
   }
   
 
-  int FE_ctx_impl::Cmp_ui (FE_t lhs, size_t rhs)
-  {
+  int FE_ctx_impl::Cmp_ui (FE_t lhs, size_t rhs) {
     return mpz_cmp_ui (el(lhs), rhs); 
   }
 
-  void FE_ctx_impl::LogiAnd (FE_t O, FE_t lhs, FE_t rhs)
-  {
-
+  void FE_ctx_impl::LogiAnd (FE_t O, FE_t lhs, FE_t rhs) {
     if (!(O) || !check (lhs) || !check (rhs))
       return;
 
     mpz_and (el(O), el(lhs), el(rhs));  
-    
-    
   }
   
-  void FE_ctx_impl::LogiShiftR (FE_t x, size_t shift)
-  {
+  void FE_ctx_impl::LogiShiftR (FE_t x, size_t shift) {
     if (!check(x))
       return; 
 
@@ -444,14 +467,11 @@ public:
     
   }
 
-  bool FE_ctx_impl::LogiBit (FE_t x , size_t pos)
-  {
+  bool FE_ctx_impl::LogiBit (FE_t x , size_t pos) {
     if (!check(x))
       return false; 
 
     return (mpz_tstbit (el(x), pos) ? true : false);
-
-
   }
 
   bool FE_ctx_impl::TestBit (FE_t x, size_t pos)
@@ -474,20 +494,20 @@ bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
 
   if (!check (x))
     return out;
-  //Function: mp_bitcnt_t mpz_popcount (const mpz_t op)
-  //If op>=0, return  the population count of op, which  is the number
-  //of 1 bits in the binary  representation. If op<0, the number of 1s
-  //is  infinite,  and  the  return  value  is  the  largest  possible
-  //mp_bitcnt_t.
-  size_t numbits    = mpz_popcount (el(x));
-  size_t sizeOf_val = (numbits/8) + (numbits % 8 ? 1 : 0) ; 
   // !! +6  
-  bytearray tmp (sizeOf_val+6, 0);
-  FILE* memf  = fmemopen (std::data(tmp), sizeOf_val+6, "wb+"); 
-   
-   if (!memf ) {
-     printf ("fmemopen failed\n"); 
-     return out; 
+
+  //Function: size_t mpz_size (const mpz_t op)
+  //  Return the size of op measured in number of limbs. If op is zero, the returned value will be zero.
+  const size_t sizeOf_limb = sizeof(mp_limb_t);
+  size_t       num_limbs   = mpz_size (el(x));
+  size_t       bufsize     = (num_limbs * sizeOf_limb)+8; // +8 for null char
+ 
+  bytearray tmp (bufsize, 0);
+  FILE* memf  = fmemopen (std::data(tmp), tmp.size(), "wb+"); 
+  
+  if (!memf ) {
+    printf ("fmemopen failed\n"); 
+    return out; 
    }
   
    unsigned       numbytes    = 0;
@@ -505,10 +525,14 @@ bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
    numbytes_LE[1] = tmp[2];
    numbytes_LE[2] = tmp[1];
    numbytes_LE[3] = tmp[0];
- 
+   
+
+   // printf ("out_size:%i\n", out_size);
+   // printf ("numbytes%u\n", numbytes); 
+   
    out.resize(numbytes, 0);
 
-   std::copy (&tmp[4], &tmp[4+sizeOf_val], out.begin ());
+   std::copy (&tmp[4], &tmp[4+numbytes], out.begin ());
 
    if (want_LE)  {
      std::reverse (out.begin(), out.end());

@@ -19,9 +19,15 @@ namespace
   const char G[] = "G";
   const char n[] = "n";
   const char n_minus_2[] = "n-2"; 
+
+  void printbin (const char* lbl, const af::digest32& bytes) {
+    printf ("%s: ", lbl);
+    for (auto b : bytes) printf ("%02x ", b);
+    printf ("\n"); 
+  }
 }
 
-namespace SECxy {
+namespace SECzy {
 
   secp256k1::secp256k1 () : elems (), points() { 
     
@@ -29,9 +35,13 @@ namespace SECxy {
     EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
     
     
+    EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0);
+    EC->PrintPoint("(G)", "G", format::hex); 
+		   
+    
     ffm::ScopeDeleter dr (F);
     ffm::FE_t t0 = dr (F->New ()); 
-    //checkres ("G", EC->DefPoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
+
     //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
     
     //F->Set (t0, "0x2", 0);
@@ -48,13 +58,14 @@ namespace SECxy {
  
   //
   //
-  bool SECxy::secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)  {
+  bool secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)  {
     // uG + vP = R 
     // u = z/s
     // v = r/s
     // s = (z+re)/k
     ffm::ScopeDeleter dr (F);
 
+    POUT ("USING THIS");
     
 
     ffm::FE_t z = dr (F->New(sz_z, 0));
@@ -63,7 +74,8 @@ namespace SECxy {
     
     ffm::FE_t s_inv = dr(F->New());
 
-
+    const std::string R  = "R";
+    const std::string P  = "P"; 
     const std::string vP = "vP";
     const std::string uG = "uG"; 
     
@@ -71,7 +83,7 @@ namespace SECxy {
     ffm::FE_t n_minus_2 = dr(F->New());
     F->Sub_ui(n_minus_2, elems[n], 2);
     EC->PrintElem ("{n-2}", n_minus_2, ffm::format::hex);
-    
+   
     F->PowM (s_inv, s, n_minus_2, elems[n]); 
     EC->PrintElem ("s_inv", s_inv, ffm::format::hex); 
     
@@ -84,28 +96,29 @@ namespace SECxy {
     elems["v"] = v; 
 
     EC->MakePoint_ui (uG, 0,  0);
-    bool uG_res = EC->Mul_scalar (uG, "u", "G");
+    bool uG_res = EC->Mul_scalar (uG, "u", G);
       
     EC->MakePoint_ui (vP, 0, 0);
-    bool vP_res = EC->Mul_scalar (vP, "v", "P"); 
+    bool vP_res = EC->Mul_scalar (vP, "v", P); 
 
     EC->PrintPoint (uG, uG, ffm::format::hex);
     EC->PrintPoint (vP, vP, ffm::format::hex);
 
-    EC->MakePoint_ui ("R", 0, 0);
+    EC->MakePoint_ui (R, 0, 0);
 
-    EC->AddPoint ("R", "uG", "vP"); 
+    EC->AddPoint (R, uG, vP); 
     
 	      
-    pt::struc& R = points["R"];
-    bool oncurve = EC->IsPointOnCurve (pt::x(R), pt::y(R)); 
+    pt::struc& Rref = points[R];
+    bool oncurve = EC->IsPointOnCurve (pt::x(Rref), pt::y(Rref)); 
     if (oncurve) {
       printf ("R is on curve\n"); 
     }
+    else
     
-    EC->PrintElem ("R.x", pt::x(R), ffm::format::hex);
-    EC->PrintElem ("r", r, ffm::format::hex);
-    return (F->Cmp (pt::x(R), r) == 0);
+    EC->PrintElem ("R.x", pt::x(Rref), ffm::format::hex);
+    EC->PrintElem ("  r", r, ffm::format::hex);
+    return (F->Cmp (pt::x(Rref), r) == 0);
   }
   
   
@@ -119,9 +132,84 @@ namespace SECxy {
 
   //
   //
-  bool secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z) {
-    return false; 
+  bool secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
+    printf ("%s:enter\n", __FUNCTION__); 
+  
+    ffm::ScopeDeleter dr (F);
+  
+    ffm::FE_t z = dr (F->New_bin(std::data(z_msg), 32, false));
+    ffm::FE_t r = dr (F->New_bin(std::data(sig.r), 32, false));
+    ffm::FE_t s = dr (F->New_bin(std::data(sig.s), 32, false));
+    
+    ffm::FE_t s_inv = dr(F->New());
+
+    const std::string n = "n"; 
+    const std::string u = "u"; 
+    const std::string v = "v";
+    const std::string vP = "vP";
+    const std::string uG = "uG"; 
+
+    const std::string R = "R";
+    const std::string P = "P"; 
+
+    ffm::FE_t Gx = F->New (ksecp256k1_G_x_sz, 0);
+    ffm::FE_t Gy = F->New (ksecp256k1_G_y_sz, 0);
+    EC->MakePoint (G, Gx, Gy); 
+    EC->PrintPoint ("<G>", G, ffm::format::hex); 
+
+
+    ffm::FE_t Px = F->New_bin (std::data(pubk.x), 32, false);
+    ffm::FE_t Py = F->New_bin (std::data(pubk.y), 32, false); 
+    EC->MakePoint (P, Px, Py); 
+    EC->PrintPoint ("<P>", P, ffm::format::hex); 
+
+    // powm (out,  
+    ffm::FE_t n_minus_2 = dr(F->New());
+    F->Sub_ui(n_minus_2, elems[n], 2);
+    //EC->PrintElem ("{n-2}", n_minus_2, ffm::format::hex);
+    
+    F->PowM (s_inv, s, n_minus_2, elems[n]); 
+    //EC->PrintElem ("s_inv", s_inv, ffm::format::hex); 
+    
+    EC->MakeElem_ui(u, 0);
+    F->MulM (elems[u], z, s_inv, elems[n]);
+    // F->Print ("<u>:", elems[u]);
+    
+    EC->MakeElem_ui (v, 0);
+    F->MulM (elems[v], r, s_inv, elems[n]);
+    // F->Print ("<v>:", elems[v]);
+
+    
+    POUT ("uG = u*G");     
+    EC->MakePoint_ui (uG, 0, 0);
+    EC->Mul_scalar (uG, u, G);
+    
+    POUT ("vP = v*P");     
+    EC->MakePoint_ui (vP, 0, 0);
+    EC->Mul_scalar (vP, v, P); 
+   
+
+    // EC->PrintPoint (uG, uG, ffm::format::hex);
+    // EC->PrintPoint (vP, vP, ffm::format::hex);
+    
+    EC->MakePoint_ui (R, 0, 0);
+    EC->AddPoint (R, uG, vP); 
+    
+    
+    ffm::pt::struc& Rref = points[R];
+    bool oncurve = EC->IsPointOnCurve (pt::x(Rref), pt::y(Rref)); 
+    if (oncurve) {
+      printf ("R is on curve\n"); 
+    }
+    
+    EC->PrintElem ("R.x", pt::x(Rref), ffm::format::hex);
+    EC->PrintElem ("  r", r, ffm::format::hex);
+
+
+    printf ("%s:exit\n", __FUNCTION__); 
+    return (F->Cmp (pt::x(Rref), r) == 0);
   }
+  
 
 }
 

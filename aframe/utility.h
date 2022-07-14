@@ -11,9 +11,13 @@
 namespace af
 {
   
-  typedef std::vector<unsigned char> bytearray; 
-  typedef std::array<unsigned char, 32> byte32; 
+  typedef std::vector<unsigned char>         bytearray; 
 
+  typedef std::array<unsigned char, 32>      byte32; 
+  
+  typedef std::map<std::string, std::string> propmap; 
+  
+  //
   //
   inline void checkres (const std::string& label, bool cond) {
 
