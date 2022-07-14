@@ -11,7 +11,7 @@ namespace SECzy {
   typedef af::digest32 digest32;  
   
   struct PrivateKey {
-    ffm::fixnum32 sec;
+    ffm::fixnum32 e;
   }; 
 
   struct PublicKey {
@@ -32,10 +32,10 @@ namespace SECzy {
     secp256k1 ();
     ~secp256k1 ();
     
-    bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
+    //bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
     // bool Sign (unsigned char* z, unsigned char* r); 
     
-    bool Sign (Signature& sig, const PrivateKey&, const digest32& z);
+    bool Sign   (Signature& outsig, const PrivateKey& privatekey, const digest32& msghash);
     bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
 
   protected:

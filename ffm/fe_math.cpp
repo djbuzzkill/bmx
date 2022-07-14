@@ -414,7 +414,14 @@ public:
   }
   
   bool FE_ctx_impl::Rand (FE_t out, FE_t f) {
+
+
+    Print ("Rand:out", out); 
+    Print ("Rand:f", f); 
+
+    printf ("%s|%i\n", __FUNCTION__, __LINE__); 
     mpz_urandomm (el(out), randstate, el(f)); 
+    printf ("%s|%i\n", __FUNCTION__, __LINE__);
     return true; 
   }
   //

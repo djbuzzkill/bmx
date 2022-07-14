@@ -18,7 +18,7 @@ namespace
 {
   const char G[] = "G";
   const char n[] = "n";
-  const char n_minus_2[] = "n-2"; 
+  //  const char n_minus_2[] = "n-2"; 
 
   void printbin (const char* lbl, const af::digest32& bytes) {
     printf ("%s: ", lbl);
@@ -36,12 +36,15 @@ namespace SECzy {
     
     
     EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0);
-    EC->PrintPoint("(G)", "G", format::hex); 
 		   
     
     ffm::ScopeDeleter dr (F);
     ffm::FE_t t0 = dr (F->New ()); 
 
+
+    EC->PrintElem ("SECzy:n", "n", format::hex);
+    //    Ec->PrintElem ("
+    
     //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
     
     //F->Set (t0, "0x2", 0);
@@ -57,7 +60,7 @@ namespace SECzy {
 
  
   //
-  //
+  /*
   bool secp256k1::Verify (const char* sz_z, const char* sz_r, const char* sz_s)  {
     // uG + vP = R 
     // u = z/s
@@ -121,19 +124,12 @@ namespace SECzy {
     return (F->Cmp (pt::x(Rref), r) == 0);
   }
   
-  
- 
-  //
-  //
-  bool secp256k1::Sign (Signature& sig, const PrivateKey& prik, const digest32& z)  {
-    return false; 
-  }
-  
+  */
 
   //
   //
   bool secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
-    printf ("%s:enter\n", __FUNCTION__); 
+    //    printf ("%s:enter\n", __FUNCTION__); 
   
     ffm::ScopeDeleter dr (F);
   
@@ -169,32 +165,21 @@ namespace SECzy {
     //EC->PrintElem ("{n-2}", n_minus_2, ffm::format::hex);
     
     F->PowM (s_inv, s, n_minus_2, elems[n]); 
-    //EC->PrintElem ("s_inv", s_inv, ffm::format::hex); 
     
     EC->MakeElem_ui(u, 0);
     F->MulM (elems[u], z, s_inv, elems[n]);
-    // F->Print ("<u>:", elems[u]);
     
     EC->MakeElem_ui (v, 0);
     F->MulM (elems[v], r, s_inv, elems[n]);
-    // F->Print ("<v>:", elems[v]);
-
     
-    POUT ("uG = u*G");     
     EC->MakePoint_ui (uG, 0, 0);
     EC->Mul_scalar (uG, u, G);
     
-    POUT ("vP = v*P");     
     EC->MakePoint_ui (vP, 0, 0);
     EC->Mul_scalar (vP, v, P); 
-   
-
-    // EC->PrintPoint (uG, uG, ffm::format::hex);
-    // EC->PrintPoint (vP, vP, ffm::format::hex);
     
     EC->MakePoint_ui (R, 0, 0);
     EC->AddPoint (R, uG, vP); 
-    
     
     ffm::pt::struc& Rref = points[R];
     bool oncurve = EC->IsPointOnCurve (pt::x(Rref), pt::y(Rref)); 
@@ -205,11 +190,96 @@ namespace SECzy {
     EC->PrintElem ("R.x", pt::x(Rref), ffm::format::hex);
     EC->PrintElem ("  r", r, ffm::format::hex);
 
-
-    printf ("%s:exit\n", __FUNCTION__); 
     return (F->Cmp (pt::x(Rref), r) == 0);
   }
   
+  //
+  //
+  bool secp256k1::Sign (Signature& sig, const PrivateKey& prk, const digest32& zbin) {
+    
+    using namespace ffm;
+    // eG = P
+    
+    //    const std::string G = "G"; 
+    const std::string P = "P";
+    const std::string R = "R";
+    //const std::string n = "n";
+ 
+    ScopeDeleter dr (F); 
+    // kG = R
+    FE_t
+      e    = dr(F->New_bin(std::data(prk.e), 32, false)),
+      z    = dr(F->New_bin(std::data(zbin), 32, false)),
+      s    = dr(F->New ()),
+      stmp = dr(F->New()),
+      
+      tmp  = dr(F->New()),
+      snum = dr(F->New ());
+    
+    //
+    EC->MakePoint_ui(P, 0, 0);
+    EC->Mul_scalar (P, e, G); 
+    POUT ("224");
 
-}
+    
+    // n-2
+    FE_t n_sub_2 = dr(F->New());
+    F->Sub_ui(n_sub_2, elems[n], 2);
+    elems["n-2"] = n_sub_2; 
+    
+    // n/2
+    FE_t n_div_2 = dr(F->New()); 
+    F->Div_ui(n_div_2, elems[n], 2); 
+    elems["n/2"] = n_div_2;
+    
+    // k = rand (n) <-- fix later
+    FE_t k = dr(F->New()); 
+    POUT("241")
+    F->Rand (k, elems[n]);
+    elems["k"] = k;
+    
+    // 1/k
+    FE_t k_inv= dr(F->New ());
+    F->PowM (k_inv, k, n_sub_2, elems[n]);  
+    elems["1/k"] = k_inv; 
+    
+    EC->MakePoint_ui (R, 0, 0); // <-- we should just make a plain 'alloc-point'
+    EC->Mul_scalar (R, "k", G); // we want R.x
+    // kG = R
+    
+    F->SMul (tmp, pt::x(points[R]), e);
+    F->SAdd (snum, z, tmp);
+    F->MulM (stmp, snum, k_inv, elems[n]); 
+    // s = (z+re)/k mod n
+    
+    // if s > n/2
+    //  s = n - s
+    int cmpres = F->Cmp (stmp, elems["n/2"]);
+    // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 = op2, or a negative value if op1 < op2.
+    if (cmpres > 0) {
+      printf ("..(s > n/2)\n");
+      F->Sub (s , elems[n], stmp); 
+    }
+    else {
+      F->Set (s, stmp);
+    }
+    
+    // write results, sig is (r,s) => sig(r,s)
+    {
+      bytearray rraw, sraw;
+      F->Raw (rraw, pt::x(points[R]), false);
+      ffm::copy_BE(sig.r, rraw); 
+      
+      F->Raw (sraw, s, false);
+      ffm::copy_BE(sig.s, sraw); 
+      
+      printf ("__SIGNATURE_GENERATED__\n");
+    }
+    
+    return true; 
+    
+  }
+
+} // namespace  
+
 

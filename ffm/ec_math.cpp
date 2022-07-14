@@ -1511,7 +1511,7 @@ namespace ffm
 
 
     if (isINF (P)) {
-      printf ("[%s is INF]\n", lbl.c_str());
+      printf ("%s|<INF,INF>\n", lbl.c_str());
       return; 
     }
       
@@ -1519,7 +1519,7 @@ namespace ffm
     case format::hex:  
       F->Format (xs_, "%Zx", x(P));
       F->Format (ys_, "%Zx", y(P));
-      printf ( "%s[x:0x%s, y:0x%s]\n", lbl.c_str(), xs_, ys_ ); 
+      printf ( "%s<0x%s, 0x%s>\n", lbl.c_str(), xs_, ys_ ); 
       break;
       
     case format::dec: 
@@ -1527,7 +1527,7 @@ namespace ffm
     default: 
       F->Format (xs_, "%Zd", x(P));
       F->Format (ys_, "%Zd", y(P)); 
-      printf ( "%s[x:%s, y:%s]\n", lbl.c_str(), xs_, ys_ ); 
+      printf ( "%s<%s, %s>\n", lbl.c_str(), xs_, ys_ ); 
       break;
     }	
     
