@@ -8,23 +8,51 @@
 
 namespace SECzy {
 
-  typedef af::digest32 digest32;  
-  
+  //
+  //
+  typedef af::digest32  digest32;  
+  typedef ffm::fixnum32 fixnum32; 
+  //
+  //
+  struct PublicKey 
+  {
+    fixnum32 x;
+    fixnum32 y; 
+  };
+
+  //
   struct PrivateKey {
-    ffm::fixnum32 e;
+    fixnum32 e;
   }; 
 
-  struct PublicKey {
-    ffm::fixnum32 x;
-    ffm::fixnum32 y;
-  }; 
-  
+  // 
+  // 
   struct Signature {
-    ffm::fixnum32 s;
-    ffm::fixnum32 r; 
+    fixnum32 s;
+    fixnum32 r; 
   };
   
+  //
+  template<typename Pt>
+  inline bool WritePoint (af::WriteStreamRef ws, const Pt& pt, bool compressed) {
+
+
+    return false;
     
+  };     
+    
+  //
+  template<typename Pt>
+  inline bool ReadPoint (Pt& out, af::ReadStreamRef rs) {
+    return false;
+
+  }
+  
+  //
+  void WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig); 
+
+  //
+  //
   class secp256k1 {
     //  
   public:

@@ -37,7 +37,7 @@ public:
     void Set_ui (FE_t place, size_t v); 
     void Set_si (FE_t place, long int v); 
 
-    void Set_bin (FE_t lval, const unsigned char* bin, unsigned len, bool isLE); 
+    void Set_bin (FE_t lval, const void* bin, unsigned len, bool isLE); 
     void Set (FE_t lval, FE_t rval);
     
     // returning element; 
@@ -51,6 +51,10 @@ public:
     void Div (FE_t out, FE_t lhs, FE_t rhs);
   
     void Div_ui (FE_t, FE_t, size_t); 
+    void DivMod (FE_t, FE_t, FE_t, FE_t);
+
+    size_t DivMod_ui (FE_t q, FE_t r, FE_t n, size_t d);
+    
 
     void SAdd (FE_t out, FE_t lhs, FE_t rhs);
     void SMul (FE_t out, FE_t lhs, FE_t rhs); 
@@ -227,13 +231,16 @@ public:
 
   }
   
-  void FE_ctx_impl:: Set_bin (FE_t lval, const unsigned char* bin, unsigned len, bool isLE) {
-   
-    unsigned       lenbin = len; 
-    unsigned char* uclen  = reinterpret_cast<unsigned char*> (&lenbin);
-    bytearray      bytes (len+6, 0); 
+  void FE_ctx_impl:: Set_bin (FE_t lval, const void* bin, unsigned len, bool isLE) {
 
+
+    union {
+      unsigned lenbin; 
+      unsigned char uclen[4];
+    }; 
     
+    lenbin = len; 
+    bytearray bytes (len+6, 0); 
     bytes[0] = uclen[3];
     bytes[1] = uclen[2];
     bytes[2] = uclen[1];
@@ -243,11 +250,12 @@ public:
 
     FILE* fp = fmemopen (std::data(bytes), bytes.size(), "rb") ;
 
+    const unsigned char* ucbin = reinterpret_cast<const unsigned char*> (bin); 
     if (isLE) { // strv is LE
-      std::reverse_copy (bin, bin+len, &bytes[4]); 
+      std::reverse_copy (ucbin, ucbin+len, &bytes[4]); 
     }
     else {
-      std::copy (bin, bin+len, &bytes[4]); 
+      std::copy (ucbin, ucbin+len, &bytes[4]); 
     }
 
     size_t res = mpz_inp_raw (el(lval), fp);
@@ -359,6 +367,21 @@ public:
     FE_t tmp = dr(New());
     mpz_fdiv_q_ui (el(tmp), el(num), den);
     mpz_mod(el(out), el(tmp), el(Fp)); 
+  }
+
+  //
+  void FE_ctx_impl::DivMod (FE_t q, FE_t r, FE_t num, FE_t den) {
+
+    // Function:
+    // void mpz_fdiv_qr (mpz_t q, mpz_t r, const mpz_t n, const mpz_t d)
+    mpz_fdiv_qr (el(q), el(r), el(num), el(den));  
+
+  }
+  size_t FE_ctx_impl::DivMod_ui (FE_t q, FE_t r, FE_t num, size_t den) {
+
+    // Function:
+    // unsigned long int mpz_fdiv_qr_ui (mpz_t q, mpz_t r, const mpz_t n, unsigned long int d)
+    return mpz_fdiv_qr_ui (el(q), el(r), el(num), den);  
   }
 
   // void FE_ctx_impl::Inv (FE_t out, FE_t x)
@@ -516,9 +539,10 @@ bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
     printf ("fmemopen failed\n"); 
     return out; 
    }
+
+
   
-   unsigned       numbytes    = 0;
-   unsigned char* numbytes_LE = reinterpret_cast<unsigned char*> (&numbytes); 
+
    //  
    int out_size = mpz_out_raw (memf, el(x));
    fflush (memf);  
@@ -528,14 +552,19 @@ bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
    // information, and that many bytes of limbs. Both the size and the
    // limbs are written in decreasing significance order (i.e., in
    // big-endian).
-   numbytes_LE[0] = tmp[3];
-   numbytes_LE[1] = tmp[2];
-   numbytes_LE[2] = tmp[1];
-   numbytes_LE[3] = tmp[0];
+   union {
+     unsigned int  numbytes;
+     unsigned char _bytes[4]; 
+   };
+
+   _bytes[0] = tmp[3];
+   _bytes[1] = tmp[2];
+   _bytes[2] = tmp[1];
+   _bytes[3] = tmp[0];
    
 
    // printf ("out_size:%i\n", out_size);
-   // printf ("numbytes%u\n", numbytes); 
+   printf ("[%s]numbytes[%u]\n", __FUNCTION__, numbytes); 
    
    out.resize(numbytes, 0);
 

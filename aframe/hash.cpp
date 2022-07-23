@@ -41,6 +41,18 @@ namespace af
     return out; 
 
   }
+
+
+  digest20& ripemd160 (digest20& out, const void* in, size_t lin)
+  {
+    return out; 
+  }
+  digest20& hash160 (digest20& out, const void* in, size_t lin) {
+    return out; 
+  }
+     
+
+
 }
 
 

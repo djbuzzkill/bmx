@@ -651,3 +651,28 @@ int CH3_Ex(std::vector<std::string> &args) {
   return 0; 
   
 }
+
+//
+//
+int test_gcrypt (const std::vector<std::string>& args) {
+  printf ("\n%s:begin\n", __FUNCTION__); 
+ 
+  af::digest32 rnd1, rnd2;
+
+  const char msgtxt[] =
+    "i dont have much to say about it";
+
+  const char msg0[] = "fjwekl;4v@#%&WQhjWDDDT2kl+;rwjekl;@:>-{|}fSfsafsa'e vtj34l@vt43j3kqlgjrergej5l!?j54394%$#@^423Q%"; 
+  af::sha256 (rnd1, msg0, strlen(msg0));
+  af::sha256 (rnd2, std::data(rnd1), rnd1.size ());
+
+
+  pr_hex ("from sha256x2", rnd2);
+
+  af::digest32 hashx1;
+  af::hash256(hashx1, msg0, strlen(msg0)); 
+  pr_hex ("from hash256", hashx1); 
+  
+  printf ( "\n%s:end\n", __FUNCTION__); 
+  return 0; 
+}

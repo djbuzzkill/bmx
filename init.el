@@ -12,6 +12,7 @@
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
+(toggle-truncate-lines 1)
 
 (transient-mark-mode 1)
 
@@ -27,15 +28,23 @@
 
 (set-fringe-mode 10)
 
-(setq visible-bell t)
+(setq visible-bell nil)
 
 (require 'package)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-<tab>") 'other-window)
 
+(global-set-key (kbd "M-m") 'set-mark-command)
+(global-set-key (kbd "M-j") 'forward-line)
+(global-set-key (kbd "M-k") 'previous-line)
+(global-set-key (kbd "M-n") 'forward-line)
+(global-set-key (kbd "M-p") 'previous-line)
 
-;; quit putting Customize shit in this file
+(global-unset-key (kbd "C-<backspace>"))
+
+
+;; quit putting Customize shit in this filk
 (setq custom-file (locate-user-emacs-file "custom_vars.el"))
 (load custom-file 'noerror 'nomessage)
 
@@ -145,7 +154,7 @@
 
 ;; 
 (use-package doom-themes
-  :init (load-theme 'doom-palenight t))
+  :init (load-theme 'doom-dark+ t))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -192,13 +201,13 @@
     :prefix "SPC"
     :global-prefix "C-SPC")
   (e9/leader-keys
-   "t" '(:ignore t :which-key "toggles")
+   "t"  '(:ignore t :which-key "toggles")
    "tt" '(counsel-load-theme :which-key "choose theme")
 
-   "b" '(:ignore b :which-key "buffer operations")
+   "b"  '(:ignore b :which-key "buffer operations")
    "bb" '(counsel-ibuffer :which-key "switch buffer")
 
-   "f" '(:ignore f :which-key "file operations")
+   "f"  '(:ignore f :which-key "file operations")
    "fp" '(find-file-at-point :which-key "open file at point")
    "fr" '(recentf-open-files :which-key "open recent file list")
    "fm" '(recentf-open-more-files :which-key "open more recent files")
@@ -217,7 +226,6 @@
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
   (define-key evil-insert-state-map (kbd "C-d") 'evil-delete-char) 
 
-;;(global-set-key (kbd "C-m") 'set-mark-command)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
@@ -364,11 +372,10 @@
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
-  (when (file-directory-p "~/owenslake")
-    (setq projectile-project-search-path '("~/owenslake")))
+  (setq projectile-project-search-path '(("~/owenslake" . 2) ("~/saltonsea" . 2)))
   (setq projectile-switch-project-action #'projectile-dired))
 
-
+;; 
 
 ;;
 ;; (use-package treemacs-projectile
@@ -462,19 +469,30 @@
   :ensure t
   :init (global-flycheck-mode t))
 
-;; Common Lisp/Slime
-(add-to-list 'load-path "~/owenlake/slime")
-;;(setq  inferior-lisp-program "~/bin/sbcl")
 
+;; (use-package dirvish
+;;   :ensure t
+;;   :init
+;;   ;; Let Dirvish take over Dired globally
+;;   (dirvish-override-dired-mode))
 
 ;;
 ;(require 'slime)
-(use-package slime
-  :init (setq inferior-lisp-program "~/bin/sbcl")
-        (slime-setup)
-  :config (slime-setup '(slime-fancy)))
-  
+;; (use-package slime
+;;         (slime-setup)
+;;   :config (slime-setup '(slime-fancy)))
+(use-package sly
+  :init (setq inferior-lisp-program "/usr/bin/sbcl")
 
+  :config (setq lisp-mode-hook 'sly-editing-mode))  
+
+ 	
+;;(require 'sly-autoloads)
+
+
+
+(eval-after-load 'sly
+  `(define-key sly-prefix-map (kbd "M-h") 'sly-documentation-lookup))
 
 ;; 
 (setq initial-frame-alist '((width . 164) (height . 48) (x-pos . 0) (y-pos . 0)))
@@ -493,11 +511,9 @@
 ;;(define-key global-map (kbd "C-\,") 'previous-buffer)
 ;;(define-key global-map (kbd "C-\.") 'next-buffer)
 
-;; 
-;; (global-set-key "\M-s" 'slime-selector)
 
 ;;
-(set-frame-parameter (selected-frame) 'alpha 95)
+(set-frame-parameter (selected-frame) 'alpha 92)
 
 ;; 
 ;; (find-file "c:/Quarantine/.emacs")

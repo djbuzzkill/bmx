@@ -1,22 +1,13 @@
 
-
 #include "mtool.h"
 #include "SECzy/secp256k1.h"
 #include "aframe/hash.h"
 #include "aframe/utility.h"
+#include "ffm/ec_math.h"
 #include "ffm/fe_math.h"
-//#include <openssl/sha.h>
-
-//#include <crypto++/cryptlib.h>
-//#include <cryptopp/sha.h>
-//#include <cryptopp/ripemd.h>
-
-//#include "sha2.h"
-
-// big num math
-// #include <gmp.h>
 
 // zero mq messaging
+#include <string>
 #include <zmq.h>
 
 //  SECP256k1  stuff
@@ -30,9 +21,6 @@ const char kSEC256k1_n_sz[]       = "0xfffffffffffffffffffffffffffffffebaaedce6a
 
 
 // y^2 = x^3 +ax^2+b 
-const size_t kField_bit_precision = 256;
-
-
 void pr_hex (const char* lbl, const af::digest32& bytes) {
 
   printf ("%s: ", lbl);
@@ -44,93 +32,137 @@ void pr_hex (const char* lbl, const af::digest32& bytes) {
 }
 
 
-void print_digest (const std::array<unsigned char, 32>& dig) {
-  for (auto& c : dig) {
-    std::string hx = af::hex_uc(c);
-    
-    printf ("[%i|0x%s|%i]\n", c, hx.c_str(), af::uc_hex (hx));
-  }
-}
-
-void print_digest (const af::bytearray& arr) {
-  for (auto& c : arr) {
-    std::string hx = af::hex_uc(c);
-    
-    printf ("[%i|0x%s]\n", c, hx.c_str());
-  }
-}
-
 //
 //
 int CH4_Ex (std::vector<std::string>& args) {
-  printf ("%s[args]\n", __FUNCTION__); 
+  printf ("%s[args]:ENTER\n", __FUNCTION__);
+  using namespace af;
+  using namespace ffm; 
 
-  ffm::FEConPtr F = ffm::Create_FE_context (kSEC256k1_p_sz);
-  ffm::ECConRef EC = ffm::Create_EC_context (F, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 16);
-
+  pt::map pm;
+  el::map em;
+  ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
+  ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
 
   const std::string G = "G";
   const std::string P = "P";
+  float fwat;
+
   
   af::checkres ("G",  EC->MakePoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0));
 
-  if (true)
-    {
-      POUT("Ex. 4.1"); 
+  if (true) {
+    
+    POUT("Ex. 4.1"); 
+    
+    // Find the Compressed SEC format for the Public Key where the Private Key secrets are:
+    int  secr_a   = 5000; 
+    int  secr_b   = 20185;  
+    char secr_c[] = "0xdeadbeef12345";
+    
+    SECzy::PrivateKey prk1, prk2, prk3; {
       
-      // Find the Compressed SEC format for the Public Key where the Private Key secrets are:
-      int secr_a = 5000; 
-      int secr_b = 20185;  
-      char secr_c[] = "0xdeadbeef12345";
-
-      struct symstruc {
-
-	  std::string A;  
-	  std::string B;  
-	  std::string C;  
-
-        } ;
-
-
-      const std::string  
-	Sec_A = "Sec.A",
-	Sec_B = "Sec.B",  
-	Sec_C = "Sec.C";  
+      ScopeDeleter dr (F);
+      bytearray    arrtmp;
       
+      FE_t e1 = dr(F->New_ui (secr_a));
+      F->Raw (arrtmp, e1, false);
+      copy_BE(prk1.e, arrtmp); 
       
-      EC->MakeElem_ui (Sec_A, secr_a);
-      EC->MakeElem_ui (Sec_B, secr_b);
-      EC->MakeElem    (Sec_C, secr_c, 0);
+      FE_t e2 = dr(F->New_ui (20185));
+      F->Raw (arrtmp, e2, false);
+      copy_BE(prk2.e, arrtmp); 
 
-
-      EC->PrintElem (Sec_A, Sec_A, ffm::format::dec); 
-      EC->PrintElem (Sec_B, Sec_B, ffm::format::dec);  
-      EC->PrintElem (Sec_C, Sec_C, ffm::format::hex);
-      
+      FE_t e3 = dr(F->New (secr_c, 0));
+      F->Raw (arrtmp, e3, false);
+      copy_BE(prk3.e, arrtmp);
     }
-  return 0; 
-}
 
-//
-//
-int test_gcrypt (const std::vector<std::string>& args)
-{
-  printf ("\n%s:begin\n", __FUNCTION__); 
- 
-  af::digest32 rnd1, rnd2;
+  } // ex 4.1
 
-  const char msgtxt[] =
-    "i dont have much to say about it";
-
-  const char msg0[] = "fjwekl;4v@#%&WQhjWDDDT2kl+;rwjekl;@:>-{|}fSfsafsa'e vtj34l@vt43j3kqlgjrergej5l!?j54394%$#@^423Q%"; 
-  af::sha256 (rnd1, msg0, strlen(msg0));
-  af::sha256 (rnd2, std::data(rnd1), rnd1.size ());
   
-  print_digest (rnd2); 
+  // compressed SEC for ec points
+  // 0x2 (x,y) 
+  // 0x3 P.x   --> ripemd160
+  // 0x4 P.x   --> ripemd160
+  
 
-  printf ( "\n%s:end\n", __FUNCTION__); 
+  // ripemd160 for ec points
+
+
+  
+  // DER (Distinguished Encoding Rules) .. saves UP TO 6 BYTES!11 
+  // r
+  // s
+  {
+    // encoding into base58
+
+    FEConRef F = Create_FE_context (kSEC256k1_p_sz, 0);
+    ScopeDeleter dr (F);
+
+
+    FE_t sec_a = dr (F->New_ui(5000));
+    FE_t sec_b = dr (F->New_ui(20185));
+    FE_t sec_c = dr (F->New ("0xdeadbeef12345", 0));
+
+
+    bytearray outbytes;
+
+
+    F->Raw (outbytes, sec_a, false); 
+    std::string sec_a_base58; 
+    af::base58::encode (sec_a_base58, std::data(outbytes) , outbytes.size(), true);
+    printf ("base69: %s\n", sec_a_base58.c_str());
+
+    F->Raw(outbytes, sec_b, false);
+    std::string sec_b_base58;
+    base58::encode (sec_b_base58, std::data(outbytes), outbytes.size(), false);
+    printf ("base69: %s\n", sec_b_base58.c_str());
+    
+    F->Raw(outbytes, sec_c, false);
+    std::string sec_c_base58;
+    base58::encode (sec_c_base58, std::data(outbytes), outbytes.size(), false);
+    printf ("base69: %s\n", sec_c_base58.c_str());
+
+    
+
+  }
+  
+  // base58
+
+  // WIF
+  // 
+
+  //printf ("numelems:%i\n", numelems); 
+  
+  printf ("%s[args]:EXIT\n", __FUNCTION__); 
+  
   return 0; 
 }
+
+
+
+
+// ----------------------- main --------------------------
+int main (int argv, char** argc) {
+
+  printf ("%s:ENTER\n", __FUNCTION__); 
+    // test_gcrypt (args);
+  std::vector<std::string> args (argc, argc+argv);
+  
+  POUT("af between");
+  //test_gcrypt (args);
+  
+  CH4_Ex(args);
+
+    // test_gcrypt (args);
+  printf ("%s:EXIT\n", __FUNCTION__); 
+  return 0; 
+}
+
+
+
+
 
 void printbytes (const std::string& lbl, const ffm::bytearray& bytes)
 {
@@ -141,71 +173,3 @@ void printbytes (const std::string& lbl, const ffm::bytearray& bytes)
     printf ("%s[%i]:%x\n", lbl.c_str(), i, bytes[i]);
   
 }
-
-//
-//
-//
-
-int test_binary (const std::vector<std::string> &args) {
-
-  printf ("\n%s:begin\n", __FUNCTION__);
-
-  using namespace ffm;
-
-  el::map em;
-  pt::map pm;
-
-  FEConPtr F = Create_FE_context ( kSEC256k1_p_sz, 0 );
-  ECConRef EC = Create_EC_context(F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
-  
-  ScopeDeleter dr (F);
-  FE_t vara = dr(F->New_ui(1));
-  
-  bytearray bina, binb, binc; 
-
-  F->Print ("Fp:", F->p()); 
-  //  F->LogiShiftL(vara, 248);
-  //printbytes ("bina", bina); 
-
-	       
-  F->Raw (binb, F->p(), false); 
-  printbytes( "p", binb);
-	    
-  FE_t varnew = F->New (); 
-  printf ("binb.size:%zu\n", binb.size());  
-  F->Set_bin (varnew, std::data(binb), binb.size(), false); 
-
-  F->Print ("[new_var]:", varnew);
-
-  
-  // print number 1, is it at first or last byte
-  return 0;
-}
-
-
-// ----------------------- main --------------------------
-int main (int argv, char** argc)
-{
-  std::vector<std::string> args (argc, argc+argv);
-
-  // glm::vec3 v (2.1f, 2.2f, 2.3f);
-  // glm::vec3 x = v + v;
-
-  // test_gmp (args);
-  //FE_test (args);
-
-  // test_binary (args);
-  
-  //POUT("in between");
-  
-  //CH3_Ex(args);
-    // test_gcrypt (args);
-  POUT("af between");
-  
-  CH4_Ex(args);
-
-  return 0; 
-}
-
-
-

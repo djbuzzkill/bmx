@@ -112,11 +112,6 @@ namespace ffm
   
   typedef std::shared_ptr<EC_context> ECConRef;
 
-  ECConRef Create_EC_context (FEConPtr,
-			      const char* a,
-			      const char* b,
-			      const char* order,
-			      size_t base);
 
   ECConRef Create_EC_context (FEConPtr,
 			      el::map& em,

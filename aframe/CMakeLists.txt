@@ -7,6 +7,7 @@ project (aframe)
 set (AF_SOURCES
   common.cpp
   utility.cpp
+  binary_IO.cpp
   hash.cpp
   task.cpp
   system.cpp
@@ -16,6 +17,7 @@ set (AF_SOURCES
 set (AF_HEADERS
   common.h
   utility.h
+  binary_IO.h
   hash.h
   task.h
   system.h
