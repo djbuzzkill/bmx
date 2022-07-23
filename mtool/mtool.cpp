@@ -1,6 +1,6 @@
 //
 ////
-////from cyberarch
+////from lilarch 
 #include "mtool.h"
 #include "SECzy/secp256k1.h"
 #include "aframe/hash.h"

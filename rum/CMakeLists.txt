@@ -30,7 +30,7 @@ target_link_libraries (rum
   gmpxx
   
   aframe 
-  crypto++
+  cryptopp
   ffm
   SECzy
   )
