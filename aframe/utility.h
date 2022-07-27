@@ -12,11 +12,6 @@
 
 namespace af {
   
-  typedef std::vector<unsigned char>         bytearray; 
-
-  typedef std::array<unsigned char, 32>      byte32; // 
-  typedef std::array<unsigned char, 20>      byte20; // mainly for ripemd160
-  
   typedef std::map<std::string, std::string> propmap; 
  
   //
@@ -37,10 +32,23 @@ namespace af {
       
   }
 
+  //
+  template<typename Ty> 
+  inline bool in_bounds_incl (Ty val , Ty minval , Ty maxval) {
+    return (val >= minval && val <= maxval);
+  }
+
+  // 
+  template<typename Ty> 
+  inline bool in_bounds_excl (Ty val, Ty minval, Ty maxval) { 
+    return (val > minval && val < maxval);
+  }    
+
+
 
   namespace hex {
 
-    // uc -> hex
+    // uc -> hex 
     std::string from_uc (unsigned char c); 
 
     // hex -> uc

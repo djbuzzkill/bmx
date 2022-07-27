@@ -12,8 +12,6 @@ const char ksecp256k1_n_sz[]       = "0xfffffffffffffffffffffffffffffffebaaedce6
 
 
 
-using namespace ffm;
-
 namespace
 {
   const char G[] = "G";
@@ -29,6 +27,79 @@ namespace
 
 namespace SECzy {
 
+  using namespace ffm;
+  using namespace af; 
+  //
+  // 
+  bool ReadPoint (Point& out , ReadStreamRef rs) {
+
+    size_t read_len = 0;
+
+
+    // read first byte
+    unsigned char pref = 0;
+    read_len += rs->Read (&pref, 1);
+
+    if (pref == 4) {
+      // both coord 
+      read_len += read_byte32 (out.x, rs);
+      read_len += read_byte32 (out.y, rs);
+      return true; 
+    }
+    else { // just the x coord
+      // 
+      CODE_ME();
+      return false;
+    }
+
+    return false;
+  }
+
+  //
+  //
+  bool ReadSignature_DER (Signature& out, ReadStreamRef rs) {
+
+    CODE_ME();
+
+    return false;
+
+  }
+  
+
+  bool WritePoint (WriteStreamRef ws, const Point& p, bool comp) {
+
+    size_t write_len = 0; 
+
+    if (comp) { // figure out if y is odd or even
+      unsigned char pref =  (p.y[31] & 0x1 ? 0x3 : 0x2); 
+      write_len += ws->Write    (&pref, 1); 
+      write_len += write_byte32 ( ws, p.x); 
+      return (write_len == 33);
+    }
+    else {      // write both coords
+      unsigned char pref =  0x4;
+      write_len += ws->Write    (&pref, 1); 
+      write_len += write_byte32 ( ws, p.x); 
+      write_len += write_byte32 ( ws, p.y); 
+      return (write_len == 65); 
+    }
+
+    return false; 
+  }
+  
+  
+  //
+  //
+  bool WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+
+    CODE_ME ()
+    // write the stupid DED format saving 5 f'n bytes
+    
+    return false; 
+  }
+  
+
+  
   secp256k1::secp256k1 () : elems (), points() { 
     
     F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
@@ -266,7 +337,7 @@ namespace SECzy {
     
     // write results, sig is (r,s) => sig(r,s)
     {
-      bytearray rraw, sraw;
+      af::bytearray rraw, sraw;
       F->Raw (rraw, pt::x(points[R]), false);
       ffm::copy_BE(sig.r, rraw); 
       

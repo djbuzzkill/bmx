@@ -12,7 +12,7 @@
 #include <string>
 #include <zmq.h>
 
-//  SECP256k1  stuff
+//  SECP25
 const char kSEC256k1_p_sz[]       = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
 const char kSEC256k1_G_x_sz[]     = "0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
 const char kSEC256k1_G_y_sz[]     = "0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8";
@@ -79,15 +79,21 @@ int CH4_Ex (std::vector<std::string>& args) {
       F->Raw (arrtmp, e3, false);
       copy_BE(prk3.e, arrtmp);
     }
-
+    
   } // ex 4.1
 
-  
   // compressed SEC for ec points
   // 0x2 (x,y) 
   // 0x3 P.x   --> ripemd160
   // 0x4 P.x   --> ripemd160
-  
+  {
+    SECzy::WritePoint;
+  }
+
+    
+  {
+     SECzy::WriteSignature_DER;
+  }  
 
   // ripemd160 for ec points
 
@@ -125,7 +131,6 @@ int CH4_Ex (std::vector<std::string>& args) {
     std::string sec_c_base58;
     base58::encode (sec_c_base58, std::data(outbytes), outbytes.size(), false);
     printf ("base69: %s\n", sec_c_base58.c_str());
-
     
 
   }

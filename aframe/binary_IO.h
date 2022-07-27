@@ -4,7 +4,7 @@
 
 
 #include "common.h"
-#include "utility.h"
+#include "shared_types.h"
 
 namespace af {
 
@@ -19,8 +19,9 @@ namespace af {
 
     }; 
 
-    virtual void   SetPos (size_t offs, SeekMode mode) = 0; 
+    virtual void   SetPos (ptrdiff_t offs, SeekMode mode) = 0; 
     virtual size_t GetPos () = 0;
+
   protected:
 
     byte_stream () {}
@@ -33,7 +34,7 @@ namespace af {
 
     virtual size_t Read (void* out, size_t len) = 0;
 
-  protected:
+
     reader () {}
   };
 
@@ -41,7 +42,7 @@ namespace af {
   // 
   struct writer {
   
-    virtual size_t Write (void* src, size_t len) = 0; 
+    virtual size_t Write (const void* src, size_t len) = 0; 
     
   protected:
     writer () {} 
@@ -69,6 +70,25 @@ namespace af {
 
 
 
+
+
+  
+  
+  //
+  //
+  inline size_t write_byte32 (WriteStreamRef ws, const byte32& src) {
+
+    return ws->Write ( std::data(src), sizeof(byte32)); 
+
+  }
+
+  //
+  //
+  inline size_t read_byte32 (byte32& out, ReadStreamRef rs) {
+
+    return rs->Read (std::data (out), sizeof(byte32)); 
+  }
+  
   
   
 } // namespace af

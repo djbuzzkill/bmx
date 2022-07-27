@@ -17,6 +17,7 @@ set (AF_SOURCES
 set (AF_HEADERS
   common.h
   utility.h
+  shared_types.h
   binary_IO.h
   hash.h
   task.h

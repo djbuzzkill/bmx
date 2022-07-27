@@ -2,7 +2,7 @@
 #define FFM_UTILITY_H
 
 #include "common.h"
-#include <aframe/utility.h>
+#include <aframe/shared_types.h>
 
 #define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
 #define PR(s) printf("%s", (s));  
@@ -11,7 +11,7 @@
 namespace ffm
 {
   // 
-  typedef af::byte32 fixnum32;  
+  typedef af::fixnum32 fixnum32;  
 
   //
   // copy a binary number to out , fail if size(bytes) > 32

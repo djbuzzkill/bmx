@@ -8,11 +8,13 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <list>
 #include <algorithm>
 #include <tuple>
 #include <functional>
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 
 #endif

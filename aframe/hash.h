@@ -2,7 +2,7 @@
 #define AF_HASH_H
 
 #include "common.h"
-#include "utility.h"
+#include "shared_types.h"
 
 namespace af
 {

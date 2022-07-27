@@ -2,24 +2,26 @@
 #define SECP256K1_INCLUDE
 
 #include "common.h"
-#include "ffm/ffm.h"
-#include "aframe/af.h"
+#include <ffm/ffm.h>
+#include <aframe/af.h>
 
 
 namespace SECzy {
 
   //
   //
-  typedef af::digest32  digest32;  
-  typedef ffm::fixnum32 fixnum32; 
+  typedef af::digest32 digest32;  
+  typedef af::fixnum32 fixnum32; 
   //
   //
-  struct PublicKey 
+  struct Point 
   {
     fixnum32 x;
     fixnum32 y; 
   };
 
+  typedef Point PublicKey;
+  
   //
   struct PrivateKey {
     fixnum32 e;
@@ -31,30 +33,21 @@ namespace SECzy {
     fixnum32 s;
     fixnum32 r; 
   };
+
+  //
+  // Serialization 
+  bool ReadPoint         (Point& out , af::ReadStreamRef rs);
+  bool ReadSignature_DER (Signature& out, af::ReadStreamRef rs);
+  //
+  bool WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
+  bool WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
   
-  //
-  template<typename Pt>
-  inline bool WritePoint (af::WriteStreamRef ws, const Pt& pt, bool compressed) {
-
-
-    return false;
-    
-  };     
-    
-  //
-  template<typename Pt>
-  inline bool ReadPoint (Pt& out, af::ReadStreamRef rs) {
-    return false;
-
-  }
-  
-  //
-  void WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig); 
+		       
 
   //
   //
   class secp256k1 {
-    //  
+    //  3
   public:
     
     secp256k1 ();
@@ -68,7 +61,7 @@ namespace SECzy {
 
   protected:
     
-    ffm::FEConPtr F;
+    ffm::FEConRef F;
     ffm::ECConRef EC;
     ffm::el::map elems;
     ffm::pt::map points; 
