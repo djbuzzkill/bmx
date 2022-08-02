@@ -64,19 +64,24 @@ namespace af
 
     //
     //
-    std::string& encode (std::string& out, const bytearray& bin_in);
+
+    std::string& encode (std::string& out, const void*, size_t len);
 
     //
     //
     bytearray&   decode (bytearray& out_bin, const std::string& str);
    
 
+
   }
+
+
+
   // base58 --------------------------------
   namespace base58
   {
     std::string& encode (std::string& out, const void* inBE, size_t len);
-    void*        decode (void* outBE, size_t olen,  const std::string& in ); 
+    void*        decode (void* outBE, size_t olen,  const std::string& in); 
 
   }
   

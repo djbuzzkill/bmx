@@ -187,14 +187,18 @@ af::bytearray& af::hex::decode (af::bytearray& out, const std::string& str ) {
 //
 // hex::encode() - binary into hex string
 //
-std::string& af::hex::encode (std::string& out, const af::bytearray& bin_in ) {
+std::string& af::hex::encode (std::string& out, const void* bin, size_t len ) {
 
   out = "";
  
-  //      const unsigned char* ucbin = reinterpret_cast<const unsigned char*>(bin_in); 
-  
-  
-  for (auto c : bin_in) {
+  const unsigned char* ucbin = reinterpret_cast<const unsigned char*>(bin); 
+ 
+  std::vector<float>::type 
+
+    
+  for (auto i = 0; i < len; ++i) {
+    auto c = ucbin[i];
+    
     out += from_uc ( c );
   }
   

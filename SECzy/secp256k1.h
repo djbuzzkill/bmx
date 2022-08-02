@@ -34,10 +34,18 @@ namespace SECzy {
     fixnum32 r; 
   };
 
+
+
+  //
+  //
+  Point& MakePublicKey (Point& out, const fixnum32& sec); 
+
+
+  
   //
   // Serialization 
-  bool ReadPoint         (Point& out , af::ReadStreamRef rs);
-  bool ReadSignature_DER (Signature& out, af::ReadStreamRef rs);
+  bool ReadPoint          (Point& out , af::ReadStreamRef rs);
+  bool ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
   //
   bool WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
   bool WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  

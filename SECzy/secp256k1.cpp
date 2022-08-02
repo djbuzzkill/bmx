@@ -11,11 +11,15 @@ const char ksecp256k1_coeff_b_sz[] = "0x7";
 const char ksecp256k1_n_sz[]       = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"; 
 
 
+using namespace ffm;
+using namespace af;
+
 
 namespace
 {
-  const char G[] = "G";
-  const char n[] = "n";
+  const std::string G = "G";
+  const std::string n = "n";
+
   //  const char n_minus_2[] = "n-2"; 
 
   void printbin (const char* lbl, const af::digest32& bytes) {
@@ -25,116 +29,154 @@ namespace
   }
 }
 
-namespace SECzy {
 
-  using namespace ffm;
-  using namespace af; 
+
+
+//
+//
+SECzy::Point& SECzy::MakePublicKey (Point& out, const fixnum32& secr) {
+
+  pt::map pm;
+  el::map em;
+  FEConRef F  = Create_FE_context (ksecp256k1_p_sz);
+  ECConRef EC = Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+
+
+  checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
+
+  bytearray wsbuf (256);  
+  WriteStreamRef ws = CreateWriteMemStream (std::data(wsbuf), wsbuf.size()); 
+  
+    
+  ScopeDeleter dr     (F);
+  bytearray    arrtmp (256, 0);
+    
+  FE_t e = dr(F->New_bin (std::data(secr), secr.size(), false));
+  
+  const std::string v = "xzd8"; 
+  EC->MakePoint  (v, dr (F->New()), dr (F->New()));
+  EC->Mul_scalar (v, e, G); 
+
+  F->Raw (arrtmp, pt::x(pm[v]), false);
+  assert (arrtmp.size() == 32);
+  copy_BE (out.x, arrtmp); 
+  
+  F->Raw (arrtmp, pt::y(pm[v]), false);
+  assert (arrtmp.size() == 32);
+  copy_BE (out.y, arrtmp); 
+
+  return out; 
+
+}
+
+
+  
   //
   // 
-  bool ReadPoint (Point& out , ReadStreamRef rs) {
-
+bool SECzy::ReadPoint (Point& out , ReadStreamRef rs) {
+  
     size_t read_len = 0;
-
-
+    
+    
     // read first byte
     unsigned char pref = 0;
     read_len += rs->Read (&pref, 1);
-
+    
     if (pref == 4) {
       // both coord 
-      read_len += read_byte32 (out.x, rs);
+	read_len += read_byte32 (out.x, rs);
       read_len += read_byte32 (out.y, rs);
       return true; 
     }
     else { // just the x coord
       //
-
+      
       read_len += read_byte32 (out.x, rs);
-     
+      
       CODE_ME();
       
-
+      
       return false;
     }
-
+    
     return false;
-  }
+}
 
-  //
-  //
-  bool ReadSignature_DER (Signature& out, ReadStreamRef rs) {
-
-
-    // comment
-    CODE_ME();
-
-    return false;
-
-  }
-  
-
-  bool WritePoint (WriteStreamRef ws, const Point& p, bool comp) {
-
-    size_t write_len = 0; 
-
-    if (comp) { // figure out if y is odd or even
-      unsigned char pref =  (p.y[31] & 0x1 ? 0x3 : 0x2); 
-      write_len += ws->Write    (&pref, 1); 
-      write_len += write_byte32 ( ws, p.x); 
-      return (write_len == 33);
-    }
-    else {      // write both coords
-      unsigned char pref =  0x4;
-      write_len += ws->Write    (&pref, 1); 
-      write_len += write_byte32 ( ws, p.x); 
-      write_len += write_byte32 ( ws, p.y); 
-      return (write_len == 65); 
-    }
-
-    return false; 
-  }
+//
+//
+bool SECzy::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
   
   
-  //
-  //
-  bool WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+  // comment
+  CODE_ME();
+  
+  return false;
+  
+}
 
-    CODE_ME ()
+
+bool SECzy::WritePoint (WriteStreamRef ws, const Point& p, bool comp) {
+  
+  size_t write_len = 0; 
+  
+  if (comp) { // figure out if y is odd or even
+    unsigned char pref =  (p.y[31] & 0x1 ? 0x3 : 0x2); 
+    write_len += ws->Write    (&pref, 1); 
+    write_len += write_byte32 ( ws, p.x); 
+    return (write_len == 33);
+  }
+  else {      // write both coords
+    unsigned char pref =  0x4;
+    write_len += ws->Write    (&pref, 1); 
+    write_len += write_byte32 ( ws, p.x); 
+    write_len += write_byte32 ( ws, p.y); 
+    return (write_len == 65); 
+  }
+  
+  return false; 
+}
+
+
+//
+//
+bool SECzy::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+  
+  CODE_ME (); 
     // write the stupid DED format saving 5 f'n bytes
     
-    return false; 
-  }
+  return false; 
+}
+
+
+
+SECzy::secp256k1::secp256k1 () : elems (), points() { 
   
-
+  F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
+  EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
   
-  secp256k1::secp256k1 () : elems (), points() { 
     
-    F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
-    EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0);
+  
+  
+  ffm::ScopeDeleter dr (F);
+  ffm::FE_t t0 = dr (F->New ()); 
+  
+  
+  EC->PrintElem ("SECzy:n", "n", format::hex);
+  //    Ec->PrintElem ("
+  
+  //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
+  
+  //F->Set (t0, "0x2", 0);
+  //EC->DefElem ("n-2", 
     
-    
-    EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0);
-		   
-    
-    ffm::ScopeDeleter dr (F);
-    ffm::FE_t t0 = dr (F->New ()); 
+    }
 
-
-    EC->PrintElem ("SECzy:n", "n", format::hex);
-    //    Ec->PrintElem ("
-    
-    //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
-    
-    //F->Set (t0, "0x2", 0);
-    //EC->DefElem ("n-2", 
-    
-  }
-
-  //
-  //
-  secp256k1::~secp256k1 () {
-    
-  }
+//
+//
+SECzy::secp256k1::~secp256k1 () {
+  
+}
 
  
   //
@@ -204,9 +246,11 @@ namespace SECzy {
   
   */
 
+
+
+//
   //
-  //
-  bool secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
+  bool SECzy::secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
     //    printf ("%s:enter\n", __FUNCTION__); 
   
     ffm::ScopeDeleter dr (F);
@@ -270,94 +314,96 @@ namespace SECzy {
 
     return (F->Cmp (pt::x(Rref), r) == 0);
   }
+
+
+
+
+
+//
+  //
+bool SECzy::secp256k1::Sign (Signature& sig, const PrivateKey& prk, const digest32& zbin) {
+  
+  using namespace ffm;
+  // eG = P
+  
+  //    const std::string G = "G"; 
+  const std::string P = "P";
+  const std::string R = "R";
+  //const std::string n = "n";
+  
+  ScopeDeleter dr (F); 
+  // kG = R
+  FE_t
+    e    = dr(F->New_bin(std::data(prk.e), 32, false)),
+    z    = dr(F->New_bin(std::data(zbin), 32, false)),
+    s    = dr(F->New ()),
+    stmp = dr(F->New()),
+    
+    tmp  = dr(F->New()),
+    snum = dr(F->New ());
   
   //
-  //
-  bool secp256k1::Sign (Signature& sig, const PrivateKey& prk, const digest32& zbin) {
-    
-    using namespace ffm;
-    // eG = P
-    
-    //    const std::string G = "G"; 
-    const std::string P = "P";
-    const std::string R = "R";
-    //const std::string n = "n";
- 
-    ScopeDeleter dr (F); 
-    // kG = R
-    FE_t
-      e    = dr(F->New_bin(std::data(prk.e), 32, false)),
-      z    = dr(F->New_bin(std::data(zbin), 32, false)),
-      s    = dr(F->New ()),
-      stmp = dr(F->New()),
-      
-      tmp  = dr(F->New()),
-      snum = dr(F->New ());
-    
-    //
-    EC->MakePoint_ui(P, 0, 0);
-    EC->Mul_scalar (P, e, G); 
-    POUT ("224");
-
-    
-    // n-2
-    FE_t n_sub_2 = dr(F->New());
-    F->Sub_ui(n_sub_2, elems[n], 2);
-    elems["n-2"] = n_sub_2; 
-    
-    // n/2
-    FE_t n_div_2 = dr(F->New()); 
-    F->Div_ui(n_div_2, elems[n], 2); 
-    elems["n/2"] = n_div_2;
-    
-    // k = rand (n) <-- fix later
-    FE_t k = dr(F->New()); 
-    POUT("241")
+  EC->MakePoint_ui(P, 0, 0);
+  EC->Mul_scalar (P, e, G); 
+  POUT ("224");
+  
+  
+  // n-2
+  FE_t n_sub_2 = dr(F->New());
+  F->Sub_ui(n_sub_2, elems[n], 2);
+  elems["n-2"] = n_sub_2; 
+  
+  // n/2
+  FE_t n_div_2 = dr(F->New()); 
+  F->Div_ui(n_div_2, elems[n], 2); 
+  elems["n/2"] = n_div_2;
+  
+  // k = rand (n) <-- fix later
+  FE_t k = dr(F->New()); 
+  POUT("241")
     F->Rand (k, elems[n]);
-    elems["k"] = k;
-    
-    // 1/k
-    FE_t k_inv= dr(F->New ());
-    F->PowM (k_inv, k, n_sub_2, elems[n]);  
-    elems["1/k"] = k_inv; 
-    
-    EC->MakePoint_ui (R, 0, 0); // <-- we should just make a plain 'alloc-point'
-    EC->Mul_scalar (R, "k", G); // we want R.x
-    // kG = R
-    
-    F->SMul (tmp, pt::x(points[R]), e);
-    F->SAdd (snum, z, tmp);
-    F->MulM (stmp, snum, k_inv, elems[n]); 
-    // s = (z+re)/k mod n
-    
-    // if s > n/2
-    //  s = n - s
-    int cmpres = F->Cmp (stmp, elems["n/2"]);
-    // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 = op2, or a negative value if op1 < op2.
-    if (cmpres > 0) {
-      printf ("..(s > n/2)\n");
-      F->Sub (s , elems[n], stmp); 
-    }
-    else {
-      F->Set (s, stmp);
-    }
-    
-    // write results, sig is (r,s) => sig(r,s)
-    {
-      af::bytearray rraw, sraw;
-      F->Raw (rraw, pt::x(points[R]), false);
-      ffm::copy_BE(sig.r, rraw); 
-      
-      F->Raw (sraw, s, false);
-      ffm::copy_BE(sig.s, sraw); 
-      
-      printf ("__SIGNATURE_GENERATED__\n");
-    }
-    
-    return true; 
-    
+  elems["k"] = k;
+  
+  // 1/k
+  FE_t k_inv= dr(F->New ());
+  F->PowM (k_inv, k, n_sub_2, elems[n]);  
+  elems["1/k"] = k_inv; 
+  
+  EC->MakePoint_ui (R, 0, 0); // <-- we should just make a plain 'alloc-point'
+  EC->Mul_scalar (R, "k", G); // we want R.x
+  // kG = R
+  
+  F->SMul (tmp, pt::x(points[R]), e);
+  F->SAdd (snum, z, tmp);
+  F->MulM (stmp, snum, k_inv, elems[n]); 
+  // s = (z+re)/k mod n
+  
+  // if s > n/2
+  //  s = n - s
+  int cmpres = F->Cmp (stmp, elems["n/2"]);
+  // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 = op2, or a negative value if op1 < op2.
+  if (cmpres > 0) {
+    printf ("..(s > n/2)\n");
+    F->Sub (s , elems[n], stmp); 
   }
-
-} // namespace  
+  else {
+    F->Set (s, stmp);
+  }
+  
+  // write results, sig is (r,s) => sig(r,s)
+  {
+    af::bytearray rraw, sraw;
+    F->Raw (rraw, pt::x(points[R]), false);
+    ffm::copy_BE(sig.r, rraw); 
+    
+    F->Raw (sraw, s, false);
+    ffm::copy_BE(sig.s, sraw); 
+    
+    printf ("__SIGNATURE_GENERATED__\n");
+  }
+  
+  return true; 
+  
+}
 
 
