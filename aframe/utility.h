@@ -4,13 +4,14 @@
 
 
 #include "common.h"
-
+#include "shared_types.h"
 
 
 #define CODE_ME(){printf("CODE_ME:%s|ln:%i\n", __FUNCTION__, __LINE__);} 
 
 
-namespace af {
+namespace af
+{
   
   typedef std::map<std::string, std::string> propmap; 
  
@@ -18,7 +19,7 @@ namespace af {
   //
   struct destructor {
     
-    virtual ~destructor () = 0; 
+    virtual ~destructor () {}
 
   protected:
     destructor () {}
@@ -45,12 +46,15 @@ namespace af {
   }    
 
 
-
-  namespace hex {
-
+  //
+  // hexadecimal --------------------------- 
+  namespace hex
+  {
+    //
     // uc -> hex 
     std::string from_uc (unsigned char c); 
 
+    //
     // hex -> uc
     unsigned char to_uc (const std::string& chars); 
     // 
@@ -58,16 +62,21 @@ namespace af {
       return to_uc(str);
     }
 
+    //
+    //
+    std::string& encode (std::string& out, const bytearray& bin_in);
 
-    std::string& encode (std::string& out, const void* bin_BE, size_t len, bool BE_true);
-    void*        decode (void* outBE, size_t len, const std::string& str, bool BE_true);
-    
+    //
+    //
+    bytearray&   decode (bytearray& out_bin, const std::string& str);
+   
 
   }
-
-  namespace base58 {
-    std::string& encode (std::string& out, const void* inBE, size_t len, bool BE_true);
-    void*        decode (void* outBE, size_t olen,  const std::string& in, bool BE_true ); 
+  // base58 --------------------------------
+  namespace base58
+  {
+    std::string& encode (std::string& out, const void* inBE, size_t len);
+    void*        decode (void* outBE, size_t olen,  const std::string& in ); 
 
   }
   

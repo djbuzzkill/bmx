@@ -47,8 +47,13 @@ namespace SECzy {
       return true; 
     }
     else { // just the x coord
-      // 
+      //
+
+      read_len += read_byte32 (out.x, rs);
+     
       CODE_ME();
+      
+
       return false;
     }
 

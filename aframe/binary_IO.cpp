@@ -1,5 +1,6 @@
-#include "binary_IO.h"
+
 #include "utility.h"
+#include "binary_IO.h"
 
 namespace af {
   //
@@ -23,7 +24,7 @@ namespace af {
 	break;
 	
       case SeekMode::Rel:
-
+	
 	if (in_bounds_incl<size_t> (offs+offset, 0, max_size))
 	  offs += offset; 
 
@@ -35,9 +36,8 @@ namespace af {
 	  offs = max_size + offset;
 
 	break;
-	
       }      
-    
+     
     }
 
     size_t GetPos () {
@@ -115,9 +115,10 @@ namespace af {
       const unsigned char* ucsrc = reinterpret_cast<const unsigned char*> (src);
 
       size_t write_len = len; 
-      if (in_bounds_excl<size_t> (offs+len, 0, max_size))
-	write_len = max_size - offs; 
-	  
+
+      if (!in_bounds_excl<size_t> (offs+len, 0, max_size))
+	write_len = max_size - offs;
+      
       std::copy (ucsrc, ucsrc+write_len, mem+offs); 
       offs += write_len; 
 
@@ -147,6 +148,9 @@ namespace af {
   WriteStreamRef CreateWriteMemStream (void* mem, size_t len) {
     WriteStreamRef ref (new write_stream_impl(mem, len)); 
     return ref;
-    
   }
+
+
+
+
 } // af 
