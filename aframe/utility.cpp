@@ -193,8 +193,6 @@ std::string& af::hex::encode (std::string& out, const void* bin, size_t len ) {
  
   const unsigned char* ucbin = reinterpret_cast<const unsigned char*>(bin); 
  
-  std::vector<float>::type 
-
     
   for (auto i = 0; i < len; ++i) {
     auto c = ucbin[i];
