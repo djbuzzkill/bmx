@@ -3,103 +3,99 @@
 #include "ffm/ffm.h"
 
 
-namespace af {
-
-  namespace hex {
-
-
-    // 
-    //  u8 value into hex 'XX' 
-    std::string from_uc (unsigned char c) {
-      
-      const std::string hexdigits = "0123456789abcdef";
-      std::string ret = "";
-      
-      unsigned char lo = 0x0f & c;
-      unsigned char hi = c >> 4;
-      
-      //printf ("%s[hi:%i|lo:%i|c:%i]\n", __FUNCTION__, hi, lo, c);
-      
-      ret += hexdigits[hi] ;
-      ret += hexdigits[lo] ; 
-      
-      return ret; 
-    }
-    
-    // 
-    //  hex digit 'XX' into u8
-    unsigned char to_uc (const std::string& chars) {
-      
-      std::map<char, unsigned char> hex_enc = {
-	{'0', 0 },
-	{'1', 1 }, 
-	{'2', 2 },
-	{'3', 3 }, 
-	{'4', 4 },
-	{'5', 5 }, 
-	{'6', 6 },
-	{'7', 7 }, 
-	{'8', 8 },
-	{'9', 9 }, 
-	{'a', 10},
-	{'b', 11}, 
-	{'c', 12},
-	{'d', 13}, 
-	{'e', 14}, 
-	{'f', 15}, 
-	{'A', 10},
-	{'B', 11}, 
-	{'C', 12},
-	{'D', 13}, 
-	{'E', 14}, 
-	{'F', 15}, 
-      };  
-      
-      const unsigned char hi = 0;
-      const unsigned char lo = 1;
-      
-      if (chars.size () != 2) {
-	return 0; 
-      }
-      
-      if (0 == hex_enc.count (chars[hi])) {
-	return 0;
-      }
-      
-      if (0 == hex_enc.count (chars[lo])) {
-	return 0;
-      }
-      
-      unsigned char out = hex_enc[chars[hi]] << 4; 
-      out += hex_enc[chars[lo]];
-      return out; 
-      
-    }
-
-
-  } // str
-
+namespace af
+{
   namespace base58
   {
-    // 
-    using namespace ffm;
-
+    
     //
     const char base58_enc[] =
       "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"; 
-
+    
     // 58 + 1 
     static_assert (sizeof(base58_enc) == 59, "base58 alpabet is 58 bytes long"); 
-
+    
   }
-
+  
 } // af
 
 
+// 
+using namespace ffm;
 
 
-    // turn  binary number into string
-std::string& af::base58::encode (std::string& out, const void* inBE, size_t len)  {
+// 
+//  u8 value into hex 'XX' 
+std::string af::hex::from_uc (unsigned char c) {
+  
+  const std::string hexdigits = "0123456789abcdef";
+  std::string ret = "";
+  
+  unsigned char lo = 0x0f & c;
+  unsigned char hi = c >> 4;
+  
+  //printf ("%s[hi:%i|lo:%i|c:%i]\n", __FUNCTION__, hi, lo, c);
+  
+  ret += hexdigits[hi] ;
+  ret += hexdigits[lo] ; 
+  
+  return ret; 
+}
+
+// 
+    //  hex digit 'XX' into u8
+unsigned char af::hex::to_uc (const std::string& chars) {
+  
+  std::map<char, unsigned char> hex_enc = {
+    {'0', 0 },
+    {'1', 1 }, 
+    {'2', 2 },
+    {'3', 3 }, 
+    {'4', 4 },
+    {'5', 5 }, 
+    {'6', 6 },
+    {'7', 7 }, 
+    {'8', 8 },
+    {'9', 9 }, 
+    {'a', 10},
+    {'b', 11}, 
+    {'c', 12},
+    {'d', 13}, 
+    {'e', 14}, 
+    {'f', 15}, 
+    {'A', 10},
+    {'B', 11}, 
+    {'C', 12},
+    {'D', 13}, 
+    {'E', 14}, 
+    {'F', 15}, 
+  };  
+  
+  const unsigned char hi = 0;
+  const unsigned char lo = 1;
+  
+  if (chars.size () != 2) {
+    return 0; 
+  }
+  
+  if (0 == hex_enc.count (chars[hi])) {
+    return 0;
+  }
+  
+  if (0 == hex_enc.count (chars[lo])) {
+    return 0;
+  }
+  
+  unsigned char out = hex_enc[chars[hi]] << 4; 
+  out += hex_enc[chars[lo]];
+  return out; 
+  
+}
+
+
+
+// turn  binary number into string
+std::string& af::base58::encode (std::string& out, const void* inBE, size_t len) {
   
   const char secp256k1_p_sz[] = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
   
@@ -150,6 +146,11 @@ std::string& af::base58::encode (std::string& out, const void* inBE, size_t len)
 // base58 string into BE binary
 void* af::base58::decode (void* outBE, size_t olen,  const std::string& ) {
   
+  const char secp256k1_p_sz[] = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
+  
+  ffm::FEConRef F = ffm::Create_FE_context (secp256k1_p_sz);
+  ffm::ScopeDeleter dr (F); 
+
   CODE_ME();  
   
   unsigned char* out = reinterpret_cast<unsigned char*>(outBE);  

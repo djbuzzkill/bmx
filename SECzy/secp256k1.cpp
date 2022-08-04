@@ -115,38 +115,105 @@ bool SECzy::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
 }
 
 
-bool SECzy::WritePoint (WriteStreamRef ws, const Point& p, bool comp) {
+size_t SECzy::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
   
   size_t write_len = 0; 
   
-  if (comp) { // figure out if y is odd or even
+  if (compr) { // figure out if y is odd or even
     unsigned char pref =  (p.y[31] & 0x1 ? 0x3 : 0x2); 
     write_len += ws->Write    (&pref, 1); 
     write_len += write_byte32 ( ws, p.x); 
-    return (write_len == 33);
+    //return write_len ; //  = 33);
   }
   else {      // write both coords
     unsigned char pref =  0x4;
     write_len += ws->Write    (&pref, 1); 
     write_len += write_byte32 ( ws, p.x); 
     write_len += write_byte32 ( ws, p.y); 
-    return (write_len == 65); 
+    //return write_len; // == 65); 
   }
   
-  return false; 
+  return write_len; 
 }
 
 
 //
 //
-bool SECzy::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+size_t SECzy::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+
+  /*
+  pt::map pm;
+  el::map em;
+
+  FEConRef F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
+  ECConRef EC = ffm::Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+
+  ScopeDeleter dr(F);
+
+  */
+
+  assert (sig.r.size () == 32);
+  assert (sig.s.size () == 32);
+  // assume
+  unsigned char rlen = (sig.r[0] & 0x80) ? 33 : 32;
+  unsigned char slen = (sig.s[0] & 0x80) ? 33 : 32;
+  //printf ("rlen[%zu]\n", rlen);
+  //printf ("slen[%zu]\n", slen);
   
-  CODE_ME (); 
-    // write the stupid DED format saving 5 f'n bytes
-    
-  return false; 
-}
+  const unsigned char startmarker = 0x30;
+  const unsigned char zerobyte    = 0; 
+  const unsigned char markerbyte  = 0x02; 
 
+  const unsigned char sizesig = 4 + rlen + slen; 
+
+  size_t write_len = 0; 
+  size_t begpos   = ws->GetPos ();
+  // startbyte
+  write_len += ws->Write (&startmarker, sizeof(startmarker)); 
+
+  // size size
+  write_len += ws->Write (&sizesig, sizeof(sizesig)); 
+  
+  // marker
+  write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
+  // rlen
+  write_len += ws->Write (&rlen, sizeof(rlen)); 
+  // write r, leading '0' if needed
+  if (rlen > 32) write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
+  write_len += af::write_byte32 (ws, sig.r);
+  
+  // marker
+  write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
+  write_len += ws->Write (&slen, sizeof(slen)); 
+  // write s,...
+  if (slen > 32) write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
+  write_len += write_byte32 (ws, sig.s);
+
+  
+  size_t final_size = begpos = ws->GetPos ();
+
+  //assert (final_size == write_len); 
+
+  //printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
+  //printf ( "%s:expected_size[%zu]\n", __FUNCTION__, expected_size);
+  //printf ( "%s:final_size[%zu]\n",    __FUNCTION__, final_size);
+
+  // total write size 
+  const size_t expected_size = sizesig + 2; 
+  //return (final_size == expected_size); 
+
+  return write_len; 
+ }
+
+
+//
+size_t SECzy::WriteAddressFormat (af::WriteStreamRef ws, const PublicKey &pubk) {
+
+  size_t write_len = 0;
+  
+
+  return write_len;
+}
 
 
 SECzy::secp256k1::secp256k1 () : elems (), points() { 
@@ -321,7 +388,7 @@ SECzy::secp256k1::~secp256k1 () {
 
 //
   //
-bool SECzy::secp256k1::Sign (Signature& sig, const PrivateKey& prk, const digest32& zbin) {
+bool SECzy::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
   
   using namespace ffm;
   // eG = P
@@ -334,7 +401,7 @@ bool SECzy::secp256k1::Sign (Signature& sig, const PrivateKey& prk, const digest
   ScopeDeleter dr (F); 
   // kG = R
   FE_t
-    e    = dr(F->New_bin(std::data(prk.e), 32, false)),
+    e    = dr(F->New_bin(std::data(privk), 32, false)),
     z    = dr(F->New_bin(std::data(zbin), 32, false)),
     s    = dr(F->New ()),
     stmp = dr(F->New()),

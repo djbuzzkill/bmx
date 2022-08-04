@@ -36,8 +36,7 @@ void pr_hex (const char* lbl, const af::digest32& bytes) {
 
 
 template <typename Ty> 
-std::string from (const Ty& srcbin)
-{
+std::string hexfrom (const Ty& srcbin) {
     std::string ret = ""; 
     for (auto x : srcbin) {
     ret +=   af::hex::from_uc (x);
@@ -59,88 +58,84 @@ int CH4_Ex (std::vector<std::string>& args) {
   
   if (true) {
 
-    POUT("Ex. 4.1"); 
+  POUT("Ex. 4.1"); 
   
-    pt::map pm;
-    el::map em;
-    ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
-    ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
+  pt::map pm;
+  el::map em;
+  ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
+  ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
     
   af::checkres ("G",  EC->MakePoint (G, kSEC256k1_G_x_sz, kSEC256k1_G_y_sz, 0));
     
-    // Find the Compressed SEC format for the Public Key where the Private Key secrets are:
-    int  secr_a   = 5000; 
-    int  secr_b   = 2018; // ^5;  
-    char secr_c[] = "0xdeadbeef12345";
+  // Find the Compressed SEC format for the Public Key where the Private Key secrets are:
+  int  secr_a   = 5000; 
+  int  secr_b   = 2018; // ^5;  
+  char secr_c[] = "0xdeadbeef12345";
 
-    bytearray wsbuf (1024);  
-    WriteStreamRef ws = CreateWriteMemStream (std::data(wsbuf), wsbuf.size()); 
+  bytearray wsbuf (1024);  
+  WriteStreamRef ws = CreateWriteMemStream (std::data(wsbuf), wsbuf.size()); 
     
-    PrivateKey prk1, prk2, prk3; {
+  PrivateKey prk1, prk2, prk3; {
 
-      SECzy::fixnum32 e1_bin; 
-      SECzy::Point    P1; 
+  SECzy::fixnum32 e1_bin; 
+  SECzy::Point    P1; 
 
-      ScopeDeleter dr (F);
-      bytearray    arrtmp;
-      // #1. intialize 'e'
-      FE_t e1 = dr(F->New_ui (secr_a));
-      F->Raw (arrtmp, e1, false);
-      copy_BE (prk1.e, arrtmp);
-
-      std::string e1_hex ; 
-      hex::encode (e1_hex, std::data(prk1.e), 32); 
-      printf ( "e1:%s\n" , e1_hex.c_str ()); 
-      // make the point
-      SECzy::MakePublicKey (P1, prk1.e); 
-      // write it
-      SECzy::WritePoint (ws, P1, false); 
-      // print back out as hex
-      std::string hexstr1;
-      hex::encode (hexstr1, std::data(wsbuf), ws->GetPos ());
-      printf ( "hexstr1[%zu]: %s\n " , hexstr1.size(), hexstr1.c_str());
-      // 04ffe558e388852f0120e46af2d1b370f85854a8eb0841811ece0e3e03d282d57c315dc72890a4f10a1481c031b03b351b0dc79901ca18a00cf009dbdb157a1d10
-      
-      // #2
-      ws->SetPos (0, af::byte_stream::SeekMode::Abs); 
-      assert (ws->GetPos () == 0);
-      SECzy::Point P2; 
-      FE_t e2 = dr(F->New_ui (2018));
-      F->Pow_ui (e2, e2, 5); // 2018^5
-      F->Raw (arrtmp, e2, false);
-      copy_BE(prk2.e, arrtmp);
-
-      SECzy::MakePublicKey (P2, prk2.e); 
-      // write it
-      SECzy::WritePoint (ws, P2, false); 
-      // print back out as hex
-      
-      std::string hexstr2;
-      hex::encode (hexstr2, std::data(wsbuf), ws->GetPos ());
-      printf ( "hexstr2[%zu]: %s\n " , hexstr2.size(), hexstr2.c_str());
-
-
-      // #3
-      ws->SetPos (0, af::byte_stream::SeekMode::Abs); 
-      assert (ws->GetPos () == 0);
-      FE_t e3 = dr(F->New (secr_c, 0));
-      F->Raw (arrtmp, e3, false);
-      copy_BE(prk3.e, arrtmp);
-      SECzy::Point P3;
-
-      SECzy::MakePublicKey (P3, prk3.e); 
-      // write it
-      SECzy::WritePoint (ws, P3, false); 
-      // print back out as hex
-      
-      std::string hexstr3;
-      hex::encode (hexstr3, std::data(wsbuf), ws->GetPos ());
-      printf ( "hexstr3[%zu]: %s\n " , hexstr3.size(), hexstr3.c_str());
-      
-      
+  ScopeDeleter dr (F);
+  bytearray    arrtmp;
+  // #1. intialize 'e'
+  FE_t e1 = dr(F->New_ui (secr_a));
+  F->Raw (arrtmp, e1, false);
+  copy_BE (prk1, arrtmp);
+  
+  std::string e1_hex ; 
+  hex::encode (e1_hex, std::data(prk1), 32); 
+  printf ( "e1:%s\n" , e1_hex.c_str ()); 
+  // make the point
+  SECzy::MakePublicKey (P1, prk1); 
+  // write it
+  SECzy::WritePoint (ws, P1, false); 
+  // print back out as hex
+  std::string hexstr1;
+  hex::encode (hexstr1, std::data(wsbuf), ws->GetPos ());
+  printf ( "hexstr1[%zu]: %s\n " , hexstr1.size(), hexstr1.c_str());
+  // 04ffe558e388852f0120e46af2d1b370f85854a8eb0841811ece0e3e03d282d57c315dc72890a4f10a1481c031b03b351b0dc79901ca18a00cf009dbdb157a1d10
+  
+  // #2
+  ws->SetPos (0, af::byte_stream::SeekMode::Abs); 
+  assert (ws->GetPos () == 0);
+  SECzy::Point P2; 
+  FE_t e2 = dr(F->New_ui (2018));
+  F->Pow_ui (e2, e2, 5); // 2018^5
+  F->Raw (arrtmp, e2, false);
+  copy_BE(prk2, arrtmp);
+  
+  SECzy::MakePublicKey (P2, prk2); 
+  // write it
+  SECzy::WritePoint (ws, P2, false); 
+  // print back out as hex
+     
+  std::string hexstr2;
+  hex::encode (hexstr2, std::data(wsbuf), ws->GetPos ());
+  printf ( "hexstr2[%zu]: %s\n " , hexstr2.size(), hexstr2.c_str());
 
 
-    }
+  // #3
+  ws->SetPos (0, af::byte_stream::SeekMode::Abs); 
+  assert (ws->GetPos () == 0);
+  FE_t e3 = dr(F->New (secr_c, 0));
+  F->Raw (arrtmp, e3, false);
+  copy_BE(prk3, arrtmp);
+  SECzy::Point P3;
+  
+  SECzy::MakePublicKey (P3, prk3); 
+  // write it
+  SECzy::WritePoint (ws, P3, false); 
+  // print back out as hex
+  
+  std::string hexstr3;
+  hex::encode (hexstr3, std::data(wsbuf), ws->GetPos ());
+  printf ( "hexstr3[%zu]: %s\n " , hexstr3.size(), hexstr3.c_str());
+  }
     
   } // ex 4.1
 
@@ -172,7 +167,7 @@ int CH4_Ex (std::vector<std::string>& args) {
 
     
     // #1. intialize 'e'
-    fixnum32 privk1;
+    PrivateKey privk1;
     SECzy::Point P1; 
     FE_t e1 = dr (F->New_ui (5001));
     F->Raw (arrtmp, e1, false);
@@ -237,57 +232,171 @@ int CH4_Ex (std::vector<std::string>& args) {
 
 
   { // 4.3
+  POUT("Ex. 4.3"); 
+    pt::map pm;
+    el::map em;
+    ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
+    ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
 
+
+    ScopeDeleter dr (F); 
+    //
+    
     // Find the DER format for a signature whose r and s values are:
-    // r =0x37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6
-    // s =0x8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec
+    // r = 0x37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6 
+    // s = 0x8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec
+    SECzy::Signature sig0; {
+      bytearray abuf; 
+      const char r0_hex_str[] = "0x37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6"; 
+      const char s0_hex_str[] = "0x8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec";
+    
+      FE_t r0 = dr(F->New (r0_hex_str, 0));
+      F->Raw (abuf, r0, false);
+      copy_BE(sig0.r, abuf); 
+      
+      FE_t s0 = dr(F->New (s0_hex_str, 0));
+      F->Raw (abuf, s0, false);
+      copy_BE(sig0.s, abuf);
+    }
+
+
+    printf ("%s:r[0]:%s\n", __FUNCTION__, hex::from_uc ( sig0.r[0] ).c_str()); 
+    printf ("%s:s[0]:%s\n", __FUNCTION__, hex::from_uc ( sig0.s[0] ).c_str()); 
+    
+    // >>> from ecc import Signature
+    // >>> r = 0x37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6
+    // >>> s = 0x8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec
+    // >>> sig = Signature(r,s)
+    // >>> print(sig.der().hex())
+    // 3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6022100\
+    // 8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec
+
+    std::array<unsigned char, 256> wsmem; 
+    WriteStreamRef ws = CreateWriteMemStream (std::data(wsmem), wsmem.size ());  
+
+    SECzy::WriteSignature_DER(ws, sig0);
+
+    std::string hex_DER; 
+    hex::encode (hex_DER, std::data(wsmem), ws->GetPos ());
+    printf ( "DER[%zu]: %s\n " , hex_DER.size(), hex_DER.c_str());
+   
+    // 3045022037206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6022100 8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec
 
   }
 
 
   { // Exercise 4
+    POUT("Ex. 4.4"); 
 
+    pt::map pm;
+    el::map em;
+    ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
+    ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
+
+    ScopeDeleter dr (F); 
     // Convert the following hex to binary and then to Base58:
+
     // 7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
     // eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c
     // c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6
 
+    //
+    //
+    bytearray atmp;
+
+    const std::string hex_a = "7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d";
+    FE_t vara = dr (F->New (hex_a.c_str(), 16)); 
+    F->Raw (atmp, vara, false);
 
 
+    std::string b58_a = "";
+    base58::encode (b58_a, std :: data (atmp), atmp.size ()); 
+    printf ( "base58_a: %s\n " , b58_a.c_str());
+
+    // 
+    const std::string hex_b = "eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c";
+    FE_t varb = dr (F->New(hex_b.c_str(), 16));
+    F->Raw (atmp, varb, false);
+
+    std::string b58_b = ""; 
+    base58::encode (b58_b, std :: data (atmp), atmp.size ()); 
+    printf ( "base58_b: %s\n " , b58_b.c_str());
+
+
+    // 
+    const std::string hex_c = "c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6";
+    FE_t varc = dr (F->New (hex_c.c_str(), 16)); 
+    F->Raw (atmp, varc, false);
+
+    std::string b58_c = ""; 
+    base58::encode (b58_c, std::data (atmp), atmp.size ()); 
+    printf ( "base58_c: %s\n " , b58_c.c_str());
+    
+    
   }
 
 
 
 
-  { // Exercise 5
+  { POUT("Ex. 4.5"); // Exercise 5
 
-    //Find the address corresponding to Public Keys whose Private Key secrets are:
 
+    pt::map pm;
+    el::map em;
+    ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
+    ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
+   
+    ScopeDeleter dr(F);
+    // Find the address corresponding to Public Keys whose Private Key secrets
+    // are:
+
+    bytearray ar;
+
+    PublicKey pub_a, pub_b, pub_c;    
+    PrivateKey prv_a, prv_b, prv_c;
+    std::string addr_a, addr_b, addr_c; 
+    bytearray amem (256, 0x0), bmem (256, 0x0), cmem (256, 0x0);
+
+    FE_t secr_a = dr(F->New_ui(5002));
+    SECzy::MakePublicKey(pub_a, copy_BE(prv_a, F->Raw(ar, secr_a, false)));
+    size_t alen = SECzy::WriteAddressFormat (CreateWriteMemStream (&amem[0], amem.size()), pub_a);
+    hex::encode (addr_a, &amem[0], alen);
+    // >>> priv = PrivateKey(5002) // mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA
     // 5002 (use uncompressed SEC, on testnet)
-    // 20205 (use compressed SEC, on testnet)
-    // 0x12345deadbeef (use compressed SEC on mainnet)
+    //
 
+    
+    FE_t secr_b = dr (F->New_ui (20205));
+    SECzy::MakePublicKey(pub_b, copy_BE (prv_b, F->Raw (ar, secr_b, false)));
+    size_t blen = SECzy::WriteAddressFormat (CreateWriteMemStream (&bmem[0], bmem.size()), pub_b);
+    hex::encode (addr_b, &bmem[0], blen);
+    // 20205 (use compressed SEC, on testnet)
+    //
+
+
+    FE_t secr_c = dr (F->New ("0x12345deadbeef", 0)); 
+    SECzy::MakePublicKey(pub_c, copy_BE (prv_c, F->Raw (ar, secr_c, false)));
+    size_t clen = SECzy::WriteAddressFormat (CreateWriteMemStream (&bmem[0], bmem.size()), pub_b);
+    hex::encode (addr_c, &bmem[0], clen);
+    // 0x12345deadbeef (use compressed SEC on mainnet)
+    //
+    
   }
 
-  { // Exercise 6
+
+
+
+  { POUT("Ex. 4.6"); // 
 
     // Find the WIF for Private Key whose secrets are:
 
     // 5003  (compressed, testnet)
     // 20215 (uncompressed, testnet)
     // 0x54321deadbeef (compressed, mainnet)
-
   }
 
 
-
-
-
-  
-  {
-     SECzy::WriteSignature_DER;
-  }  
-
+ 
 
 
   

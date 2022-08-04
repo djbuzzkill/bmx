@@ -14,18 +14,19 @@ namespace SECzy {
   typedef af::fixnum32 fixnum32; 
   //
   //
-  struct Point 
-  {
+  struct Point {
     fixnum32 x;
     fixnum32 y; 
   };
 
+  //
+  //
+  typedef fixnum32 PrivateKey;
+
+  //
+  //
   typedef Point PublicKey;
   
-  //
-  struct PrivateKey {
-    fixnum32 e;
-  }; 
 
   // 
   // 
@@ -34,23 +35,31 @@ namespace SECzy {
     fixnum32 r; 
   };
 
-
+  //
 
   //
-  //
+  // 
   Point& MakePublicKey (Point& out, const fixnum32& sec); 
 
 
-  
   //
   // Serialization 
   bool ReadPoint          (Point& out , af::ReadStreamRef rs);
   bool ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
   //
-  bool WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
-  bool WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
+  size_t WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
+  size_t WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
+  size_t WriteAddressFormat (af::WriteStreamRef ws, const PublicKey &pubk);
   
-		       
+  // soon...
+  namespace _secp256k1 {
+    
+    bool Sign   (Signature& outsig, const PrivateKey& privatekey, const digest32& msghash);
+    bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
+
+  }
+
+
 
   //
   //

@@ -15,13 +15,14 @@ namespace ffm
 
   //
   // copy a binary number to out , fail if size(bytes) > 32
-  inline void copy_BE (fixnum32& out, af::bytearray &bytes) {
+  inline fixnum32& copy_BE (fixnum32& out, af::bytearray &bytes) {
     out.fill(0);
     if (bytes.size() > out.max_size())
-      return;
+      return out;
     std::copy (bytes.begin(), bytes.end(), out.end () - bytes.size());
     // printf ("out.max_size:%zu\n", out.max_size());
-    // printf ("bytes.size:%zu\n", bytes.size()); 
+    // printf ("bytes.size:%zu\n", bytes.size());
+    return out; 
   }
  
   // 
