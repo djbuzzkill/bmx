@@ -158,7 +158,7 @@ namespace ffm {
     
     
     //   printf ("%s\n", __FUNCTION__);
-    printElem ("  order(n):", elmap["n"], format::hex);
+    //printElem ("  order(n):", elmap["n"], format::hex);
     //   PrintCoeffs ("  coeffs:", format::hex);  
   }
     

@@ -1,6 +1,6 @@
 #include "secp256k1.h"
 
-
+#include "aframe/hash.h"
 #include "aframe/utility.h"
 
 const char ksecp256k1_p_sz[]       = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
@@ -34,12 +34,13 @@ namespace
 
 //
 //
-SECzy::Point& SECzy::MakePublicKey (Point& out, const fixnum32& secr) {
+SECzy::Point& SECzy::MakePublicKey (Point& out, const PrivateKey& secr) {
 
   pt::map pm;
   el::map em;
   FEConRef F  = Create_FE_context (ksecp256k1_p_sz);
-  ECConRef EC = Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+  ECConRef EC =
+    Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
 
 
   checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
@@ -73,44 +74,44 @@ SECzy::Point& SECzy::MakePublicKey (Point& out, const fixnum32& secr) {
   
   //
   // 
-bool SECzy::ReadPoint (Point& out , ReadStreamRef rs) {
+size_t SECzy::ReadPoint (Point& out , ReadStreamRef rs) {
   
-    size_t read_len = 0;
+    size_t readlen = 0;
     
     
     // read first byte
     unsigned char pref = 0;
-    read_len += rs->Read (&pref, 1);
+    readlen += rs->Read (&pref, 1);
     
     if (pref == 4) {
       // both coord 
-	read_len += read_byte32 (out.x, rs);
-      read_len += read_byte32 (out.y, rs);
-      return true; 
+	readlen += read_byte32 (out.x, rs);
+      readlen += read_byte32 (out.y, rs);
+      return readlen; 
     }
     else { // just the x coord
       //
       
-      read_len += read_byte32 (out.x, rs);
+      readlen += read_byte32 (out.x, rs);
       
       CODE_ME();
+      // wat abt y
       
-      
-      return false;
+      return readlen;
     }
     
-    return false;
+    return readlen;
 }
 
 //
 //
-bool SECzy::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
+size_t SECzy::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
   
-  
+  size_t readlen = 0; 
   // comment
   CODE_ME();
   
-  return false;
+  return readlen;
   
 }
 
@@ -207,15 +208,49 @@ size_t SECzy::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
 
 
 //
-size_t SECzy::WriteAddressFormat (af::WriteStreamRef ws, const PublicKey &pubk) {
+std::string& SECzy::MakeAddress (std::string& out, bool compr, bool mainnet, const PublicKey &pubk) {
 
-  size_t write_len = 0;
+  //1
+  unsigned char  netprefix = mainnet ? 0x0 : 0x6f;
+
+  //2
+  bytearray pmem     (128);
+  size_t plen = WritePoint (CreateWriteMemStream (&pmem[0], 128), pubk, compr); 
+  af::digest20 digest160; 
+  af::hash160 (digest160, &pmem[0], plen);
   
+  //3
+  size_t         comblen = 0; 
+  WriteStreamRef pws     = CreateWriteMemStream (&pmem[0], 128); 
+  comblen += pws->Write (&netprefix, 1);
+  comblen += pws->Write (&digest160[0], 20);
 
-  return write_len;
+  // 4
+  af::digest32 digest256;
+  af::hash256 (digest256, &pmem[0], comblen);
+
+  // 5
+  size_t writelen = 0;
+  bytearray endmem (128); 
+  WriteStreamRef ws = CreateWriteMemStream (&endmem[0], 128);
+  writelen += ws->Write (&pmem[0], comblen);
+  writelen += ws->Write (&digest256[0], 4);
+  
+  return base58::encode (out, &endmem[0] , writelen);
+
 }
 
 
+//
+// Wallet Import Format
+std::string& SECzy::MakeWIF (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk) {
+  
+  return out; 
+}
+
+
+//
+//
 SECzy::secp256k1::secp256k1 () : elems (), points() { 
   
   F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);

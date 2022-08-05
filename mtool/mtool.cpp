@@ -349,35 +349,38 @@ int CH4_Ex (std::vector<std::string>& args) {
     ScopeDeleter dr(F);
     // Find the address corresponding to Public Keys whose Private Key secrets
     // are:
-
     bytearray ar;
 
-    PublicKey pub_a, pub_b, pub_c;    
-    PrivateKey prv_a, prv_b, prv_c;
-    std::string addr_a, addr_b, addr_c; 
-    bytearray amem (256, 0x0), bmem (256, 0x0), cmem (256, 0x0);
+    PublicKey   pub_a, pub_b, pub_c;    
+    PrivateKey  prv_a, prv_b, prv_c;
+    std::string addressa, addressb, addressc; 
+    bytearray   amem (256, 0x0), bmem (256, 0x0), cmem (256, 0x0);
 
     FE_t secr_a = dr(F->New_ui(5002));
-    SECzy::MakePublicKey(pub_a, copy_BE(prv_a, F->Raw(ar, secr_a, false)));
-    size_t alen = SECzy::WriteAddressFormat (CreateWriteMemStream (&amem[0], amem.size()), pub_a);
-    hex::encode (addr_a, &amem[0], alen);
+    MakePublicKey (pub_a, copy_BE(prv_a, F->Raw(ar, secr_a, false)));
+    MakeAddress   (addressa, false, false, pub_a);
+    printf ("addressa:%s\n", addressa.c_str()); 
+    printf ("expected:%s\n", "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"); 
+    
     // >>> priv = PrivateKey(5002) // mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA
     // 5002 (use uncompressed SEC, on testnet)
     //
 
-    
-    FE_t secr_b = dr (F->New_ui (20205));
-    SECzy::MakePublicKey(pub_b, copy_BE (prv_b, F->Raw (ar, secr_b, false)));
-    size_t blen = SECzy::WriteAddressFormat (CreateWriteMemStream (&bmem[0], bmem.size()), pub_b);
-    hex::encode (addr_b, &bmem[0], blen);
-    // 20205 (use compressed SEC, on testnet)
+    FE_t secr_b = dr(F->New_ui(2020));
+    F->Pow_ui (secr_b, secr_b, 5); 
+    MakePublicKey (pub_b, copy_BE (prv_b, F->Raw (ar, secr_b, false)));
+    MakeAddress   (addressb, true, false, pub_b); 
+    printf ("  addr_b:%s\n", addressb.c_str()); 
+    printf ("expected:%s\n", "mopVkxp8UhXqRYbCYJsbeE1h1fiF64jcoH"); 
+
+    // 2020^5 (use compressed SEC, on testnet)
     //
 
-
     FE_t secr_c = dr (F->New ("0x12345deadbeef", 0)); 
-    SECzy::MakePublicKey(pub_c, copy_BE (prv_c, F->Raw (ar, secr_c, false)));
-    size_t clen = SECzy::WriteAddressFormat (CreateWriteMemStream (&bmem[0], bmem.size()), pub_b);
-    hex::encode (addr_c, &bmem[0], clen);
+    MakePublicKey (pub_c, copy_BE (prv_c, F->Raw (ar, secr_c, false)));
+    MakeAddress   (addressc, true, true, pub_c); 
+    printf ("addressc:%s\n", addressc.c_str()); 
+    printf ("expected:%s\n", "1F1Pn2y6pDb68E5nYJJeba4TLg2U7B6KF1"); 
     // 0x12345deadbeef (use compressed SEC on mainnet)
     //
     
@@ -386,12 +389,47 @@ int CH4_Ex (std::vector<std::string>& args) {
 
 
 
-  { POUT("Ex. 4.6"); // 
+  {
+    POUT("Ex. 4.6"); 
 
+    pt::map pm;
+    el::map em;
+    ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
+    ffm::ECConRef EC =
+      ffm::Create_EC_context (F, em, pm, kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz, kSEC256k1_n_sz, 0);
+   
+    ScopeDeleter dr(F);
+    // Find the address corresponding to Public Keys whose Private Key secrets
+    // are:
+    bytearray ar;
     // Find the WIF for Private Key whose secrets are:
 
+    PrivateKey  prva, prvb, prvc;
+    std::string wifa, wifb, wifc; 
+
+    FE_t secra = dr(F->New_ui (5003)); 
+    MakeWIF (wifa, true, false, copy_BE (prva, F->Raw (ar, secra, false)));
+    printf ("    wifa:%s\n", wifa.c_str());
+    const std::string expecta = "cMahea7zqjxrtgAbB7LSGbcQUr1uX1ojuat9jZodMN8rFTv2sfUK"; 
+    printf ("expected:%s\n", expecta.c_str()); 
     // 5003  (compressed, testnet)
-    // 20215 (uncompressed, testnet)
+    //
+
+    FE_t secrb = dr(F->New_ui (2021));
+    F->Pow_ui (secrb, secrb, 5);
+    MakeWIF (wifb,false, false, copy_BE (prvb, F->Raw (ar, secrb, false))); 
+    printf ("    wifb:%s\n", wifb.c_str());
+    const std::string expectb = "91avARGdfge8E4tZfYLoxeJ5sGBdNJQH4kvjpWAxgzczjbCwxic";  
+    printf ("expected:%s\n", expectb.c_str()); 
+    // 2021**5 (uncompressed, testnet)
+    //
+
+
+    FE_t secrc = dr(F->New ("0x54321deadbeef", 0));
+    MakeWIF (wifc, true, true, copy_BE (prvc, F->Raw (ar, secrc, false))); 
+    printf ("    wifc:%s\n", wifc.c_str());
+    const std::string expectc = "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgiuQJv1h8Ytr2S53a"; 
+    printf ("expected:%s\n", expectc.c_str()); 
     // 0x54321deadbeef (compressed, mainnet)
   }
 

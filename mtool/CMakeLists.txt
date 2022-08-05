@@ -36,9 +36,9 @@ add_executable (mtool
 
 target_link_libraries (mtool
 
+  SECzy 
   aframe
   ffm
-  SECzy 
 
   gcrypt
   gmp

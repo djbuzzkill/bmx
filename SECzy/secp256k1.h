@@ -39,17 +39,20 @@ namespace SECzy {
 
   //
   // 
-  Point& MakePublicKey (Point& out, const fixnum32& sec); 
+  Point&       MakePublicKey (Point& out, const PrivateKey& sec); 
+  std::string& MakeAddress   (std::string& out, bool compr, bool mainnet, const PublicKey& pubk); 
+  // 
+  std::string& MakeWIF       (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk); 
 
 
   //
   // Serialization 
-  bool ReadPoint          (Point& out , af::ReadStreamRef rs);
-  bool ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
-  //
   size_t WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
   size_t WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
-  size_t WriteAddressFormat (af::WriteStreamRef ws, const PublicKey &pubk);
+
+  size_t ReadPoint          (Point& out , af::ReadStreamRef rs);
+  size_t ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
+  //
   
   // soon...
   namespace _secp256k1 {
