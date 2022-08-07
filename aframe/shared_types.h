@@ -16,7 +16,20 @@ namespace af
 
   typedef byte32                             bigint32;
   typedef byte32                             fixnum32; 
+
+
+
  
+  //
+  //
+  struct destructor {
+    
+    virtual ~destructor () {}
+
+  protected:
+    destructor () {}
+  }; 
+  
 }
 
 

@@ -43,7 +43,8 @@ SECzy::Point& SECzy::MakePublicKey (Point& out, const PrivateKey& secr) {
     Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
 
 
-  checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
+  // checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
+  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0); 
 
   bytearray wsbuf (256);  
   WriteStreamRef ws = CreateWriteMemStream (std::data(wsbuf), wsbuf.size()); 
@@ -59,11 +60,14 @@ SECzy::Point& SECzy::MakePublicKey (Point& out, const PrivateKey& secr) {
   EC->Mul_scalar (v, e, G); 
 
   F->Raw (arrtmp, pt::x(pm[v]), false);
-  assert (arrtmp.size() == 32);
+  printf ("[%zu]pt::x\n",  arrtmp.size ());
+  //assert (arrtmp.size() == 32);
   copy_BE (out.x, arrtmp); 
   
   F->Raw (arrtmp, pt::y(pm[v]), false);
-  assert (arrtmp.size() == 32);
+  printf ("[%zu]pt::y\n",  arrtmp.size ());
+  // assert (arrtmp.size() == 32);
+  
   copy_BE (out.y, arrtmp); 
 
   return out; 
@@ -225,28 +229,46 @@ std::string& SECzy::MakeAddress (std::string& out, bool compr, bool mainnet, con
   comblen += pws->Write (&netprefix, 1);
   comblen += pws->Write (&digest160[0], 20);
 
-  // 4
-  af::digest32 digest256;
-  af::hash256 (digest256, &pmem[0], comblen);
+  // // 4
+  // af::digest32 digest256;
+  // af::hash256 (digest256, &pmem[0], comblen);
 
-  // 5
-  size_t writelen = 0;
-  bytearray endmem (128); 
-  WriteStreamRef ws = CreateWriteMemStream (&endmem[0], 128);
-  writelen += ws->Write (&pmem[0], comblen);
-  writelen += ws->Write (&digest256[0], 4);
+  // // 5
+  // size_t writelen = 0;
+  // bytearray checksummem (comblen+4); 
+  // WriteStreamRef ws = CreateWriteMemStream (&checksummem[0], comblen+4);
+  // writelen += ws->Write (&pmem[0], comblen);
+  // writelen += ws->Write (&digest256[0], 4);
   
-  return base58::encode (out, &endmem[0] , writelen);
+  // return base58::encode (out, &endmem[0] , writelen);
 
+  return base58::encode_checksum (out, &pmem[0], comblen); 
+  
+  
 }
 
 
 //
 // Wallet Import Format
 std::string& SECzy::MakeWIF (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk) {
+
+  bytearray mem (128);
+
+  WriteStreamRef ws      = CreateWriteMemStream (&mem[0], 128); 
+  unsigned char  compsuf = 0x01; 
+  unsigned char  netpref = mainnet ? 0x80 : 0xef;
+
+  size_t writelen = 0; 
+  writelen += ws->Write (&netpref, 1); 
+  writelen += write_byte32 (ws, prvk);
+  if (compr) writelen += ws->Write (&compsuf, 1);
+
+
+  return base58::encode_checksum (out, &mem[0], writelen); 
   
-  return out; 
 }
+
+
 
 
 //

@@ -65,10 +65,12 @@ namespace af {
   typedef std::shared_ptr<read_stream>  ReadStreamRef;
   typedef std::shared_ptr<write_stream> WriteStreamRef;
   
-  ReadStreamRef  CreateReadMemStream  (const void* mem, size_t len);
+  
   WriteStreamRef CreateWriteMemStream (void* mem, size_t len);
 
 
+  ReadStreamRef  CreateReadMemStream  (const void* mem, size_t len);
+  ReadStreamRef  CreateReadFileStream (const std::string& fname); 
 
 
 

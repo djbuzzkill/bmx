@@ -1,6 +1,12 @@
+//
+//s
 #include "utility.h"
 
+#include "binary_IO.h"
+#include "hash.h"
+
 #include "ffm/ffm.h"
+
 
 
 namespace af
@@ -19,14 +25,20 @@ namespace af
   
 } // af
 
+//const char af::base58::base58_enc_[] = "plkj"; 
 
 // 
 using namespace ffm;
+using namespace af;
+
+
+
+
 
 
 // 
 //  u8 value into hex 'XX' 
-std::string af::hex::from_uc (unsigned char c) {
+std::string hex::from_uc (unsigned char c) {
   
   const std::string hexdigits = "0123456789abcdef";
   std::string ret = "";
@@ -142,6 +154,30 @@ std::string& af::base58::encode (std::string& out, const void* inBE, size_t len)
   return out;
   
 }
+
+
+
+//
+//
+std::string& base58::encode_checksum (std::string& out, const void* inBE, size_t len) {
+
+  af::digest32 dig; 
+  af::hash256 (dig, inBE, len);
+
+  size_t         memsize  = len + 4; 
+  bytearray      mem      (memsize); 
+  af::WriteStreamRef ws       = CreateWriteMemStream (&mem[0], memsize); 
+  size_t         writelen = 0; 
+
+  writelen += ws->Write (inBE, len);
+  writelen += ws->Write (&dig[0], 4);
+
+  return base58::encode (out, &mem[0], writelen); 
+  
+}
+
+
+
 
 // base58 string into BE binary
 void* af::base58::decode (void* outBE, size_t olen,  const std::string& ) {
