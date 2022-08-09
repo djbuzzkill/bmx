@@ -1,5 +1,5 @@
-#ifndef SECP256K1_INCLUDE
-#define SECP256K1_INCLUDE
+#ifndef CURV_SECP256K1_H
+#define CURV_SECP256K1_H
 
 #include "common.h"
 #include <ffm/ffm.h>

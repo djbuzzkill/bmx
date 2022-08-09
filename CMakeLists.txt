@@ -15,20 +15,14 @@ add_definitions (-DCMAKE_EXPORT_COMPILE_COMMANDS=1)
 
 add_compile_options (-g -O0 )
 
-#message (STATUS	"FREEIMAGE_ROOT: $ENV{FREEIMAGE_ROOT}")
-# source_group (
-# 	Shaders 
-# 	REGULAR_EXPRESSION "shaders/mars_terr.*"
-# 	)
-
+#
 link_directories (
   )
 
 # libs
 add_subdirectory (aframe)
 add_subdirectory (ffm)
-add_subdirectory (SECzy)
-#add_subdirectory (Hx)
+add_subdirectory (curv)
 
 
 # progs

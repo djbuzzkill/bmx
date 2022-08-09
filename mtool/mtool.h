@@ -5,7 +5,7 @@
 
 #include <ffm/ffm.h>
 #include <aframe/af.h>
-#include <SECzy/secp256k1.h>
+#include <curv/secp256k1.h>
 
 /* #include "SECzy/secp256k1.h" */
 /* #include "ffm/fe_math.h" */

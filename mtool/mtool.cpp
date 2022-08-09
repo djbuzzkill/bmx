@@ -2,12 +2,14 @@
 ////
 ////from lilarch 
 #include "mtool.h"
-#include "SECzy/secp256k1.h"
+#include "curv/secp256k1.h"
+#include "curv/transaction.h"
 #include "aframe/binary_IO.h"
 #include "aframe/hash.h"
 #include "aframe/utility.h"
 #include "ffm/ec_math.h"
 #include "ffm/fe_math.h"
+
 
 // zero mq messaging
 #include <string>
@@ -45,11 +47,20 @@ std::string hexfrom (const Ty& srcbin) {
   return ret;
 } 
 
+//
+//
+int CH5_Ex (std::vector<std::string>& args) {
+  printf ("%s:ENTER\n", __FUNCTION__); 
+
+
+  printf ("%s:EXIT\n", __FUNCTION__); 
+  return 0; 
+}
+
 
 //
 //
-//
-int Intermezzo (std::vector<std::string>& args)  {
+int thicnspicy  (std::vector<std::string>& args)  {
 
   printf ("%s:ENTER\n", __FUNCTION__); 
 
@@ -59,10 +70,10 @@ int Intermezzo (std::vector<std::string>& args)  {
   
   pt::map pm;
   el::map em;
-  ffm::FEConRef F  = ffm::Create_FE_context (kSEC256k1_p_sz);
-  ffm::ECConRef EC = ffm::Create_EC_context (F, em, pm,
-					     kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
-					     kSEC256k1_n_sz, 0);
+  FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
+  ECConRef EC = Create_EC_context (F, em, pm,
+				   kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
+				   kSEC256k1_n_sz, 0);
   ScopeDeleter dr(F);
   //
   bytearray   ar;
@@ -77,23 +88,16 @@ int Intermezzo (std::vector<std::string>& args)  {
   bytearray secretbytes; 
   
   af::From_file (secretbytes, msgfile); 
-  secretbytes.push_back (0); 
+  //secretbytes.push_back (0); 
+
   
-  const std::string secretstr = (const char*) &secretbytes[0]; 
+  const std::string secretstr (secretbytes.size(), '*'); 
+
   printf ("secretstr:%s\n", secretstr.c_str()); 
   
   std::string encodedstr = "REPLACE THIS STRING" ; 
 
   af::From_file (encodedstr, msgfile); 
-
-  printf ( "does this work? %s\n" , encodedstr.c_str ()); 
-  
-  if (encodedstr.size ()  == 0) {
-    printf ("bad encoding \n");
-    return 69; 
-  }    
-
-  printf ("encoded secret: %s | %zu\n", encodedstr.c_str(), encodedstr.size());
     
   af::hash256 (privatek, encodedstr.c_str(), encodedstr.size ()); 
   printf ("privatek[%zu]\n", privatek.size ());
@@ -101,8 +105,8 @@ int Intermezzo (std::vector<std::string>& args)  {
   //FE_t secr_a = dr(F->New_ui(5002));
   MakePublicKey (pubk, privatek);
   MakeAddress   (addressa, true, false, pubk);
-  printf ("__SECRET__:%s\n", addressa.c_str()); 
-  printf ("  expected:%s\n", "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"); 
+  printf ("_ADDRESS:%s\n", addressa.c_str()); 
+  printf ("expected:%s\n", "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"); 
   
     
   printf ("%s:EXIT\n", __FUNCTION__); 
@@ -120,28 +124,14 @@ int main (int argv, char** argc) {
     // test_gcrypt (args);
   std::vector<std::string> args (argc, argc+argv);
   
-  POUT("af between");
   //test_gcrypt (args);
   
   // CH4_Ex(args);
-
-  Intermezzo (args);
+  thicnspicy (args);
+  // CH5_Ex(args);
   
     // test_gcrypt (args);
   printf ("%s:EXIT\n", __FUNCTION__); 
   return 0; 
 }
 
-
-
-
-
-void printbytes (const std::string& lbl, const ffm::bytearray& bytes)
-{
-  //printf ("%s|size(bytes):%zu\n", bytes.size()); 
-  printf ("bytes.size:%zu\n", bytes.size()); 
-  // printf ("%s\n", bytes.size()); 
-  for (int i = 0; i < bytes.size(); ++i)
-    printf ("%s[%i]:%x\n", lbl.c_str(), i, bytes[i]);
-  
-}

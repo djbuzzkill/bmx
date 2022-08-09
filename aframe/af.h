@@ -1,10 +1,9 @@
-#ifndef AF_INCLUDE
-#define AF_INCLUDE
+#ifndef AF_INCLUDE_H
+#define AF_INCLUDE_H
 
 
 #include "utility.h"
 #include "shared_types.h"
-
 #include "hash.h"
 #include "system.h"
 #include "task.h"

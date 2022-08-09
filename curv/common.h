@@ -1,5 +1,5 @@
-#ifndef SECP256K1_COMMON_H
-#define SECP256K1_COMMON_H
+#ifndef CURV_COMMON_H
+#define CURV_COMMON_H
 
 #include <cstdio>
 #include <cstring>

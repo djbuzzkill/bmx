@@ -12,15 +12,14 @@
 
 namespace af
 {
-  
+  // 
   typedef std::map<std::string, std::string> propmap; 
- 
-  //
+
   //
   inline void checkres (const std::string& label, bool cond) {
 
     printf ("%s:%s\n", label.c_str(), (cond ? "TRUE" : "FALSE")); 
-      
+ 
   }
 
   //
@@ -41,7 +40,7 @@ namespace af
   }
 
   //
-  //
+  // all the bytes
   template<typename Seq>
   inline Seq& From_file (Seq& out, const std::string& fname) {
     if (auto sizeOf_file = SizeOf_file (fname)) {
