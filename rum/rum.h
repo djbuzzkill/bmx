@@ -14,7 +14,9 @@
 
 
 
-
+#include "zmq.h"
+#include "aframe/af.h"
+#include "curv/curv.h"
 
 
 

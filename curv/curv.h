@@ -5,13 +5,17 @@
 
 #include "common.h"
 #include "transaction.h"
-#include "secp256k1.hJ"
+#include "secp256k1.h"
+
+//
+namespace curv {
 
 
-namespace curv  {
+
 
 
 }
+
 
 
 #endif

@@ -1,0 +1,25 @@
+
+
+
+
+namespace rum.msg; 
+
+enum Color:byte { Red = 0, Green, Blue = 2 }
+
+struct Vec3 {
+  x:float;
+  y:float;
+  z:float;
+}
+
+
+table Cheezburger {
+
+      name    :string;
+      id      :uint; 
+      toppings:[string];
+      pos     :Vec3;
+}
+
+
+root_type Cheezburger; 
