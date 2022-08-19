@@ -33,11 +33,15 @@ namespace ffm
   template<typename Ty>
   inline Ty* swap_endian (Ty* x) {
     unsigned char* p = reinterpret_cast<unsigned char*> (x); 
+
     for (int i = 0; i < sizeof(Ty); ++i)
-      printf ("c[%i]:0x%x\n",i, p[i] ); 
+      printf ("b4[%i]:0x%x\n",i, p[i] ); 
+
     std::reverse (p, p + sizeof (Ty));
+
     for (int i = 0; i < sizeof(Ty); ++i)
-      printf ("c[%i]:0x%x\n",i, p[i] ); 
+      printf ("4f[%i]:0x%x\n",i, p[i] ); 
+
     return x;
   }  
   

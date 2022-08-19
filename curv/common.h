@@ -11,6 +11,6 @@
 #include <algorithm>
 #include <tuple>
 #include <functional>
-
+#include <stack>
 
 #endif

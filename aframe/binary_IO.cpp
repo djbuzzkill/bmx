@@ -56,6 +56,8 @@ namespace af {
 	read_len = max_size - offs;
 
       std::copy (mem+offs, mem+offs+read_len, ucout); 
+
+      offs += read_len;
       
       return read_len; 
     }

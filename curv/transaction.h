@@ -27,18 +27,51 @@ namespace curv {
    
   };
 
+  // input transaction
+  struct TxIn { 
+    af::byte32   prev_txid;   // 32b LE
+    unsigned int prev_index;  // int LE
+
+    af::bytearray script_sig; // variable
+    unsigned int  sequence;   // 
+  }; 
+
+  typedef std::vector<TxIn> TxInputs; 
+
+  // output transaction
+  struct TxOut { // r the diffrint
+    size_t        amount; 
+    af::bytearray script_bin;
+  }; 
+
+  typedef std::vector<TxOut>  TxOutputs;
 
   // 
-  // we dont know yet
-  struct Transaction { 
-
-    af::bytearray bin; 
+  // we
+  struct Transaction {
+    //
+    Transaction () : version (0), inputs (), locktime (0), outputs (0) {
+    }
+    
+    
+ 
+    // 
+    unsigned int version;    
+    TxInputs       inputs;
+    unsigned int locktime; //; 
+    TxOutputs     outputs; 
+      
   };
   
 
   //
+  // 
+  size_t ReadTransaction  (Transaction& out, af::ReadStreamRef rs);
+  
+
   //
-  Transaction& ReadTransaction (Transaction& out, af::ReadStreamRef rs);
+  // serialize 
+  size_t WriteTransaction (af::WriteStreamRef ws, const Transaction& out); 
   
 } // curv
 #endif

@@ -4,8 +4,7 @@
 
 using namespace af;
 
-
-
+//
 namespace rum {
   // 
   struct MessageBase {
@@ -18,22 +17,78 @@ namespace rum {
     };
 
     //
-    unsigned int id; 
-    char sender[32] ; 
+    size_t id; 
+    char   label[32]; 
+
   }; 
 
   // 
   //
   struct M101_Status : public MessageBase {
     enum { ID = ID_M101_Status };
+    char
     unsigned count;
     unsigned flags;
   };
- 
+}
+
+// 
+int test_curl (const std::vector<std::string>& args) {
+
+  const std::string tx_id = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"; 
+
+  af::bytearray   txbytes;
+  curv::TxFetcher fetcher;
+
+  if (fetcher.Fetch (txbytes, tx_id, false)) {
+
+    std::string printstr  (&txbytes[0], &txbytes[txbytes.size()]);
+   printf ("\n\n\n\n\n\n"); 
+   printf ("contents: %s\n",printstr.c_str()); 
+
+  }
+    
+  
+  
+
+  return 0;
+}
+
+//
+//
+int test_zmq (const std::vector<std::string> &args) {
+
+  void* zmqcon = zmq_ctx_new ();
+  void* sock   = zmq_socket (zmqcon, ZMQ_PUB);
+  int rc       = zmq_bind (sock, "tcp://127.0.0.1:2022");
+// ZMQ_PUB
+// ZMQ_SUB
+// ZMQ_PUSH
+// ZMQ_PULL
+  while (1) {
+    char buffer [10];
+    zmq_recv (sock, buffer, 10, 0);
+    printf ("Received Hello\n");
+    sleep (1);          //  Do some 'work'
+    zmq_send (sock, "World", 5, 0);
+  }
+  
+  return 0; 
 }
 
 
-int Wat (const std::vector<std::string>& args) {
+// -----------------------------------------
+int main (int argv, char** argc) {
+  std::vector<std::string> args (argc, argc + argv);
+  //int watres = Wat (args);
+  int testres = test_zmq (args); 
+  return testres;
+}
+
+
+//
+//
+int flatbuffers_test (const std::vector<std::string>& args) {
 
   flatbuffers::FlatBufferBuilder build; 
 
@@ -77,72 +132,3 @@ int Wat (const std::vector<std::string>& args) {
   return 0; 
 }
 
-
-
-// 
-int test_curl (const std::vector<std::string>& args) {
-
-  const std::string tx_id = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"; 
-
-  af::bytearray txbytes;
-  curv::TxFetcher txfetch;
-
-  if (txfetch.Fetch (txbytes, tx_id, false)) {
-
-    std::string printstr  (&txbytes[0], &txbytes[txbytes.size()]);
-   printf ("\n\n\n\n\n\n",printstr.c_str()); 
-   printf ("contents: %s\n",printstr.c_str()); 
-
-  }
-    
-  
-  // std::string test_url = url; // "https://curl.se" ;
-
-  // curl_easy_setopt  (hcurl, CURLOPT_URL,  test_url.c_str());
-  // curl_easy_setopt  (hcurl, CURLOPT_HTTPGET, 1);
-  // curl_easy_setopt  (hcurl, CURLOPT_WRITEFUNCTION, curl_write_cb);
-
-  
-  // size_t buffsize = 500 * 1024; 
-  // bytearray getbytes (buffsize);
-  // WriteStreamRef ws = CreateWriteMemStream (&getbytes[0], buffsize);
-
-  // write_struct cbstruc =  { ws.get(), std::vector<int> () }; 
-     
-  // curl_easy_setopt(hcurl, CURLOPT_WRITEDATA, &cbstruc);
-
-  // CURLcode res  = curl_easy_perform (hcurl);
-
-  // printf ("[%s]totalbytes: %zu\n", __FUNCTION__, ws->GetPos ()); 
-  // printf ("   numwrites: %zu\n", cbstruc.writes.size ());
-
-  // for (size_t i = 0; i < cbstruc.writes.size (); ++i)  {
-  //   printf ("%i: %i\n", i, cbstruc.writes[i] );
-
-  //   }
-
-
-  
-  // std::string printstr  (&getbytes[0], &getbytes[ws->GetPos ()]);
-  // printf ("\n\n\n\n\n\n",printstr.c_str()); 
-  // printf ("contents: %s\n",printstr.c_str()); 
-  
-  
-
-  return 0;
-}
-
- 
-
-
-
-
-// -----------------------------------------
-int main (int argv, char** argc)
-{
-  std::vector<std::string> args (argc, argc + argv);
-
-  //int watres = Wat (args);
-  int watres = test_curl (args); 
-  return watres;
-}

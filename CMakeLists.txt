@@ -28,6 +28,7 @@ add_subdirectory (curv)
 # progs
 add_subdirectory (mtool)
 add_subdirectory (rum)
+add_subdirectory (theabyss)
 
 
 

@@ -5,12 +5,15 @@ project (curv)
 
 
 set (CURV_SOURCES
+  script.cpp
   secp256k1.cpp
   transaction.cpp
+
   common.cpp
   )
 
 set (CURV_HEADERS
+  script.h
   secp256k1.h
   transaction.h
   common.h
