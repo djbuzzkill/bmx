@@ -1,9 +1,12 @@
+
 #ifndef AF_TRANSACTION_H
 #define AF_TRANSACTION_H
 
 #include "common.h"
+#include "utility.h"
 #include "aframe/shared_types.h"
 #include "aframe/binary_IO.h"
+
 
 
 
