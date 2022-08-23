@@ -5,28 +5,33 @@
 #include "common.h"
 #include "aframe/af.h"
 
+#include "opcode.h"
+
 
 namespace curv {
 
   //
   //
-  enum CommandType : unsigned char { COM_operation, COM_element, COM_uninitialized }; 
+  enum command_type : unsigned char {
+    SC_operation, SC_element, SC_uninitialized
+  }; 
 
   //
   //
   struct script_command {
 
-    script_command () : typ (CommandType::COM_uninitialized), bin()  { }
+    script_command () : typ (command_type::SC_uninitialized), bin() {
+    }
     
-    CommandType   typ;
+    command_type  typ;
     af::bytearray bin; 
 
   }; 
 
-  inline CommandType          Ty  (const script_command& sc) { return sc.typ; }
-  inline const af::bytearray& mem (const script_command& sc) { return sc.bin; }
+  // convenience
+  inline command_type         Ty  (const script_command& sc) { return sc.typ; }
+  inline const af::bytearray& arr (const script_command& sc) { return sc.bin; }
   inline OpCode               Op  (const script_command& sc) { return OpCode(sc.bin[0]); }
-
   //
   //
   typedef std::list<script_command> command_list; 

@@ -3,8 +3,10 @@
 // 
 // -----------------------------------------------------------
 #include "transaction.h"
+#include "script.h"
 #include "curl/curl.h"
 #include "aframe/binary_IO.h"
+#include "aframe/utility.h"
 #include "ffm/ffm.h"
 
 
@@ -123,9 +125,16 @@ size_t read_and_parse_txin (curv::TxIn& txin, af::ReadStreamRef rs) {
   readlen += rs->Read (&txin.prev_txid[0], 32);  
   readlen += rs->Read (&txin.prev_index, 4);
 
-  readlen += util::read_varint (script_size, rs, "ln188");
-  txin.script_sig.resize (script_size); 
-  readlen += rs->Read (&txin.script_sig[0], script_size);
+  size_t script_beg = rs->GetPos();
+  
+  readlen += ReadScript (txin.script_sig, rs); 
+
+  size_t script_len = rs->GetPos() - script_beg; 
+
+  // printf ("%s:script_len:%zu\n", __FUNCTION__, script_len);
+ 
+  
+  //readlen += rs->Read (&txin.script_sig[0], script_size);
   readlen += rs->Read (&txin.sequence, sizeof (unsigned int)); 
 
   return readlen;
@@ -141,9 +150,9 @@ size_t read_and_parse_txout (curv::TxOut& txout, af::ReadStreamRef rs) {
   size_t script_size = 0;
   
   readlen += rs->Read (&txout.amount, 8);     // amount
-  readlen += util::read_varint (script_size, rs, "ln250"); // varint :sizeof(ScriptKey)
+  readlen += util::read_varint (script_size, rs, 0); // __FUNCTION__); // varint :sizeof(ScriptKey)
   
-  printf ("script_size:%zu\n", script_size); 
+  //printf ("script_size:%zu\n", script_size); 
   
   txout.script_bin.resize (script_size);   
   readlen += rs->Read (&txout.script_bin[0], script_size); // ScriptKey
@@ -167,22 +176,21 @@ size_t curv::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   readlen += rs->Read (&tx.version, sizeof(unsigned int));
 
   // inputs
-  readlen += util::read_varint (num_inputs, rs, "num_inputs");
+  readlen += util::read_varint (num_inputs, rs, 0); // __FUNCTION__ );
   tx.inputs.resize (num_inputs);
   for (auto i = 0; i < num_inputs; ++i) 
     readlen +=  read_and_parse_txin (tx.inputs[i], rs); 
   
   // outputs
-  readlen += util::read_varint (num_outputs, rs, "num_outputs");
+  readlen += util::read_varint (num_outputs, rs, 0); // __FUNCTION__);
   tx.outputs.resize (num_outputs);
   for (auto i = 0; i < num_outputs; ++i) 
     readlen += read_and_parse_txout (tx.outputs[i], rs);
 
-  printf ("ln250\n"); 
 
   // locktime
   readlen += rs->Read (&tx.locktime, sizeof(unsigned int)); 
-  printf ("locktime:%i\n", tx.locktime); 
+
   //
   return readlen; 
 } 
@@ -226,4 +234,43 @@ size_t curv::WriteTransaction (af::WriteStreamRef ws, const Transaction& out) {
     
   write_tx_outputs;
   return 0; 
+}
+
+//
+//
+void curv::print_txin (const TxIn& txin, size_t indent) {
+
+  std::string space (indent, ' '); 
+  std::string stmp;  
+  printf ( "%sTxIn {\n",  space.c_str());
+
+  hex::encode (stmp, &txin.prev_txid[0], txin.prev_txid.size()); 
+  printf ("%s  prev_txid:0x%s\n",   space.c_str(), stmp.c_str());
+  
+  printf ("%s  prev_ind:%u\n",    space.c_str(), txin.prev_index);        // int LE
+
+
+  printf ("%s  script_size:%zu\n", space.c_str(), txin.script_sig.size ());
+
+  hex::encode (stmp, &txin.sequence, sizeof(txin.sequence)); 
+  printf ("%s  sequence:0x%s\n",    space.c_str(), stmp.c_str());   //
+  printf ("%s}\n", space.c_str());   //
+}
+
+
+
+//
+//
+void curv::print_txo  (const TxOut& txo, size_t indent) {
+
+  std::string space (indent, ' '); 
+  std::string stmp;  
+
+  printf ( "%sTxOut {\n", space.c_str());
+  printf ( "%s  amount:%zu\n",   space.c_str(), txo.amount);
+
+  hex::encode (stmp, &txo.script_bin[0], txo.script_bin.size()); 
+  printf ( "%s  scriptbin:0x%s\n",   space.c_str(), stmp.c_str()); 
+  printf ( "%s}\n",       space.c_str());
+  
 }

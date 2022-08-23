@@ -11,15 +11,15 @@ using namespace af;
   // 
   size_t curv::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
 
-    if      (trace)
-      printf ( "from:%s\n", trace); 
+    if (trace)
+      printf ( "%s:%s()\n", trace, __FUNCTION__); 
     
     size_t readlen = 0; 
     unsigned char leaderbyte = 0;
     
     readlen += rs->Read (&leaderbyte,  1); 
 
-    printf ("%s:leaderbyte:%i\n", __FUNCTION__, leaderbyte);
+    //    printf ("%s:leaderbyte:%i\n", __FUNCTION__, leaderbyte);
     
     switch (leaderbyte)  {
     case 253: readlen += rs->Read (&out, 2); break;

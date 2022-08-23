@@ -3,8 +3,6 @@
 #define CURV_OPCODE_H
 
 namespace curv {
-
-
   
   //
   enum OpCode : unsigned char {

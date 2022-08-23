@@ -28,13 +28,12 @@ add_executable (rum
 target_link_libraries (rum
 
 		      
-gmp
-  gmpxx
+  gmp
+  curv
   curl  
   aframe 
-  cryptopp
   ffm
-  curv
+  gcrypt
   zmq
 )
 

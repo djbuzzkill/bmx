@@ -1,6 +1,7 @@
 
 #include "script.h"
 #include "op_fns.h"
+#include "script_types.h"
 
 
 using namespace af;
@@ -42,7 +43,7 @@ namespace curv {
   script_command &script_operation(script_command &obj,
 				   unsigned char op_uc) {
     //
-    obj.typ = CommandType::COM_operation;
+    obj.typ = command_type::SC_operation;
     obj.bin.resize(1);
     obj.bin[0] = op_uc;
     return obj;
@@ -56,11 +57,11 @@ namespace curv {
 				       size_t&         acc) {
     //
     if ( len > 75) {
-      cmd.typ = CommandType::COM_uninitialized; 
+      cmd.typ = command_type::SC_uninitialized; 
       return cmd;
     }
 
-    cmd.typ = CommandType::COM_element;
+    cmd.typ = command_type::SC_element;
     cmd.bin.resize (len); 
     acc += rs->Read (&cmd.bin[0], len); 
     return cmd;
@@ -81,7 +82,7 @@ namespace curv {
     cmd.bin.resize (lendata); 
     acc += rs->Read (&cmd.bin[0], lendata);
 
-    cmd.typ = CommandType::COM_operation;
+    cmd.typ = command_type::SC_operation;
 
     return cmd;
   }
@@ -101,7 +102,7 @@ namespace curv {
     cmd.bin.resize (lendat16); 
     acc += rs->Read (&cmd.bin[0], lendat16); 
     
-    cmd.typ = CommandType::COM_operation;
+    cmd.typ = command_type::SC_operation;
 
     return cmd;
   }
@@ -127,8 +128,8 @@ size_t curv::ReadScript (command_list& out, ReadStreamRef rs) {
   //
   // scriptlen : the claimed length of the following object
   size_t scriptlen = 0;
-  readlen += util::read_varint (scriptlen, rs);
-  printf ( "%s:scriptlen[%zu]\n", __FUNCTION__, scriptlen);
+  readlen += util::read_varint (scriptlen, rs, 0); // __FUNCTION__);
+  //  printf ( "%s:scriptlen[%zu]\n", __FUNCTION__, scriptlen);
 
   // accum : sum of all the bytes after initial varint
   // (accum == scriptlen)
@@ -170,7 +171,7 @@ size_t curv::ReadScript (command_list& out, ReadStreamRef rs) {
 
   //
   //  
-size_t curv::Writecript (af::WriteStreamRef ws, const command_list& out) {
+size_t curv::WriteScript (af::WriteStreamRef ws, const command_list& out) {
 
   size_t writelen = 0;
 
@@ -228,8 +229,8 @@ int curv::EvalScript (const command_list& commands) {
     cmds.pop_front ();
 
     switch (Ty (cmd)) {
-    // COM_operation 
-    case CommandType::COM_operation:
+    // SC_operation 
+    case command_type::SC_operation:
 
       assert (op_map.count (Op(cmd)));
 
@@ -241,13 +242,13 @@ int curv::EvalScript (const command_list& commands) {
       }
       break;
       
-    // COM_element:
-    case CommandType::COM_element:
-      env.stack.push (mem(cmd));
+    // SC_element:
+    case command_type::SC_element:
+      env.stack.push (arr(cmd));
 
       break;
   
-    // COM_uninitialized
+    // SC_uninitialized
     default:
       // wtf 
       return __LINE__;

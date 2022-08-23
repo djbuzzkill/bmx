@@ -38,9 +38,9 @@ target_link_libraries (mtool
 
   curv
   curl	  
-  aframe
   ffm
-
+  aframe
+  
   gcrypt
   gmp
   gmpxx

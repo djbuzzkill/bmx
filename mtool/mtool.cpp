@@ -87,6 +87,40 @@ struct CH5_Fn {
       Transaction tx; 
       size_t readlen = ReadTransaction (tx, rs);
 
+
+      printf ("tx.version;%zu\n", tx.version);
+      printf ("size(tx.inputs): %zu\n", tx.inputs.size ()); 
+
+      for (int ind = 0; ind < tx.inputs.size (); ++ind) {
+	if (ind  == 1) {
+
+          printf("|input:%i:\n", ind);
+	  
+          // print_txin (tx.inputs[ind], 3);
+          // printf ("len(tx.inp[%i].script_sig):%zu\n", ind,
+          // tx.inputs[ind].script_sig.size ());
+
+          const curv::command_list &cmds = tx.inputs[ind].script_sig;
+
+          std::string stmp;
+
+          for (auto& cmd : cmds) {
+	    printf("> Ty:%s\n", Ty(cmd) == SC_element ? "element" : "op code");
+            hex::encode(stmp, &arr(cmd)[0], arr(cmd).size());
+            printf("> bin:0x%s\n", stmp.c_str());
+
+	  }
+
+	}
+      }
+
+      printf ("size(tx.outputs): %zu\n", tx.outputs.size ());
+      for (auto ind = 0; ind < tx.outputs.size (); ++ind) {
+	print_txo (tx.outputs[ind], 3); 
+
+      }
+      printf ("tx.locktime:%zu\n", tx.locktime); 
+
       printf ("readlen:%zu\n", readlen); 
   
     }

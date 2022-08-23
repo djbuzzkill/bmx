@@ -6,7 +6,7 @@
 #include "utility.h"
 #include "aframe/shared_types.h"
 #include "aframe/binary_IO.h"
-
+#include "curv/script_types.h"
 
 
 
@@ -35,7 +35,8 @@ namespace curv {
     af::byte32   prev_txid;   // 32b LE
     unsigned int prev_index;  // int LE
 
-    af::bytearray script_sig; // variable
+    curv::command_list script_sig; 
+    //af::bytearray script_sig; // variable
     unsigned int  sequence;   // 
   }; 
 
@@ -55,9 +56,7 @@ namespace curv {
     //
     Transaction () : version (0), inputs (), locktime (0), outputs (0) {
     }
-    
-    
- 
+
     // 
     unsigned int version;    
     TxInputs       inputs;
@@ -66,7 +65,14 @@ namespace curv {
       
   };
   
+  //
+  //
+  void print_txin (const TxIn& txin, size_t len); 
 
+  //
+  //
+  void print_txo  (const TxOut& txo, size_t len);
+  
   //
   // 
   size_t ReadTransaction  (Transaction& out, af::ReadStreamRef rs);
