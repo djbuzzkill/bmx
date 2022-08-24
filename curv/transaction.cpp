@@ -94,15 +94,6 @@ bool curv::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, T
 
 
 //
-//
-curv::TxFetcher::TxFetcher () : cache () {
-}
-
-//
-curv::TxFetcher::~TxFetcher ()  {
-}
-
-//
 bool curv::TxFetcher::Fetch (bytearray& out, const std::string& txid_hex, bool mainnet) {
   return FetchTx (out, mainnet, txid_hex, cache); 
 }

@@ -38,6 +38,8 @@ void pr_hex (const char* lbl, const af::digest32& bytes) {
 }
 
 
+;;
+;;
 template <typename Ty> 
 std::string hexfrom (const Ty& srcbin) {
     std::string ret = ""; 
@@ -49,117 +51,44 @@ std::string hexfrom (const Ty& srcbin) {
 }
 
 
-//
-struct CH5_Fn {
-
+// 
+struct CH6_Fn {
+  
   int operator()(const std::vector<std::string>& args) {
-    
+    //
     printf ("%s:ENTER\n", __FUNCTION__); 
-
+    //
     using namespace af;
     using namespace ffm; 
-    using namespace curv;
+    using namespace SECzy;
 
-    { POUT ("Ex 5.5"); 
-      //
-      pt::map pm;
-      el::map em;
-      FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
-      ECConRef EC = Create_EC_context (F, em, pm,
-				       kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
-				       kSEC256k1_n_sz, 0);
-      ScopeDeleter dr(F);
-      
-      //What is the ScriptSig from the second input, ScriptPubKey from
-      //the first output and the amount of the second output for this
-      //transaction?
-      
-      // 1332 chars
-      std::string tx_hex = "010000000456919960ac691763688d3d3bcea9ad6ecaf875df5339e148a1fc61c6ed7a069e010000006a47304402204585bcdef85e6b1c6af5c2669d4830ff86e42dd205c0e089bc2a821657e951c002201024a10366077f87d6bce1f7100ad8cfa8a064b39d4e8fe4ea13a7b71aa8180f012102f0da57e85eec2934a82a585ea337ce2f4998b50ae699dd79f5880e253dafafb7feffffffeb8f51f4038dc17e6313cf831d4f02281c2a468bde0fafd37f1bf882729e7fd3000000006a47304402207899531a52d59a6de200179928ca900254a36b8dff8bb75f5f5d71b1cdc26125022008b422690b8461cb52c3cc30330b23d574351872b7c361e9aae3649071c1a7160121035d5c93d9ac96881f19ba1f686f15f009ded7c62efe85a872e6a19b43c15a2937feffffff567bf40595119d1bb8a3037c356efd56170b64cbcc160fb028fa10704b45d775000000006a47304402204c7c7818424c7f7911da6cddc59655a70af1cb5eaf17c69dadbfc74ffa0b662f02207599e08bc8023693ad4e9527dc42c34210f7a7d1d1ddfc8492b654a11e7620a0012102158b46fbdff65d0172b7989aec8850aa0dae49abfb84c81ae6e5b251a58ace5cfeffffffd63a5e6c16e620f86f375925b21cabaf736c779f88fd04dcad51d26690f7f345010000006a47304402200633ea0d3314bea0d95b3cd8dadb2ef79ea8331ffe1e61f762c0f6daea0fabde022029f23b3e9c30f080446150b23852028751635dcee2be669c2a1686a4b5edf304012103ffd6f4a67e94aba353a00882e563ff2722eb4cff0ad6006e86ee20dfe7520d55feffffff0251430f00000000001976a914ab0c0b2e98b1ab6dbf67d4750b0a56244948a87988ac005a6202000000001976a9143c82d7df364eb6c75be8c80df2b3eda8db57397088ac46430600"; 
+    pt::map pm;
+    el::map em;
 
-      bytearray tx_bytes; 
-      hex::decode (tx_bytes, tx_hex);
-
-      ReadStreamRef rs = CreateReadMemStream (&tx_bytes[0], tx_bytes.size());
-
-      printf  ("tx_bytes.size(%zu)\n", tx_bytes.size()); 
-    
-      Transaction tx; 
-      size_t readlen = ReadTransaction (tx, rs);
+    FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
+    ECConRef EC = Create_EC_context (F, em, pm,
+				     kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
+				     kSEC256k1_n_sz, 0);
 
 
-      printf ("tx.version;%zu\n", tx.version);
-      printf ("size(tx.inputs): %zu\n", tx.inputs.size ()); 
+    ScopeDeleter dr(F);
+    //
 
-      for (int ind = 0; ind < tx.inputs.size (); ++ind) {
-	if (ind  == 1) {
-
-          printf("|input:%i:\n", ind);
-	  
-          // print_txin (tx.inputs[ind], 3);
-          // printf ("len(tx.inp[%i].script_sig):%zu\n", ind,
-          // tx.inputs[ind].script_sig.size ());
-
-          const curv::command_list &cmds = tx.inputs[ind].script_sig;
-
-          std::string stmp;
-
-          for (auto& cmd : cmds) {
-	    printf("> Ty:%s\n", Ty(cmd) == SC_element ? "element" : "op code");
-            hex::encode(stmp, &arr(cmd)[0], arr(cmd).size());
-            printf("> bin:0x%s\n", stmp.c_str());
-
-	  }
-
-	}
-      }
-
-      printf ("size(tx.outputs): %zu\n", tx.outputs.size ());
-      for (auto ind = 0; ind < tx.outputs.size (); ++ind) {
-	print_txo (tx.outputs[ind], 3); 
-
-      }
-      printf ("tx.locktime:%zu\n", tx.locktime); 
-
-      printf ("readlen:%zu\n", readlen); 
-  
-    }
-
-    { POUT ("Ex 5.6"); 
-      //
-      pt::map pm;
-      el::map em;
-      FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
-      ECConRef EC = Create_EC_context (F, em, pm,
-				       kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
-				       kSEC256k1_n_sz, 0);
-      ScopeDeleter dr(F);
-      //
-
-    
-
-    }
-
-  
-    printf ("%s:EXIT\n", __FUNCTION__); 
     return 0; 
   }
+  //
+};
 
-}; 
-
-
+//
 //  
-int CH5_Ex (std::vector<std::string>& args) {
+int CH6_Ex (std::vector<std::string>& args) {
 
-  CH5_Fn fn;
+  CH6_Fn fn;
 
   return fn (args); 
   
-}
-  
+} //
 
-//
-//
 
 //
 //
@@ -173,10 +102,14 @@ int thicnspicy  (std::vector<std::string>& args)  {
   
   pt::map pm;
   el::map em;
+
   FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
   ECConRef EC = Create_EC_context (F, em, pm,
 				   kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
 				   kSEC256k1_n_sz, 0);
+  
+
+
   ScopeDeleter dr(F);
   //
   bytearray   ar;
@@ -231,7 +164,7 @@ int main (int argv, char** argc) {
   
   // CH4_Ex(args);
   //thicnspicy (args);
-  CH5_Ex(args);
+  CH6_Ex(args);
   
     // test_gcrypt (args);
   printf ("%s:EXIT\n", __FUNCTION__); 

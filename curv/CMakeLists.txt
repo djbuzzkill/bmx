@@ -6,11 +6,12 @@ project (curv)
 
 set (CURV_SOURCES
   op_fns.cpp
-  script.cpp
+  script_write.cpp
+  script_read.cpp
+  script_eval.cpp
   secp256k1.cpp
   transaction.cpp
   utility.cpp
-
   common.cpp
   )
 
@@ -20,9 +21,7 @@ set (CURV_HEADERS
   script.h
   secp256k1.h
   transaction.h
-
   utility.h
-
   common.h
   )
 

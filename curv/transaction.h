@@ -20,11 +20,11 @@ namespace curv {
 
   // 
   struct TxFetcher  {
-    //
-    TxFetcher (); 
-    ~TxFetcher(); 
 
     TxMap cache; 
+    //
+    TxFetcher () : caache() {} 
+    ~TxFetcher() {} 
 
     bool Fetch (af::bytearray& out, const std::string& txid_hex, bool mainnet);
    
