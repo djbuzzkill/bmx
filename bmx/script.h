@@ -11,7 +11,7 @@
 #include "script_types.h"
 #include "aframe/af.h"
 
-namespace curv {
+namespace bmx {
 
 
   //
@@ -25,6 +25,8 @@ namespace curv {
   //
   int EvalScript (const command_list& commands);
 
+  // 
+  
   
 }
 

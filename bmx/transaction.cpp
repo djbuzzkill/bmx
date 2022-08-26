@@ -50,7 +50,7 @@ namespace {
 // --------------------------------------------------------------
 // 
 // --------------------------------------------------------------
-bool curv::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, TxMap& cache) {
+bool bmx::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, TxMap& cache) {
 
   if (!cache.count (txid_hex)) {
     
@@ -94,7 +94,7 @@ bool curv::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, T
 
 
 //
-bool curv::TxFetcher::Fetch (bytearray& out, const std::string& txid_hex, bool mainnet) {
+bool bmx::TxFetcher::Fetch (bytearray& out, const std::string& txid_hex, bool mainnet) {
   return FetchTx (out, mainnet, txid_hex, cache); 
 }
 
@@ -106,8 +106,9 @@ bool curv::TxFetcher::Fetch (bytearray& out, const std::string& txid_hex, bool m
 // --------------------------------------------------------------
    //
 // --------------------------------------------------------------
-size_t read_and_parse_txin (curv::TxIn& txin, af::ReadStreamRef rs) {
-  using namespace curv;
+size_t read_and_parse_txin (bmx::TxIn& txin, af::ReadStreamRef rs) {
+
+  using namespace bmx;
 
   size_t readlen = 0;
   
@@ -135,8 +136,11 @@ size_t read_and_parse_txin (curv::TxIn& txin, af::ReadStreamRef rs) {
 // --------------------------------------------------------------
 //
 // --------------------------------------------------------------
-size_t read_and_parse_txout (curv::TxOut& txout, af::ReadStreamRef rs) {
-  using namespace curv;
+
+size_t read_and_parse_txout (bmx::TxOut& txout, af::ReadStreamRef rs) {
+  using namespace bmx;
+
+  
   size_t readlen     = 0;
   size_t script_size = 0;
   
@@ -157,7 +161,7 @@ size_t read_and_parse_txout (curv::TxOut& txout, af::ReadStreamRef rs) {
 // --------------------------------------------------------------
 //
 // --------------------------------------------------------------
-size_t curv::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
+size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 
   size_t readlen     = 0; 
   size_t num_inputs  = 0; 
@@ -194,21 +198,21 @@ size_t curv::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 // --------------------------------------------------------------
 //
 // --------------------------------------------------------------
-size_t write_tx_inputs (curv::TxInputs& tx, af::ReadStreamRef ws) {
+size_t write_tx_inputs (bmx::TxInputs& tx, af::ReadStreamRef ws) {
   // CODE_ME ();
   return 0 ;
 }
 
 //
 //
-size_t write_tx_outputs (curv::TxOutputs& tx, af::WriteStreamRef ws) {
-  using namespace curv;
+size_t write_tx_outputs (bmx::TxOutputs& tx, af::WriteStreamRef ws) {
+  using namespace bmx;
 
   size_t writelen = 0;
   //
   for (auto i = 0; i < tx.size(); ++i) {
 
-    curv::TxOut& out = tx[i]; 
+    bmx::TxOut& out = tx[i]; 
     writelen += ws->Write          (&out.amount, sizeof(size_t)); 
     writelen += util::write_varint (ws, out.script_bin.size());
     writelen += ws->Write          (&out.script_bin[0], out.script_bin.size());
@@ -220,7 +224,7 @@ size_t write_tx_outputs (curv::TxOutputs& tx, af::WriteStreamRef ws) {
 
 
 //
-size_t curv::WriteTransaction (af::WriteStreamRef ws, const Transaction& out) {
+size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& out) {
   write_tx_inputs;  
     
   write_tx_outputs;
@@ -229,7 +233,7 @@ size_t curv::WriteTransaction (af::WriteStreamRef ws, const Transaction& out) {
 
 //
 //
-void curv::print_txin (const TxIn& txin, size_t indent) {
+void bmx::print_txin (const TxIn& txin, size_t indent) {
 
   std::string space (indent, ' '); 
   std::string stmp;  
@@ -252,7 +256,7 @@ void curv::print_txin (const TxIn& txin, size_t indent) {
 
 //
 //
-void curv::print_txo  (const TxOut& txo, size_t indent) {
+void bmx::print_txo  (const TxOut& txo, size_t indent) {
 
   std::string space (indent, ' '); 
   std::string stmp;  

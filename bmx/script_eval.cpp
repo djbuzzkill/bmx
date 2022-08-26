@@ -5,12 +5,16 @@
 
 
 using namespace af;
-using namespace curv; 
 
   //
-typedef std::function<int(curv::script_env&)>  op_proc;
-typedef std::map<curv::OpCode, op_proc>        OpFnMap;
 
+namespace priveval {
+  
+  using namespace bmx; 
+
+  typedef std::function<int(bmx::script_env&)>  op_proc;
+  typedef std::map<bmx::OpCode, op_proc>        OpFnMap;
+  //
   //
   static OpFnMap op_map = {
 
@@ -33,8 +37,12 @@ typedef std::map<curv::OpCode, op_proc>        OpFnMap;
     { OP_15                  , proc_OP_15                  },  
     { OP_16                  , proc_OP_16                  },  
     { OP_NOP                 , proc_OP_NOP                 },  
+    //
     { OP_IF                  , proc_OP_IF                  },  
     { OP_NOTIF               , proc_OP_NOTIF               },  
+    //
+    //
+    //
     { OP_VERIFY              , proc_OP_VERIFY              },  
     { OP_RETURN              , proc_OP_RETURN              },  
     { OP_TOALTSTACK          , proc_OP_TOALTSTACK          },  
@@ -56,7 +64,9 @@ typedef std::map<curv::OpCode, op_proc>        OpFnMap;
     { OP_ROT                 , proc_OP_ROT                 },  
     { OP_SWAP                , proc_OP_SWAP                },  
     { OP_TUCK                , proc_OP_TUCK                },  
+    //
     { OP_SIZE                , proc_OP_SIZE                },  
+    //
     { OP_EQUAL               , proc_OP_EQUAL               },  
     { OP_EQUALVERIFY         , proc_OP_EQUALVERIFY         },  
     { OP_1ADD                , proc_OP_1ADD                },  
@@ -68,6 +78,7 @@ typedef std::map<curv::OpCode, op_proc>        OpFnMap;
     { OP_ADD                 , proc_OP_ADD                 },  
     { OP_SUB                 , proc_OP_SUB                 },  
     { OP_MUL                 , proc_OP_MUL                 },  
+    // 
     { OP_BOOLAND             , proc_OP_BOOLAND             },  
     { OP_BOOLOR              , proc_OP_BOOLOR              },  
     { OP_NUMEQUAL            , proc_OP_NUMEQUAL            },  
@@ -85,29 +96,27 @@ typedef std::map<curv::OpCode, op_proc>        OpFnMap;
     { OP_SHA256              , proc_OP_SHA256              },  
     { OP_HASH160             , proc_OP_HASH160             },  
     { OP_HASH256             , proc_OP_HASH256             },  
+    //
     { OP_CHECKSIG            , proc_OP_CHECKSIG            },  
     { OP_CHECKSIGVERIFY      , proc_OP_CHECKSIGVERIFY      },  
     { OP_CHECKMULTISIG       , proc_OP_CHECKMULTISIG       },  
     { OP_CHECKMULTISIGVERIFY , proc_OP_CHECKMULTISIGVERIFY },  
-    { OP_NOP_x01             , proc_OP_NOP                 },  
+    { OP_NOP_0xb0            , proc_OP_NOP                 },  
     { OP_CHECKLOCKTIMEVERIFY , proc_OP_CHECKLOCKTIMEVERIFY },  
     { OP_CHECKSEQUENCEVERIFY , proc_OP_CHECKSEQUENCEVERIFY },  
-    { OP_NOP_x02             , proc_OP_NOP                 },  
-    { OP_NOP_x03             , proc_OP_NOP                 },  
-    { OP_NOP_x04             , proc_OP_NOP                 },  
-    { OP_NOP_x05             , proc_OP_NOP                 },  
-    { OP_NOP_x06             , proc_OP_NOP                 },  
-    { OP_NOP_x07             , proc_OP_NOP                 },  
-    { OP_NOP_x08             , proc_OP_NOP                 },
+    { OP_NOP_0xb3            , proc_OP_NOP                 },  
+    { OP_NOP_0xb4            , proc_OP_NOP                 },  
+    { OP_NOP_0xb5            , proc_OP_NOP                 },  
+    { OP_NOP_0xb6            , proc_OP_NOP                 },  
+    { OP_NOP_0xb7            , proc_OP_NOP                 },  
+    { OP_NOP_0xb8            , proc_OP_NOP                 },  
+    { OP_NOP_0xb9            , proc_OP_NOP                 },
   };  	                    
 
+
   //
   //
-  typedef std::map<curv::OpCode, std::string>  OpNameMap;
-
-namespace priveval {
-
-    //
+  typedef std::map<bmx::OpCode, std::string>  OpNameMap;
   //
   OpNameMap op_name = {
     { OP_0                   , "OP_0"                   },  
@@ -185,21 +194,23 @@ namespace priveval {
     { OP_CHECKSIGVERIFY      , "OP_CHECKSIGVERIFY"      },  
     { OP_CHECKMULTISIG       , "OP_CHECKMULTISIG"       },  
     { OP_CHECKMULTISIGVERIFY , "OP_CHECKMULTISIGVERIFY" },  
-    { OP_NOP_x01             , "OP_NOP"                 },  
+    { OP_NOP_0xb0            , "OP_NOP"                 },  
     { OP_CHECKLOCKTIMEVERIFY , "OP_CHECKLOCKTIMEVERIFY" },  
     { OP_CHECKSEQUENCEVERIFY , "OP_CHECKSEQUENCEVERIFY" },  
-    { OP_NOP_x02             , "OP_NOP"                 },  
-    { OP_NOP_x03             , "OP_NOP"                 },  
-    { OP_NOP_x04             , "OP_NOP"                 },  
-    { OP_NOP_x05             , "OP_NOP"                 },  
-    { OP_NOP_x06             , "OP_NOP"                },  
-    { OP_NOP_x07             , "OP_NOP"                 },  
-    { OP_NOP_x08             , "OP_NOP"                 },
+    { OP_NOP_0xb3            , "OP_NOP"                 },  
+    { OP_NOP_0xb4            , "OP_NOP"                 },  
+    { OP_NOP_0xb5            , "OP_NOP"                 },  
+    { OP_NOP_0xb6            , "OP_NOP"                 },  
+    { OP_NOP_0xb7            , "OP_NOP"                 },  
+    { OP_NOP_0xb8            , "OP_NOP"                 },  
+    { OP_NOP_0xb9            , "OP_NOP"                 },
   };  
 }
+
+
 //
 //
-int curv::EvalScript (const command_list& commands) {
+int bmx::EvalScript (const command_list& commands) {
 
   using namespace priveval;
     
@@ -263,4 +274,35 @@ int curv::EvalScript (const command_list& commands) {
 
   
 
-  
+
+
+int print_verify_mapping () {
+
+  using namespace priveval;
+
+  script_env env; 
+  printf ("%s()\n\n ", __FUNCTION__); 
+	      
+  for (OpNameMap::const_iterator it = op_name.begin (); it != op_name.end (); ++it) {
+
+
+    if (0 == op_map.count (it->first)) {
+      printf ("!![%s] not in map", it->second.c_str()); 
+      assert (0); 
+    }
+    else {
+
+    printf ("  %s[%x]in map[%s]..calling: ",
+	    it->second.c_str(),
+	    (unsigned char)(it->first),
+	    op_map.count (it->first) ? "Yes" : "No" );
+    op_map[it->first] (env); 
+    }
+    
+    //OpFnMap::const_iterator 
+
+  }
+
+
+  return 0; 
+}

@@ -1,3 +1,5 @@
+
+
 #include "fe_math.h"
 
 
@@ -58,6 +60,8 @@ public:
 
     void SAdd (FE_t out, FE_t lhs, FE_t rhs);
     void SMul (FE_t out, FE_t lhs, FE_t rhs); 
+
+    void Neg (FE_t out, FE_t num); 
   
 
     void Pow (FE_t out, FE_t b, FE_t exp); 
@@ -332,6 +336,13 @@ public:
   void FE_ctx_impl::SMul (FE_t out, FE_t lhs, FE_t rhs) {
 
     mpz_mul (el(out), el(lhs), el(rhs));
+
+  }
+
+  
+  void FE_ctx_impl::Neg (FE_t out, FE_t rhs) {
+
+    mpz_neg (el(out), el(rhs)); 
 
   }
 

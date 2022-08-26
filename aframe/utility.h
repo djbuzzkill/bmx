@@ -2,13 +2,11 @@
 #ifndef AF_UTILITY_INCLUDE
 #define AF_UTILITY_INCLUDE
 
-
 #include "common.h"
 #include "shared_types.h"
 #include "binary_IO.h"
 
 #define CODE_ME(){printf("CODE_ME:%s|ln:%i\n", __FUNCTION__, __LINE__);} 
-
 
 namespace af
 {
@@ -23,7 +21,7 @@ namespace af
   }
 
   //
-  size_t SizeOf_file (const std::string& f);
+  size_t SizeOf_file (const std::string& fq);
 
   //
   //
@@ -43,9 +41,13 @@ namespace af
   // all the bytes
   template<typename Seq>
   inline Seq& From_file (Seq& out, const std::string& fname) {
+
     if (auto sizeOf_file = SizeOf_file (fname)) {
+
       out.resize (sizeOf_file); 
+
       ReadStreamRef rs = CreateReadFileStream (fname);
+
       if (rs) {
 	rs->Read (&out[0], sizeOf_file); 
       }
@@ -61,12 +63,22 @@ namespace af
     return (val >= minval && val <= maxval);
   }
 
+  //
+  template<typename Ty> 
+  inline bool inb_in (Ty val , Ty minval , Ty maxval) {
+    return (val >= minval && val <= maxval);
+  }
   // 
   template<typename Ty> 
   inline bool in_bounds_excl (Ty val, Ty minval, Ty maxval) { 
     return (val > minval && val < maxval);
   }    
-
+     
+  //
+  template<typename Ty> 
+  inline bool inb_ex (Ty val, Ty minval, Ty maxval) { 
+    return (val > minval && val < maxval);
+  }    
 
   //
   // hexadecimal --------------------------- 
@@ -86,18 +98,13 @@ namespace af
 
     //
     //
-
     std::string& encode (std::string& out, const void*, size_t len);
 
     //
     //
     bytearray&   decode (bytearray& out_bin, const std::string& str);
-   
-
 
   }
-
-
 
   // base58 --------------------------------
   namespace base58

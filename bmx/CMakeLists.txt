@@ -1,10 +1,10 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION  3.1)
 
-project (curv)
+project (bmx)
 
 
-set (CURV_SOURCES
+set (BMX_SOURCES
   op_fns.cpp
   script_write.cpp
   script_read.cpp
@@ -15,7 +15,7 @@ set (CURV_SOURCES
   common.cpp
   )
 
-set (CURV_HEADERS
+set (BMX_HEADERS
   opcode.h
   op_fns.h
   script.h
@@ -25,9 +25,9 @@ set (CURV_HEADERS
   common.h
   )
 
-add_library (curv
-  ${CURV_SOURCES}
-  ${CURV_HEADERS}
+add_library (bmx
+  ${BMX_SOURCES}
+  ${BMX_HEADERS}
   )
 
 

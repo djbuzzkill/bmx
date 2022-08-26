@@ -1,5 +1,5 @@
-#ifndef CURV_COMMON_H
-#define CURV_COMMON_H
+#ifndef BMX_COMMON_H
+#define BMX_COMMON_H
 
 #include <cstdio>
 #include <cstring>

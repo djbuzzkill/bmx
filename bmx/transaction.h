@@ -1,17 +1,18 @@
 
-#ifndef AF_TRANSACTION_H
-#define AF_TRANSACTION_H
+#ifndef BMX_TRANSACTION_H
+#define BMX_TRANSACTION_H
 
 #include "common.h"
 #include "utility.h"
+#include "script_types.h"
+
 #include "aframe/shared_types.h"
 #include "aframe/binary_IO.h"
-#include "curv/script_types.h"
 
 
 
 // 
-namespace curv {
+namespace bmx {
 
   // 
   typedef std::map<std::string, af::bytearray> TxMap; 
@@ -23,7 +24,7 @@ namespace curv {
 
     TxMap cache; 
     //
-    TxFetcher () : caache() {} 
+    TxFetcher () : cache() {} 
     ~TxFetcher() {} 
 
     bool Fetch (af::bytearray& out, const std::string& txid_hex, bool mainnet);
@@ -35,7 +36,7 @@ namespace curv {
     af::byte32   prev_txid;   // 32b LE
     unsigned int prev_index;  // int LE
 
-    curv::command_list script_sig; 
+    bmx::command_list script_sig; 
     //af::bytearray script_sig; // variable
     unsigned int  sequence;   // 
   }; 
@@ -82,5 +83,5 @@ namespace curv {
   // serialize 
   size_t WriteTransaction (af::WriteStreamRef ws, const Transaction& out); 
   
-} // curv
+} // bmx
 #endif

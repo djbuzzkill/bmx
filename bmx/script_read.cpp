@@ -5,39 +5,10 @@
 
 
 using namespace af;
-using namespace curv; 
 
 namespace privread {
 
-  //
-  int encode_num (size_t num) {
-    return 0; 
-    }
-  
-
-  int decode_num () {
-    // def decode_num(element):
-    //     if element == b'':
-    //         return 0
-    //     # reverse for big endian
-    //     big_endian = element[::-1]
-    //     # top bit being 1 means it's negative
-    //     if big_endian[0] & 0x80:
-    //         negative = True
-    //         result = big_endian[0] & 0x7f
-    //     else:
-    //         negative = False
-    //         result = big_endian[0]
-    //     for c in big_endian[1:]:
-    //         result <<= 8
-    //         result += c
-    //     if negative:
-    //         return -result
-    //     else:
-    //         return result
-    return 0;
-  }
-
+  using namespace bmx; 
 
   //
   script_command &script_operation (script_command &obj,
@@ -114,7 +85,7 @@ namespace privread {
 
 //
 //
-size_t curv::ReadScript (command_list& out, ReadStreamRef rs) {
+size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
 
   using namespace privread; 
     

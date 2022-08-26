@@ -1,3 +1,6 @@
+
+//
+//
 #include "secp256k1.h"
 
 #include "aframe/hash.h"
@@ -34,7 +37,7 @@ namespace
 
 //
 //
-SECzy::Point& SECzy::MakePublicKey (Point& out, const PrivateKey& secr) {
+bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
 
   pt::map pm;
   el::map em;
@@ -78,7 +81,7 @@ SECzy::Point& SECzy::MakePublicKey (Point& out, const PrivateKey& secr) {
   
   //
   // 
-size_t SECzy::ReadPoint (Point& out , ReadStreamRef rs) {
+size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
   
     size_t readlen = 0;
     
@@ -109,7 +112,7 @@ size_t SECzy::ReadPoint (Point& out , ReadStreamRef rs) {
 
 //
 //
-size_t SECzy::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
+size_t bmx::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
   
   size_t readlen = 0; 
   // comment
@@ -120,7 +123,7 @@ size_t SECzy::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
 }
 
 
-size_t SECzy::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
+size_t bmx::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
   
   size_t write_len = 0; 
   
@@ -144,7 +147,7 @@ size_t SECzy::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
 
 //
 //
-size_t SECzy::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
 
   /*
   pt::map pm;
@@ -212,7 +215,7 @@ size_t SECzy::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
 
 
 //
-std::string& SECzy::MakeAddress (std::string& out, bool compr, bool mainnet, const PublicKey &pubk) {
+std::string& bmx::MakeAddress (std::string& out, bool compr, bool mainnet, const PublicKey &pubk) {
 
   //1
   unsigned char  netprefix = mainnet ? 0x0 : 0x6f;
@@ -250,7 +253,7 @@ std::string& SECzy::MakeAddress (std::string& out, bool compr, bool mainnet, con
 
 //
 // Wallet Import Format
-std::string& SECzy::MakeWIF (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk) {
+std::string& bmx::MakeWIF (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk) {
 
   bytearray mem (128);
 
@@ -273,7 +276,7 @@ std::string& SECzy::MakeWIF (std::string& out, bool compr, bool mainnet, const P
 
 //
 //
-SECzy::secp256k1::secp256k1 () : elems (), points() { 
+bmx::secp256k1::secp256k1 () : elems (), points() { 
   
   F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
   EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
@@ -298,7 +301,7 @@ SECzy::secp256k1::secp256k1 () : elems (), points() {
 
 //
 //
-SECzy::secp256k1::~secp256k1 () {
+bmx::secp256k1::~secp256k1 () {
   
 }
 
@@ -374,7 +377,7 @@ SECzy::secp256k1::~secp256k1 () {
 
 //
   //
-  bool SECzy::secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
+  bool bmx::secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
     //    printf ("%s:enter\n", __FUNCTION__); 
   
     ffm::ScopeDeleter dr (F);
@@ -445,7 +448,7 @@ SECzy::secp256k1::~secp256k1 () {
 
 //
   //
-bool SECzy::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
+bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
   
   using namespace ffm;
   // eG = P
@@ -530,4 +533,22 @@ bool SECzy::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const dige
   
 }
 
+bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map& pm) {
 
+  if (oFE)
+    return false;
+  
+  if (oEC)
+    return false;
+  
+  oFE = Create_FE_context (ksecp256k1_p_sz);
+  oEC = Create_EC_context (oFE, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+  
+  em["G.x"] = oFE->New (ksecp256k1_G_x_sz, 0); 
+  em["G.y"] = oFE->New (ksecp256k1_G_y_sz, 0); 
+
+  oEC->MakePoint ("G", em["G.x"], em["G.y"]);
+
+  return (oFE && oEC);
+
+}

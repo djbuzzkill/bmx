@@ -3,8 +3,8 @@
 ////
 ////from lilarch 
 #include "mtool.h"
-#include "curv/secp256k1.h"
-#include "curv/transaction.h"
+#include "bmx/secp256k1.h"
+#include "bmx/transaction.h"
 #include "aframe/binary_IO.h"
 #include "aframe/hash.h"
 #include "aframe/utility.h"
@@ -60,7 +60,7 @@ struct CH6_Fn {
     //
     using namespace af;
     using namespace ffm; 
-    using namespace SECzy;
+    using namespace bmx;
 
     pt::map pm;
     el::map em;
@@ -98,7 +98,7 @@ int thicnspicy  (std::vector<std::string>& args)  {
 
   using namespace af;
   using namespace ffm; 
-  using namespace SECzy; 
+  using namespace bmx; 
   
   pt::map pm;
   el::map em;

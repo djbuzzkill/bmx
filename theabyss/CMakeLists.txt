@@ -34,10 +34,12 @@ target_link_libraries (theabyss
 #  gmpxx		      
   aframe 	      
   ffm		      
-  curv
+  bmx
   zmq
 
 )
+
+
 
 
 

@@ -86,10 +86,6 @@ unsigned char af::hex::to_uc (const std::string& chars) {
   const unsigned char hi = 0;
   const unsigned char lo = 1;
   
-  if (chars.size () != 2) {
-    return 0; 
-  }
-  
   if (0 == hex_enc.count (chars[hi])) {
     return 0;
   }
@@ -97,14 +93,15 @@ unsigned char af::hex::to_uc (const std::string& chars) {
   if (0 == hex_enc.count (chars[lo])) {
     return 0;
   }
-  
+
+  if (chars.size() < 2)
+    return hex_enc[chars[lo]];
+
   unsigned char out = hex_enc[chars[hi]] << 4; 
   out += hex_enc[chars[lo]];
   return out; 
-  
+
 }
-
-
 
 // turn  binary number into string
 std::string& af::base58::encode (std::string& out, const void* inBE, size_t len) {

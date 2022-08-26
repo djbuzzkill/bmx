@@ -1,6 +1,6 @@
 #include "theabyss.h"
 
-#include "curv/script.h"
+#include "bmx/script.h"
 
 using namespace af;
 
@@ -37,10 +37,10 @@ int test_zmq (const std::vector<std::string> &args) {
   }
 
 
-    curv::OpCode op = curv::OP_DUP; 
+    bmx::OpCode op = bmx::OP_DUP; 
     unsigned char uc = op;
 
-    curv::OpCode op2 = curv::OpCode(uc);
+    bmx::OpCode op2 = bmx::OpCode(uc);
         
   return 0; 
 }

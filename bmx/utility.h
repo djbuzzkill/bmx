@@ -7,7 +7,7 @@
 #include "aframe/af.h"
 
 
-namespace curv {
+namespace bmx {
 
   namespace util {
 

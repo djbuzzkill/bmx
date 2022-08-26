@@ -29,7 +29,7 @@ target_link_libraries (rum
 
 		      
   gmp
-  curv
+  bmx
   curl  
   aframe 
   ffm

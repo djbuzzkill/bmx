@@ -1,4 +1,5 @@
 #include "rum.h"
+#include "bmx/script.h"
 #include "rum_msg_generated.h"
 
 
@@ -26,7 +27,6 @@ namespace rum {
   //
   struct M101_Status : public MessageBase {
     enum { ID = ID_M101_Status };
-    char
     unsigned count;
     unsigned flags;
   };
@@ -38,7 +38,7 @@ int test_curl (const std::vector<std::string>& args) {
   const std::string tx_id = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"; 
 
   af::bytearray   txbytes;
-  curv::TxFetcher fetcher;
+  bmx::TxFetcher fetcher;
 
   if (fetcher.Fetch (txbytes, tx_id, false)) {
 
@@ -76,13 +76,25 @@ int test_zmq (const std::vector<std::string> &args) {
   return 0; 
 }
 
+//
+//
+int int_2_hexes (const std::vector<std::string> &args) {
+  //bmx:: print_verify_mapping ();
+  // for (unsigned char i = 79; i < 190; ++i) {
+  bmx::test_encode_decode(); 
+  //   printf ("int:%i|%s\n", i, af::hex::from_uc(i).c_str()); 
+  // }
+  return 0; 
+}
+
 
 // -----------------------------------------
 int main (int argv, char** argc) {
   std::vector<std::string> args (argc, argc + argv);
+  return int_2_hexes  (args);
   //int watres = Wat (args);
-  int testres = test_zmq (args); 
-  return testres;
+  //int testres = test_zmq (args); 
+  //  return testres;
 }
 
 

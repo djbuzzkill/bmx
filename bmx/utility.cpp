@@ -9,7 +9,7 @@ using namespace af;
 
   //
   // 
-  size_t curv::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
+  size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
 
     if (trace)
       printf ( "%s:%s()\n", trace, __FUNCTION__); 
@@ -34,7 +34,7 @@ using namespace af;
   
   
   //
-size_t curv::util::write_varint (af::WriteStreamRef ws, size_t v) {
+size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
     
     size_t writelen = 0; 
     

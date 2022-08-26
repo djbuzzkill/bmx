@@ -8,7 +8,7 @@
 #include "opcode.h"
 
 
-namespace curv {
+namespace bmx {
 
   //
   //

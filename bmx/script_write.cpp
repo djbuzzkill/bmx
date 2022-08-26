@@ -5,12 +5,11 @@
 
 
 using namespace af;
-using namespace curv; 
 
 
   //
   //  
-size_t curv::WriteScript (af::WriteStreamRef ws, const command_list& out) {
+size_t bmx::WriteScript (af::WriteStreamRef ws, const command_list& out) {
 
   size_t writelen = 0;
 

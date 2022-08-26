@@ -36,7 +36,7 @@ add_executable (mtool
 
 target_link_libraries (mtool
 
-  curv
+  bmx
   curl	  
   ffm
   aframe

@@ -22,7 +22,7 @@ link_directories (
 # libs
 add_subdirectory (aframe)
 add_subdirectory (ffm)
-add_subdirectory (curv)
+add_subdirectory (bmx)
 
 
 # progs

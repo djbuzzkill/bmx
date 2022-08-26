@@ -9,7 +9,7 @@
 #include "script_types.h"
 #include "aframe/af.h"
 
-namespace curv {
+namespace bmx {
 
   // int proc_OP_0        
   // int proc_OP_1        
@@ -104,6 +104,12 @@ namespace curv {
   int proc_OP_NOP                 (script_env& env);
   int proc_OP_NOP                 (script_env& env);
   int proc_OP_NOP                (script_env& env);
+
+
+
+
+
+  void test_encode_decode(); 
 
 }
 

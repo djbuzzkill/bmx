@@ -1,12 +1,12 @@
-#ifndef CURV_SECP256K1_H
-#define CURV_SECP256K1_H
+#ifndef BMX_SECP256K1_H
+#define BMX_SECP256K1_H
 
 #include "common.h"
 #include <ffm/ffm.h>
 #include <aframe/af.h>
 
 
-namespace SECzy {
+namespace bmx {
 
   //
   //
@@ -86,6 +86,9 @@ namespace SECzy {
     ffm::el::map elems;
     ffm::pt::map points; 
   }; 
+  
+
+  bool Init_secp256k1_Env (ffm::FEConRef& ofecon, ffm::ECConRef& oeccon, ffm::el::map& em, ffm::pt::map& pm);
   
 
 }
