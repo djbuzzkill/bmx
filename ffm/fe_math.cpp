@@ -60,17 +60,22 @@ public:
 
     void SAdd (FE_t out, FE_t lhs, FE_t rhs);
     void SMul (FE_t out, FE_t lhs, FE_t rhs); 
+    void SSub (FE_t out, FE_t lhs, FE_t rhs); 
 
-    void Neg (FE_t out, FE_t num); 
+    void SAdd_ui   (FE_t out, FE_t lhs, unsigned long int rhs);
+    void SMul_ui   (FE_t out, FE_t lhs, unsigned long int rhs); 
+    void SSub_ui   (FE_t out, FE_t lhs, unsigned long int rhs); 
   
+    void SNeg      (FE_t out, FE_t num); 
+    void SAbs      (FE_t out, FE_t num); 
 
-    void Pow (FE_t out, FE_t b, FE_t exp); 
-    void Pow_ui (FE_t out, FE_t b, size_t exp); 
-    void Pow_si (FE_t out, FE_t base, long int exp);
+    void Pow       (FE_t out, FE_t b, FE_t exp); 
+    void Pow_ui    (FE_t out, FE_t b, size_t exp); 
+    void Pow_si    (FE_t out, FE_t base, long int exp);
+
     // void Inv (FE_t out, FE_t x);
-
-    void PowM (FE_t out, FE_t base, FE_t exp, FE_t mod);
-    bool Rand (FE_t out, FE_t f);
+    void PowM      (FE_t out, FE_t base, FE_t exp, FE_t mod);
+    bool Rand      (FE_t out, FE_t f);
       
     int Cmp (FE_t lhs, FE_t rhs);
     //int Cmp (FE_var lhs, FE_var rhs);
@@ -83,7 +88,7 @@ public:
     bool LogiBit (FE_t v, size_t pos);
     bool TestBit (FE_t v, size_t pos);  
 
-    bytearray& Raw (bytearray& out, FE_t, bool isLE); 
+    bytearray& Raw (bytearray& out, int& sgn, FE_t, bool isLE); 
     //
     //
     inline void powM (mpz_t out, const mpz_t base, const mpz_t exp, const mpz_t mod) {
@@ -185,9 +190,7 @@ public:
   FE_t FE_ctx_impl::New ()
   {
     FE_t name = 1; // 0 is forbidden name
-
     for (; elems.count (name); ++name);
-
     mpz_init (el(name));
     
     return name; 
@@ -339,13 +342,35 @@ public:
 
   }
 
-  
-  void FE_ctx_impl::Neg (FE_t out, FE_t rhs) {
-
-    mpz_neg (el(out), el(rhs)); 
-
+  void FE_ctx_impl::SSub (FE_t out, FE_t lhs, FE_t rhs) {
+    mpz_sub (el(out), el(lhs), el(rhs)); 
   }
 
+  
+  void FE_ctx_impl::SAdd_ui   (FE_t out, FE_t lhs, unsigned long int rhs) {
+
+    mpz_add_ui (el(out), el(lhs), rhs);
+    
+  }
+  void FE_ctx_impl::SMul_ui   (FE_t out, FE_t lhs, unsigned long int rhs) {
+    mpz_mul_ui (el(out), el(lhs), rhs);
+    
+  }
+
+  void FE_ctx_impl::SSub_ui   (FE_t out, FE_t lhs, unsigned long int rhs) {
+    mpz_sub_ui (el(out), el(lhs), rhs); 
+    
+  }
+  
+  void FE_ctx_impl::SNeg (FE_t out, FE_t rhs) {
+    mpz_neg (el(out), el(rhs)); 
+  }
+
+  void FE_ctx_impl::SAbs(FE_t out, FE_t num) {
+    //Function: void
+    mpz_abs (el(out), el(num)); 
+  }
+    
 
 
   //
@@ -530,68 +555,80 @@ public:
     
   }
 
-  
-bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
+  //
+  //
+  bytearray& FE_ctx_impl::Raw (bytearray& out, int& sgn, FE_t x, bool want_LE) {
+    
+    if (!check (x))
+      return out;
 
-  if (!check (x))
+    //  Function: size_t mpz_size (const mpz_t op)
+    //  Return the size of op measured in number of limbs. If op is zero, the returned value will be zero.
+    const size_t sizeOf_limb = sizeof(mp_limb_t);
+    size_t       num_limbs   = mpz_size (el(x));
+    size_t       bufsize     = (num_limbs * sizeOf_limb)+8; // +8 for null char
+    
+    // printf ("sizeOf_limb:%zu\n", sizeOf_limb); 
+    // printf ("num_limbs[%zu] \n", num_limbs); 
+    // printf ("bufsize[%zu] \n", bufsize); 
+    
+    bytearray tmp (bufsize, 0);
+    FILE* memf  = fmemopen (std::data(tmp), tmp.size(), "w"); 
+    
+    if (!memf ) {
+      printf ("fmemopen failed\n"); 
+      return out; 
+    }
+    
+    
+    size_t out_size = mpz_out_raw (memf, el(x));
+    
+    fflush (memf);  
+    fclose (memf);
+    
+    //printf ("out_size[%zu] \n", out_size); 
+      
+    // Output op on stdio stream stream, in raw binary format. The
+    // integer is written in a portable format, with 4 bytes of size
+    // information, and that many bytes of limbs. Both the size and the
+    // limbs are written in decreasing significance order (i.e., in
+    // big-endian).
+    union {
+      int  numbytes;
+      unsigned char _bytes[4]; 
+    };
+    
+    // b/c we x86
+    _bytes[0] = tmp[3];
+    _bytes[1] = tmp[2];
+    _bytes[2] = tmp[1];
+    _bytes[3] = tmp[0];
+    
+    
+    sgn = numbytes; 
+
+    unsigned absnum = std::abs (numbytes); 
+    assert ( (out_size - 4) == absnum);
+    //printf ("[union numbytes : %i] \n", numbytes); 
+    
+    // printf ("out_size:%i\n", out_size);
+    // printf ("[%s]numbytes[%u]\n", __FUNCTION__, numbytes); 
+    
+    out.resize(absnum, 0);
+    
+    std::copy (&tmp[4], &tmp[4+absnum], out.begin ());
+    
+    if (want_LE)  {
+      std::reverse (out.begin(), out.end());
+    }
+    
     return out;
-  // !! +6  
-
-  //Function: size_t mpz_size (const mpz_t op)
-  //  Return the size of op measured in number of limbs. If op is zero, the returned value will be zero.
-  const size_t sizeOf_limb = sizeof(mp_limb_t);
-  size_t       num_limbs   = mpz_size (el(x));
-  size_t       bufsize     = (num_limbs * sizeOf_limb)+8; // +8 for null char
- 
-  bytearray tmp (bufsize, 0);
-  FILE* memf  = fmemopen (std::data(tmp), tmp.size(), "wb+"); 
-  
-  if (!memf ) {
-    printf ("fmemopen failed\n"); 
-    return out; 
-   }
-
-
-  
-
-   //  
-   int out_size = mpz_out_raw (memf, el(x));
-   fflush (memf);  
-   fclose (memf);
-   // Output op on stdio stream stream, in raw binary format. The
-   // integer is written in a portable format, with 4 bytes of size
-   // information, and that many bytes of limbs. Both the size and the
-   // limbs are written in decreasing significance order (i.e., in
-   // big-endian).
-   union {
-     unsigned int  numbytes;
-     unsigned char _bytes[4]; 
-   };
-
-   _bytes[0] = tmp[3];
-   _bytes[1] = tmp[2];
-   _bytes[2] = tmp[1];
-   _bytes[3] = tmp[0];
-   
-
-   // printf ("out_size:%i\n", out_size);
-   // printf ("[%s]numbytes[%u]\n", __FUNCTION__, numbytes); 
-   
-   out.resize(numbytes, 0);
-
-   std::copy (&tmp[4], &tmp[4+numbytes], out.begin ());
-
-   if (want_LE)  {
-     std::reverse (out.begin(), out.end());
-   }
-
-   return out;
   }
-
+  
   //
   //
   FEConRef Create_FE_context (const char* strv, size_t base ) {
-
+    
     FEConRef ret (std::make_shared<FE_ctx_impl>( strv, base )); 
     
     return ret;
@@ -602,8 +639,7 @@ bytearray& FE_ctx_impl::Raw (bytearray& out, FE_t x, bool want_LE) {
   // convert this in to ::Raw ()
   //
 
-unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE )
-{
+unsigned mpz_to_binary (std::vector<unsigned char>& out, mpz_t n, bool out_LE ) {
  
   assert (out.size () > 0);
 

@@ -533,6 +533,21 @@ bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest
   
 }
 
+
+
+
+bool bmx::Init_FE_context (ffm::FEConRef& oFE) { 
+
+  if (oFE)
+    return false;
+  
+  if (oFE = Create_FE_context (ksecp256k1_p_sz))
+    return true; 
+
+  return false; 
+
+}
+
 bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map& pm) {
 
   if (oFE)
@@ -541,14 +556,21 @@ bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map
   if (oEC)
     return false;
   
-  oFE = Create_FE_context (ksecp256k1_p_sz);
-  oEC = Create_EC_context (oFE, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+  //oFE = Create_FE_context (ksecp256k1_p_sz);
+
+  if (Init_FE_context (oFE))  {
   
-  em["G.x"] = oFE->New (ksecp256k1_G_x_sz, 0); 
-  em["G.y"] = oFE->New (ksecp256k1_G_y_sz, 0); 
+    oEC = Create_EC_context (oFE, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+  
+    em["G.x"] = oFE->New (ksecp256k1_G_x_sz, 0); 
+    em["G.y"] = oFE->New (ksecp256k1_G_y_sz, 0); 
 
-  oEC->MakePoint ("G", em["G.x"], em["G.y"]);
+    oEC->MakePoint ("G", em["G.x"], em["G.y"]);
 
-  return (oFE && oEC);
+    return (oFE && oEC);
+  }
+
+  return false; 
 
 }
+

@@ -88,6 +88,7 @@ namespace bmx {
   }; 
   
 
+  bool Init_FE_context    (ffm::FEConRef& ofecon); 
   bool Init_secp256k1_Env (ffm::FEConRef& ofecon, ffm::ECConRef& oeccon, ffm::el::map& em, ffm::pt::map& pm);
   
 

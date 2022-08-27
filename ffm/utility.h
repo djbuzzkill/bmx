@@ -1,12 +1,13 @@
+
 #ifndef FFM_UTILITY_H
 #define FFM_UTILITY_H
+
 
 #include "common.h"
 #include <aframe/shared_types.h>
 
 #define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
 #define PR(s) printf("%s", (s));  
-
 
 namespace ffm
 {

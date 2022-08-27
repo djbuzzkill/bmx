@@ -1,6 +1,8 @@
+
+//
+//
 #ifndef AF_SHARED_TYPES_H
 #define AF_SHARED_TYPES_H
-
 
 
 #include "common.h"

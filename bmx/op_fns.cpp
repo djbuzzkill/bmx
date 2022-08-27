@@ -5,6 +5,7 @@
 #include "secp256k1.h"
 
 #include "aframe/af.h"
+#include "ffm/ffm.h"
 
 
 
@@ -13,131 +14,104 @@ namespace priv_op {
   using namespace ffm;
   using namespace af; 
 
+  //
   //  encode x to put on stack 
-  bytearray& encode_num (bytearray& enc_out,  const bytearray& num_BE) {
-    // num_BE[0]      = most significant
-    // num_BE[size-1] = least significant
+  bytearray& encode_num (bytearray& enc_out,  const std::string& decinum) {
 
-    pt::map  pm;
-    el::map  em;
-    FEConRef F  (nullptr);
-    ECConRef EC (nullptr); 
-
+    //  printf ("[%s:decinum:%s]\n", __FUNCTION__, decinum.c_str()); 
+    
     enc_out.clear ();
 
-    bool all_zeros = std::all_of (num_BE.begin(), num_BE.end(), [](auto c) -> bool { return c==0; }); 
-    if (all_zeros || num_BE.size () == 0) {
+    // only valid strings
+    assert ( !decinum.empty() ); 
+    assert ( decinum != "-0"); 
+    assert ( decinum != "+0"); 
+
+    if (decinum.size() == 1 && decinum[0] == '0') { 
       return enc_out;
     }
 
-    if (!bmx::Init_secp256k1_Env (F, EC, em, pm)) { 
+    FEConRef F  (nullptr);
+
+    if (!bmx::Init_FE_context (F)) { 
+      // wtf some sH#$ happend
       return enc_out; 
     }
 
-    FE_t num = F->New_bin (&num_BE[0], num_BE.size (), false);
-    // if num_BE < 0
-    if (F->Cmp_ui (num, 0) < 0) {
-      // Compare op1 and op2. Return a positive value if op1 > op2, zero
-      // if op1 = op2, or a negative value if op1 < op2.
-      FE_t abs_n = F->New (); 
-      F->Neg (abs_n, num);  //Function: void mpz_neg (mpz_t rop, const mpz_t o)p
 
-      bytearray abs_bin; // now get the bits
-      F->Raw ( abs_bin, abs_n , false );  // false == BE?
+    FE_t num = F->New (decinum.c_str(), 10);
 
-      size_t nbytes = abs_bin.size () ;
-      while (nbytes) {
-	size_t ind = nbytes - 1;
-	enc_out.push_back ( abs_bin[ind] );
-	--nbytes; 
+    const bool true_this_time = true; 
+    bytearray n_raw; 
+    int sign_n = 0;
+    F->Raw (n_raw, sign_n, num , true_this_time);  // false == BE?
+
+    enc_out = n_raw; 
+
+    //printf ("[size(enc_out):%zu|back:%i]\n", enc_out.size(), enc_out.back ()); 
+    if (enc_out.back () & 0x80 ) {
+      if (sign_n < 0) {
+	enc_out.push_back (0x80);
+	//printf ("enc_out.push_back(0x80)\n"); 
+      }
+      else {
+       enc_out.push_back (0x0);
+       //printf ("enc_out.push_back(0x0)\n"); 
       }
 
+    }
+    else if (sign_n < 0) {
+      enc_out.back () |= 0x80; 
+      //printf ("enc_out |= 0x80\n"); 
+    }
 
-      if (enc_out.back () & 0x80) {
-	// if hi bit already on, put another byte
-	enc_out.push_back (0x80);
-        }
-      
-      return enc_out; 
+    return enc_out; 
       
     }
 
-    
-    // num > 0
-    size_t nbytes  = num_BE.size ();
-    while (nbytes) {
-      enc_out.push_back (num_BE[nbytes-1]);
-      --nbytes;
-    }      
-
-    if (enc_out.back () & 0x80) {
-      // if hi bit is on append 0
-      enc_out.push_back (0x00);
-    }
-
-    
-    return enc_out;
-  }
   
   //
   // decode to read thing from stack
-  af::bytearray& decode_num (af::bytearray& dec_out, const af::bytearray& n_enc) {
+  std::string& decode_num (std::string& dec_out, const af::bytearray& n_enc) {
 
-    pt::map  pm;
-    el::map  em;
-
-    FEConRef F  (nullptr);
-    ECConRef EC (nullptr); 
-
-    dec_out.clear ();
-
-    bool all_zeros = std::all_of (n_enc.begin(), n_enc.end(), [] (auto c) -> bool { return (c == 0); }); 
-
-    if (n_enc.size () == 0 || all_zeros) {
+    dec_out = "";
+    
+    if (n_enc.empty ()) {
+      dec_out += '0'; 
       return dec_out;
     }
-
     // def decode_num(element):
     //     if element == b'':
     //         return 0
-
-    if (!bmx::Init_secp256k1_Env (F, EC, em, pm)) { 
+    FEConRef F  (nullptr);
+    if (!bmx::Init_FE_context (F)) { 
       return dec_out; 
     }
 
-    bytearray n_BE = n_enc;
-    std::reverse (n_BE.begin(), n_BE.end ());
-    //     # reverse for big endian
-    //     big_endian = element[::-1]
-    //     # top bit being 1 means it's negative
+    af::bytearray n_BE = n_enc;
 
-
-    FE_t num = F->New_bin (&n_BE[1], n_BE.size() - 1, false);
-
-    if (n_BE[0] & 0x80) {
-      F->Neg (num, num); 
+    // end_byte knows
+    auto end_byte = n_BE.back ();
+    
+    if (end_byte & 0x80) {
+      n_BE.back () =  end_byte & 0x7f;
     }
-    //     if big_endian[0] & 0x80:
-    //         negative = True
-    //         result = big_endian[0] & 0x7f
-    else {
 
+    const bool true_here_too = true; 
+    FE_t num = F->New_bin (&n_BE[0], n_BE.size(), true_here_too);
+    //F->SAdd_ui (num, num,  (end_byte & 0x7f) ); 
+    
+    if (end_byte & 0x80) {
+      F->SNeg (num, num); 
     }
-    //     else:
-    //         negative = False
-    //         result = big_endian[0]
 
-    //     for c in big_endian[1:]:
-    //         result <<= 8
-    //         result += c
-
-
-
-    //     if negative:
-    //         return -result
-    //     else:
-    //         return result
-    return F->Raw (dec_out, num, false); 
+    std::vector<char> msg (256,'\0'); 
+    dec_out = F->Format (&msg[0],  "%Zd", num);
+    //printf ("%s:dec_out:[%s]\n", __FUNCTION__, dec_out.c_str()); 
+    
+    return dec_out; 
+    
+    //return F->Raw (dec_out, num, false); 
   }
 
 }
@@ -149,9 +123,66 @@ using namespace priv_op;
 
 void bmx::test_encode_decode() {
 
-  // encode x to put on stack 
-  //bytearray& encode_num (bytearray& enc_out,  const bytearray& num_BE) {
+  //pt::map  pm;
+  //el::map  em;
+  
+  FEConRef F (nullptr) ;
+  Init_FE_context (F);
 
+  
+  std::array<char, 128> msg;
+  //bmx::Init_secp256k1_Env (F, EC, em, pm);
+  bytearray A, oA, dA; 
+  bytearray B, oB, dB; 
+
+
+  FE_t a = F->New ("-500111233820124660",  0);
+  //FE_t a = F->New ("0x1",  0);
+  std::string hexs =  ""; 
+  int sign_a = 0; 
+
+  F->Raw (A, sign_a, a, false);
+  hex::encode (hexs, &A[0], A.size());
+  printf  ("A1:%s\n", hexs.c_str()); 
+  printf ("hex val: %s\n", F->Format (&msg[0], "%Zx", a)); 
+  printf ("dec val: %s\n", F->Format (&msg[0], "%Zd", a)); 
+  
+  
+  // for (int i = 0; i < 1024; ++i) 
+  //   F->SSub_ui (a, a, 255);
+
+  F->SNeg (a, a); 
+  //printf ("-hexadec: %s\n", F->Format (&msg[0], "%Zx", a)); 
+  //printf ("-decinte: %s\n", F->Format (&msg[0], "%Zd", a)); 
+
+  F->Raw (A, a, false);
+  hex::encode (hexs, &A[0], A.size());
+  printf  ("A2:%s\n", hexs.c_str()); 
+
+  printf ("hex val: %s\n", F->Format (&msg[0], "%Zx", a)); 
+  printf ("dec val: %s\n", F->Format (&msg[0], "%Zd", a)); 
+  
+  //  encode x to put on stack
+  // encode_num (oA,  A);
+  // hex::encode (hexs, &oA[0], oA.size());  
+  // printf  ("oA:%s\n", hexs.c_str()); 
+
+  // decode_num (dA, oA);
+  // hex::encode (hexs, &dA[0], dA.size()); 
+  // printf  ("dA:%s\n", hexs.c_str()); 
+
+  //FE_t b = F->New ("-21703", 10); 
+  encode_num (oB,  "-1");
+
+
+  std::string sB; 
+  decode_num (sB, oB); 
+  
+  // decode_num (dB, oB);
+
+
+
+  
   // decode to read thing from stack
   //af::bytearray& decode_num (af::bytearray& dec_out, const af::bytearray& n_enc) {
   
@@ -164,11 +195,8 @@ void bmx::test_encode_decode() {
 int bmx::proc_OP_0 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
   script_stack&       s    = env.stack; 
-  script_stack&       alt  = env.alts;
-  const command_list& cmds = env.cmds; 
-
-  
-  s.push (af::bytearray(1,0)); 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "0")); 
   return 0;
 }
 
@@ -176,6 +204,9 @@ int bmx::proc_OP_0 (script_env& env) {
 //
 int bmx::proc_OP_1NEGATE(script_env &env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack&       s    = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "-1")); 
   return 0;
 }
 
@@ -184,84 +215,123 @@ int bmx::proc_OP_1NEGATE(script_env &env) {
 int bmx::proc_OP_1 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
   script_stack&       s    = env.stack; 
-  script_stack&       alt  = env.alts;
-  const command_list& cmds = env.cmds; 
-
-  s.push (af::bytearray (1, 1)); 
-
-	  return 0;
+  bytearray tmp; 
+  s.push (encode_num(tmp, "1"));
+  return 0;
   }
-
 
 //
 //
 int bmx::proc_OP_2 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "2")); 
   return 0;
 }
 
 int bmx::proc_OP_3 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "3")); 
   return 0;
 }
 
 int bmx::proc_OP_4 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "4")); 
   return 0;
 }
 
 int bmx::proc_OP_5 (script_env& env) {
-  printf ( "I am  %s.\n" , __FUNCTION__);
+  //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp;
+  s.push (encode_num(tmp, "5")); 
   return 0;
 }
 
 int bmx::proc_OP_6 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "6")); 
   return 0;
 }
 
 int bmx::proc_OP_7 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "7")); 
   return 0;
 }
 
 int bmx::proc_OP_8 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "8")); 
   return 0;
 }
 
 int bmx::proc_OP_9 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "9")); 
   return 0;
 }
 
 int bmx::proc_OP_10 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "10")); 
   return 0;
 }
 
 int bmx::proc_OP_11 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "11")); 
   return 0;
 }
 
 int bmx::proc_OP_12 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "12")); 
   return 0;
 }
 
 int bmx::proc_OP_13 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "13")); 
   return 0;
 }
 
 int bmx::proc_OP_14 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "14")); 
   return 0;
 }
 
 int bmx::proc_OP_15 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
+  script_stack& s = env.stack; 
+
+  bytearray tmp; 
+  s.push (encode_num(tmp, "15")); 
   return 0;
 }
 
@@ -269,10 +339,9 @@ int bmx::proc_OP_15 (script_env& env) {
 //
 int bmx::proc_OP_16 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__); 
-  script_stack&       s    = env.stack; 
-  script_stack&       alt  = env.alts;
-  const command_list& cmds = env.cmds; 
-
+  script_stack& s = env.stack; 
+  bytearray tmp; 
+  s.push (encode_num(tmp, "16")); 
   return 0;
 }
 
@@ -282,12 +351,13 @@ int bmx::proc_OP_16 (script_env& env) {
 //
 int bmx::proc_OP_NOP (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__); 
+
   script_stack&       s    = env.stack; 
   script_stack&       alt  = env.alts;
   const command_list& cmds = env.cmds; 
 
-   return 0;
- }          
+  return 0;
+}          
 
 
 int bmx::proc_OP_IF (script_env& env) { printf ( "I am  %s.\n" , __FUNCTION__); return 0; }
