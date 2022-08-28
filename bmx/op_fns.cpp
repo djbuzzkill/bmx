@@ -114,6 +114,65 @@ namespace priv_op {
     //return F->Raw (dec_out, num, false); 
   }
 
+  bytearray& encode_num (bytearray& enc_out, FE_t num, FEConRef F) ;
+  FE_t       decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) ;
+  
+  bytearray& encode_num (bytearray& enc_out, FE_t num, FEConRef F) {
+
+    //  printf ("[%s:decinum:%s]\n", __FUNCTION__, decinum.c_str()); 
+    enc_out.clear ();
+    // only valid strings
+
+    const bool true_here = true; 
+    int        sign_n = 0;
+    bytearray  n_raw; 
+
+    F->Raw (n_raw, sign_n, num , true_here);  // false == BE?
+    enc_out = n_raw; 
+    //printf ("[size(enc_out):%zu|back:%i]\n", enc_out.size(), enc_out.back ()); 
+    if (enc_out.back () & 0x80 ) {
+      if (sign_n < 0) {
+	enc_out.push_back (0x80); // printf ("enc_out.push_back(0x80)\n"); 
+      }
+      else {
+       enc_out.push_back (0x0); // printf ("enc_out.push_back(0x0)\n"); 
+      }
+    }
+    else if (sign_n < 0) {
+      enc_out.back () |= 0x80; // printf ("enc_out |= 0x80\n"); 
+    }
+    return enc_out; 
+  }
+
+  //std::string& decode_num (std::string& dec_out, const af::bytearray& n_enc) {
+  FE_t decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) {
+
+    if (n_enc.empty ()) {
+      F->Set_ui (num, 0); 
+      return num;
+    }
+    
+    af::bytearray n_BE = n_enc;
+
+    // end_byte knows
+    auto end_byte = n_BE.back ();
+    
+    if (end_byte & 0x80) {
+      n_BE.back () = end_byte & 0x7f;
+    }
+
+    const bool true_here_too = true; 
+    F->Set_bin (num, &n_BE[0], n_BE.size(), true_here_too);
+    
+    if (end_byte & 0x80) {
+      F->SNeg (num, num); 
+    }
+
+    //std::vector<char> msg (256,'\0'); 
+    //printf ("%s:dec_out:[%s]\n", __FUNCTION__, F->Format (&msg[0], "%Zd", num)); 
+    return num; 
+  }
+
 }
 
 
@@ -128,40 +187,44 @@ void bmx::test_encode_decode() {
   
   FEConRef F (nullptr) ;
   Init_FE_context (F);
-
+  ScopeDeleter dr (F);
   
   std::array<char, 128> msg;
   //bmx::Init_secp256k1_Env (F, EC, em, pm);
-  bytearray A, oA, dA; 
-  bytearray B, oB, dB; 
+  bytearray A, oA, dA, rawA; 
+  bytearray B, oB, dB, rawB; 
 
-
-  FE_t a = F->New ("-500111233820124660",  0);
+  FE_t a = dr(F->New ("-8911237",  0));
+  F->Print ("a", a); 
   //FE_t a = F->New ("0x1",  0);
   std::string hexs =  ""; 
   int sign_a = 0; 
 
-  F->Raw (A, sign_a, a, false);
-  hex::encode (hexs, &A[0], A.size());
-  printf  ("A1:%s\n", hexs.c_str()); 
-  printf ("hex val: %s\n", F->Format (&msg[0], "%Zx", a)); 
-  printf ("dec val: %s\n", F->Format (&msg[0], "%Zd", a)); 
+  F->Raw (rawA, sign_a, a, false);
+  hex::encode (hexs, &rawA[0], rawA.size());
+  printf  ("(rawA, %i):%s\n", sign_a, hexs.c_str()); 
   
-  
-  // for (int i = 0; i < 1024; ++i) 
-  //   F->SSub_ui (a, a, 255);
 
-  F->SNeg (a, a); 
+  encode_num (oA, a, F); 
+  hex::encode (hexs, &oA[0], oA.size());
+  printf  ("hex(oA,l:%zu):%s\n", oA.size(), hexs.c_str()); 
+
+
+  FE_t decA = dr(F->New_ui(0));
+  int sgn_dA = 0;
+  decode_num (decA, F,  oA); 
+  F->Print ("decA", decA);
+  F->Raw (dA, sgn_dA, decA, false); 
+  hex::encode (hexs, &dA[0], dA.size());
+  printf  ("hex(dA s:%i):%s\n", sgn_dA, hexs.c_str()); 
+
+
+  //F->SNeg (a, a); 
   //printf ("-hexadec: %s\n", F->Format (&msg[0], "%Zx", a)); 
   //printf ("-decinte: %s\n", F->Format (&msg[0], "%Zd", a)); 
 
-  F->Raw (A, a, false);
-  hex::encode (hexs, &A[0], A.size());
-  printf  ("A2:%s\n", hexs.c_str()); 
 
-  printf ("hex val: %s\n", F->Format (&msg[0], "%Zx", a)); 
-  printf ("dec val: %s\n", F->Format (&msg[0], "%Zd", a)); 
-  
+
   //  encode x to put on stack
   // encode_num (oA,  A);
   // hex::encode (hexs, &oA[0], oA.size());  
@@ -172,12 +235,16 @@ void bmx::test_encode_decode() {
   // printf  ("dA:%s\n", hexs.c_str()); 
 
   //FE_t b = F->New ("-21703", 10); 
-  encode_num (oB,  "-1");
 
-
-  std::string sB; 
-  decode_num (sB, oB); 
+  //bytearray& encode_num (bytearray& enc_out, FE_t num, FEConRef F) ;
   
+  encode_num (oB, F->New_si(-1), F);
+
+  //FE_t decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) ;
+  FE_t decB = F->New_ui(0);
+  decode_num (decB, F, oB); 
+
+  F->Print ("decB", decB); 
   // decode_num (dB, oB);
 
 
@@ -194,9 +261,12 @@ void bmx::test_encode_decode() {
 //
 int bmx::proc_OP_0 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
-  script_stack&       s    = env.stack; 
-  bytearray tmp; 
-  s.push (encode_num(tmp, "0")); 
+  script_stack& s = env.stack; 
+  bytearray tmp;
+
+  FEConRef F (nullptr);
+  Init_FE_context (F); 
+  s.push (encode_num(tmp, F->New_ui (0), F)); 
   return 0;
 }
 
@@ -204,9 +274,11 @@ int bmx::proc_OP_0 (script_env& env) {
 //
 int bmx::proc_OP_1NEGATE(script_env &env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
-  script_stack&       s    = env.stack; 
+  script_stack& s = env.stack; 
   bytearray tmp; 
-  s.push (encode_num(tmp, "-1")); 
+  FEConRef F (nullptr);
+  Init_FE_context (F); 
+  s.push (encode_num(tmp, F->New_si (-1), F)); 
   return 0;
 }
 
@@ -214,9 +286,11 @@ int bmx::proc_OP_1NEGATE(script_env &env) {
 //
 int bmx::proc_OP_1 (script_env& env) {
   //printf ( "I am  %s.\n" , __FUNCTION__);
-  script_stack&       s    = env.stack; 
+  script_stack& s = env.stack; 
   bytearray tmp; 
-  s.push (encode_num(tmp, "1"));
+  FEConRef F (nullptr);
+  Init_FE_context (F); 
+  s.push (encode_num(tmp, F->New_ui(1), F));
   return 0;
   }
 
@@ -471,8 +545,40 @@ int bmx::proc_OP_CHECKSIG (script_env& env) {
 
   script_stack&       s    = env.stack; 
   script_stack&       alt  = env.alts;
-  const command_list& cmds = env.cmds; 
+  const command_list& cmds = env.cmds;
 
+  if (s.size () < 2)
+    return false; 
+
+  //size_t ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
+
+  const bytearray&  pubkey_bin = s.top ();
+  s.pop ();
+  
+  bytearray& sig_bin    = s.top (); 
+  sig_bin.pop_back (); 
+  s.pop ();
+  
+  env.z;
+  bmx::PublicKey P; 
+  size_t readlen = ReadPoint (P, CreateReadMemStream (&pubkey_bin[0], pubkey_bin.size()));
+  assert (pubkey_bin.size() == readlen); 
+		 
+  // def op_checksig(stack, z):
+  //     if len(stack) < 2:
+  //         return False
+  //     sec_pubkey = stack.pop()
+  //     der_signature = stack.pop()[:-1]
+  //     try:
+  //         point = S256Point.parse(sec_pubkey)
+  //         sig = Signature.parse(der_signature)
+  //     except (ValueError, SyntaxError) as e:
+  //         return False
+  //     if point.verify(z, sig):
+  //         stack.append(encode_num(1))
+  //     else:
+  //         stack.append(encode_num(0))
+  //     return True
 
   return 0;
 

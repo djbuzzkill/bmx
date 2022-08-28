@@ -55,8 +55,13 @@ public:
     void Div_ui (FE_t, FE_t, size_t); 
     void DivMod (FE_t, FE_t, FE_t, FE_t);
 
+    void FDiv    (FE_t out, FE_t num, FE_t den); 
+    void FDiv_ui (FE_t out, FE_t num, size_t den); 
+    //     KFunction: unsigned long int mpz_fdiv_q_ui (mpz_t q, const mpz_t n, unsigned long int d)
+
+    void Sqrt (FE_t out, FE_t n); 
+  
     size_t DivMod_ui (FE_t q, FE_t r, FE_t n, size_t d);
-    
 
     void SAdd (FE_t out, FE_t lhs, FE_t rhs);
     void SMul (FE_t out, FE_t lhs, FE_t rhs); 
@@ -112,7 +117,7 @@ public:
     
   public: 
     // size_t num_field_bits;
-    FE_t Fp; 
+    FE_t Fp;
     FE_t Fp_minus_one;
     FE_t Fp_minus_two; 
     mpz_map elems; 
@@ -407,18 +412,39 @@ public:
 
   //
   void FE_ctx_impl::DivMod (FE_t q, FE_t r, FE_t num, FE_t den) {
-
-    // Function:
     // void mpz_fdiv_qr (mpz_t q, mpz_t r, const mpz_t n, const mpz_t d)
     mpz_fdiv_qr (el(q), el(r), el(num), el(den));  
 
   }
   size_t FE_ctx_impl::DivMod_ui (FE_t q, FE_t r, FE_t num, size_t den) {
-
-    // Function:
     // unsigned long int mpz_fdiv_qr_ui (mpz_t q, mpz_t r, const mpz_t n, unsigned long int d)
     return mpz_fdiv_qr_ui (el(q), el(r), el(num), den);  
   }
+
+  void FE_ctx_impl::FDiv (FE_t out, FE_t num, FE_t den) {
+    mpz_fdiv_q (el(out), el(num), el(den)); 
+    //     KFunction: unsigned long int mpz_fdiv_q_ui (mpz_t q, const mpz_t n, unsigned long int d)
+  }
+
+  void FE_ctx_impl::FDiv_ui (FE_t out, FE_t num, size_t den) {
+    mpz_fdiv_q_ui (el (out), el(num), den); 
+  }
+
+
+  void FE_ctx_impl::Sqrt (FE_t out, FE_t n) {
+
+    ScopeDeleter dr (shared_from_this());
+
+    FE_t Fp_plus_one = dr (New());
+    FE_t p0          = dr (New());
+    
+    mpz_add_ui (el(Fp_plus_one), el(Fp), 1); 
+    mpz_fdiv_q_ui (el (p0), el(Fp_plus_one), 4);
+    powM (el(out), el(n), el(p0), el(Fp)); 
+    // def sqrt(self):
+    //     return self**((P + 1) // 4)
+  }
+
 
   // void FE_ctx_impl::Inv (FE_t out, FE_t x)
   // {

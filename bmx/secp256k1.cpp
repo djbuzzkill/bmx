@@ -84,7 +84,27 @@ bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
 size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
   
     size_t readlen = 0;
-    
+    // def parse(self, sec_bin):
+    //     '''returns a Point object from a SEC binary (not hex)'''
+    //     if sec_bin[0] == 4:
+    //         x = int.from_bytes(sec_bin[1:33], 'big')
+    //         y = int.from_bytes(sec_bin[33:65], 'big')
+    //         return S256Point(x=x, y=y)
+    //     is_even = sec_bin[0] == 2
+    //     x = S256Field(int.from_bytes(sec_bin[1:], 'big'))
+    //     # right side of the equation y^2 = x^3 + 7
+    //     alpha = x**3 + S256Field(B)
+    //     # solve for left side
+    //     beta = alpha.sqrt()
+    //     if beta.num % 2 == 0:
+    //         even_beta = beta
+    //         odd_beta = S256Field(P - beta.num)
+    //     else:
+    //         even_beta = S256Field(P - beta.num)
+    //         odd_beta = beta
+    //         return S256Point(x, even_beta)
+    //     else:
+    //         return S256Point(x, odd_beta)
     
     // read first byte
     unsigned char pref = 0;
@@ -92,19 +112,59 @@ size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
     
     if (pref == 4) {
       // both coord 
-	readlen += read_byte32 (out.x, rs);
+      readlen += read_byte32 (out.x, rs);
       readlen += read_byte32 (out.y, rs);
       return readlen; 
     }
     else { // just the x coord
-      //
-      
+
+      bool y_even = (pref == 2);
+
+      FEConRef F (nullptr); 
+      Init_FE_context (F); 
+      ScopeDeleter dr (F); 
+
       readlen += read_byte32 (out.x, rs);
+
+      FE_t Px    = dr (F->New_bin (&out.x[0], out.x.size(), false)); 
+      FE_t xxx   = dr (F->New()); // x^3
+      FE_t rhs   = dr (F->New()); 
+      FE_t alpha = dr (F->New()); 
+      FE_t beta  = dr (F->New()); 
+
+      //FE_t coeff_b = dr (F->New_ui(7);
+
+      // y^2 = X^3 + 7
+      F->Pow_ui (xxx, Px, 3);
+      F->Add    (rhs, xxx, dr (F->New_ui(7))); 
+      F->Sqrt   (beta, rhs);
+      //
+      FE_t even_beta = fe_null;
+      FE_t odd_beta  = fe_null;
+     //beta % 2
+      bool beta_even = (0 == F->TestBit (beta, 0))? true : false;
       
-      CODE_ME();
-      // wat abt y
-      
-      return readlen;
+      if (beta_even) {
+	even_beta = beta;
+
+	odd_beta = dr(F->New ());
+	F->Sub (odd_beta, F->p(), beta); 
+      }
+      else {
+	even_beta = dr(F->New());  
+	F->Sub (even_beta, F->p(), beta); 
+	odd_beta = beta;   
+      }
+      //
+      bytearray rawtmp; 
+      if (y_even) {
+	//out.y = even_beta;
+	copy_BE (out.y, F->Raw (rawtmp, even_beta, false)); 
+      }
+      else {
+	//out.y = odd_beta; 
+	copy_BE (out.y, F->Raw (rawtmp, odd_beta, false)); 
+      }
     }
     
     return readlen;

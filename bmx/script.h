@@ -1,8 +1,8 @@
 
 //
 //
-#ifndef CURV_SCRIPT_H
-#define CURV_SCRIPT_H
+#ifndef BMX_SCRIPT_H
+#define BMX_SCRIPT_H
 
 
 #include "common.h"
@@ -23,7 +23,7 @@ namespace bmx {
   size_t WriteScript (af::WriteStreamRef ws, const command_list& out); 
 
   //
-  int EvalScript (const command_list& commands);
+  bool EvalScript (const command_list& commands, const af::digest32& z);
 
   // 
   

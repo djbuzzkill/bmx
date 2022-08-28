@@ -9,6 +9,7 @@ set (BMX_SOURCES
   script_write.cpp
   script_read.cpp
   script_eval.cpp
+  script_types.cpp
   secp256k1.cpp
   transaction.cpp
   utility.cpp
@@ -19,6 +20,7 @@ set (BMX_HEADERS
   opcode.h
   op_fns.h
   script.h
+  script_types.h
   secp256k1.h
   transaction.h
   utility.h

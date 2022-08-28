@@ -58,7 +58,7 @@ std::string hex::from_uc (unsigned char c) {
     //  hex digit 'XX' into u8
 unsigned char af::hex::to_uc (const std::string& chars) {
   
-  std::map<char, unsigned char> hex_enc = {
+  static std::map<char, unsigned char> hex_enc = {
     {'0', 0 },
     {'1', 1 }, 
     {'2', 2 },

@@ -98,7 +98,7 @@ namespace bmx {
     OP_HASH256             = 170, // 0xaa
     //__unused_0xab        = 
     OP_CHECKSIG            = 172, // 0xac 
-    OP_CHECKSIGVERIFY      = 173, // 9xad 
+    OP_CHECKSIGVERIFY      = 173, // 0xad 
     OP_CHECKMULTISIG       = 174, // 0xae 
     OP_CHECKMULTISIGVERIFY = 175, // 0xaf 
     OP_NOP_0xb0            = 176, // 0xb0 

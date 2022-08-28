@@ -118,7 +118,7 @@ namespace priveval {
   //
   typedef std::map<bmx::OpCode, std::string>  OpNameMap;
   //
-  OpNameMap op_name = {
+  static OpNameMap op_name = {
     { OP_0                   , "OP_0"                   },  
     { OP_1NEGATE             , "OP_1NEGATE"             },  
     { OP_1                   , "OP_1"                   },  
@@ -210,66 +210,71 @@ namespace priveval {
 
 //
 //
-int bmx::EvalScript (const command_list& commands) {
+bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
 
   using namespace priveval;
     
-  
-  //
   //
   script_env env;
+  env.z    = z; 
   env.cmds = commands;
-  
-  command_list cmds = commands; 
-  
-  while  (cmds.size ()) {
 
-    const script_command& cmd = std::move (cmds.front ()); 
-    cmds.pop_front ();
+  printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
+  
+  while  (env.cmds.size ()) {
 
-    switch (Ty (cmd)) {
+    script_command& cmd = env.cmds.front (); 
+    env.cmds.pop_front ();
+
+    switch (ty (cmd)) {
+
     // SC_operation 
     case command_type::SC_operation:
-
-
-      if (op_map.count (Op(cmd))) {
-
-	int op_res = op_map[Op(cmd)] (env);
+      if (op_map.count (op(cmd))) {
+	//assert (cmd.bin.size () == 1); 
+	//printf ("Op val : %x\n", op(cmd));
+	//printf ("cmd.bin[0]:%i\n", cmd.bin[0] ); 
+	//printf ("operation :%s\n", op_name[op(cmd)].c_str());
+	if ( !op_map[op(cmd)] (env) ) {
+	  // wtf
+	  return false;
+	}
 
       }
       else {
-
-	return __LINE__; 
+	return false; //  __LINE__; 
 	// op not found 
       }
       break;
       
     // SC_element:
     case command_type::SC_element:
+      //printf ("element: push [%zu] \n", arr(cmd).size());
       env.stack.push (arr(cmd));
-
       break;
-  
-    // SC_uninitialized
+
+      // SC_uninitialized
     default:
       // wtf 
-      return __LINE__;
+	return false; ////  __LINE__;
       break;
+
     }
 
-    
-    if (env.stack.empty ()) {
-      return __LINE__;
-      // fail
-    }
-    if (env.stack.top().size () == 0) {
-      return __LINE__; 
-      // empty string
-    }
-    
-  } // for 
 
- return 0; 
+  } // while 
+
+
+  if (env.stack.empty ()) {
+    return false; //  __LINE__;
+   // fail
+  }
+  if (env.stack.top().size () == 0) {
+    return false; //  __LINE__; 
+    // empty string
+  }
+
+  return true; 
 }
 
   

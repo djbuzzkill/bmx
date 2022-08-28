@@ -8,13 +8,12 @@
 
 namespace ffm
 {
-  struct FE_context;
-
-  typedef std::shared_ptr<FE_context> FEConRef;  
   typedef int FE_t;
-  typedef FEConRef FEConPtr;  
+  const FE_t fe_null  = 0;
 
-
+  struct FE_context;
+  typedef std::shared_ptr<FE_context> FEConRef;  
+  //typedef FEConRef FEConPtr;  
   typedef af::bytearray bytearray; 
 
   //
@@ -29,8 +28,9 @@ namespace ffm
     // scalar math done here 
  public:
     
-    virtual void Print (const char* msg, FE_t x) = 0; 
+    virtual void  Print  (const char* msg, FE_t x) = 0; 
     virtual char* Format (char* out, const char* fmt, FE_t x) = 0; 
+    inline char*  fmt    (char* out, const char* fmt, FE_t x) { return Format (out, fmt, x); } 
 
     virtual bool IsValid (FE_t) = 0; 
     // get new element
@@ -100,6 +100,13 @@ namespace ffm
 
     virtual void   DivMod    (FE_t outq, FE_t outr, FE_t num, FE_t den) = 0; 
     virtual size_t DivMod_ui (FE_t q, FE_t r, FE_t n, size_t d) = 0; 
+
+
+    virtual void FDiv    (FE_t out, FE_t num, FE_t den) = 0; 
+    virtual void FDiv_ui (FE_t out, FE_t num, size_t den) = 0; 
+
+    virtual void Sqrt    (FE_t out, FE_t n) = 0; 
+  
     
   protected:
 
@@ -129,9 +136,8 @@ namespace ffm
         else       while (size()) {F->Del(back()); pop_back();} 
      }
 
-     
      bool naked;  
-     FEConPtr F;
+     FEConRef F;
      FE_context* ptr; 
      //~ScopeDeleter () {while (size()) { printf("deleting[%i]\n", back()); F->Del(back()); pop_back (); }}
   };

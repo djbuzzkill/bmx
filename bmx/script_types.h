@@ -28,10 +28,15 @@ namespace bmx {
 
   }; 
 
+  script_command script_element   (const af::bytearray& b);
+  script_command script_operation (unsigned char op); 
+    
+    
+     
   // convenience
-  inline command_type         Ty  (const script_command& sc) { return sc.typ; }
+  inline command_type         ty  (const script_command& sc) { return sc.typ; }
   inline const af::bytearray& arr (const script_command& sc) { return sc.bin; }
-  inline OpCode               Op  (const script_command& sc) { return OpCode(sc.bin[0]); }
+  inline OpCode               op  (const script_command& sc) { return OpCode(sc.bin[0]); }
   //
   //
   typedef std::list<script_command> command_list; 
@@ -47,6 +52,7 @@ namespace bmx {
     command_list cmds;  // current command stack
     script_stack stack; // main stack  
     script_stack alts;  // alt stack 
+    af::digest32 z;
   }; 
 
   //

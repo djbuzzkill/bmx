@@ -13,7 +13,7 @@ namespace ffm {
     // 
   public:
     
-    EC_con_imp2 (FEConPtr fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char*, size_t base);
+    EC_con_imp2 (FEConRef fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char*, size_t base);
     ~EC_con_imp2 ();  
     // s * P , 
     bool AddPoint (const std::string& out, const std::string& lhs, const std::string& rhs);
@@ -123,7 +123,7 @@ namespace ffm {
    //    typedef std::map<std::string, elem_tuple> PointMap;
     //typedef std::map<std::string, elem_tuple> CurveMap;
     //typedef std::map<std::string, FE_t> ElementMap; 
-    FEConPtr F;
+    FEConRef F;
     
     pt::map&  pointmap;
 
@@ -137,15 +137,15 @@ namespace ffm {
 
 
   // 
-  ECConRef Create_EC_context (FEConPtr F, el::map&  em, pt::map& pm, const char* astr, const char* bstr, const char* order, size_t base) {
+  ECConRef Create_EC_context (FEConRef F, el::map&  em, pt::map& pm, const char* astr, const char* bstr, const char* order, size_t base) {
 
     ECConRef ret (std::make_shared<EC_con_imp2> (F, em, pm, astr, bstr, order, base));
 
    return ret; 
   }
 
-  // EC_con_impl (FEConPtr F, const char*, const char*, size_t); 
-  EC_con_imp2::EC_con_imp2 (FEConPtr fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char* n_sz, size_t base)
+  // EC_con_impl (FEConRef F, const char*, const char*, size_t); 
+  EC_con_imp2::EC_con_imp2 (FEConRef fc, el::map& em, pt::map& pm, const char* astr, const char* bstr, const char* n_sz, size_t base)
       : F(fc)
       , elmap (em)
       , pointmap(pm) {
