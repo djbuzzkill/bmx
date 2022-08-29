@@ -496,6 +496,138 @@ int CH4_Ex (std::vector<std::string>& args) {
 }
 
 
+
+
+void print_pk_hex (const std::string& lbl, const bmx::Point& p){
+
+  std::string xstr, ystr; 
+
+  af::hex::encode (xstr, &p.x[0], p.x.size()); 
+  af::hex::encode (ystr, &p.y[0], p.y.size()); 
+
+  printf (" %s {x:%s, y:%s}\n", lbl.c_str(), xstr.c_str(),  ystr.c_str()); 
+  
+}
+
+void print_pk_hex (const bmx::Point& p){
+  std::string lbl = "Point"; 
+  print_pk_hex (lbl, p);
+}
+
+int test_read_SEC_bin (std::vector<std::string>& args) {
+
+  printf ("%s:ENTER\n", __FUNCTION__); 
+
+  using namespace af;
+  using namespace ffm; 
+  using namespace bmx; 
+  
+  FFM_Env env; 
+  Init_secp256k1_Env (env);
+
+  FEConRef const&  F  = env.F;
+  ECConRef const&  EC = env.EC;
+
+  ScopeDeleter dr(F);
+  // * 5,001
+  // * 2,019^5^
+  // * 0xdeadbeef54321
+
+  std::array<unsigned char, 256> writebuf; 
+  WriteStreamRef ws = CreateWriteMemStream (std::data(writebuf), writebuf.size()); 
+
+  bytearray arrtmp; 
+
+    
+  // #1. intialize 'e'
+  PrivateKey privk1;
+  Point P1; 
+  FE_t e1 = dr (F->New_ui (5001));
+  F->Raw (arrtmp, e1, false);
+  copy_BE (privk1, arrtmp);
+    
+  // make the point
+  MakePublicKey (P1, privk1); 
+  // write it
+  size_t len_SEC_P1 = WritePoint (ws, P1, true); 
+  printf ("len_SEC_P1: %zu\n", len_SEC_P1); 
+  print_pk_hex ("P1", P1); 
+
+
+  // print back out as hex
+  std::string hex1;
+  hex::encode (hex1, std::data(writebuf), ws->GetPos ());
+  printf ( "hexstr1[%zu]: %s\n " , hex1.size(), hex1.c_str());
+
+  Point R1;
+  ReadPoint (R1, CreateReadMemStream (&writebuf[0], len_SEC_P1)); 
+  print_pk_hex ("R1", R1); 
+  //0357a4f368868a8a6d572991e484e664810ff14c05c0fa023275251151fe0e53d1
+
+
+    
+  // 2019**5
+  ws->SetPos (0, byte_stream::SeekMode::Abs); 
+  fixnum32 privk2;
+  Point P2; 
+  FE_t e2 = dr(F->New_ui (2019));
+  F->Pow_ui (e2, e2, 5); 
+  F->Raw (arrtmp, e2, false);
+  copy_BE (privk2, arrtmp);
+  // make the point
+  MakePublicKey (P2, privk2);
+  print_pk_hex ("P2", P2); 
+
+  
+  // write it
+  size_t len_SEC_P2 =  WritePoint (ws, P2, true); 
+  printf ("len_SEC_P2: %zu\n", len_SEC_P2); 
+  // print back out as hex
+  std::string hex2;
+  hex::encode (hex2, std::data(writebuf), ws->GetPos ());
+  printf ( "hexstr2[%zu]: %s\n " , hex2.size(), hex2.c_str());
+  // 02933ec2d2b111b92737ec12f1c5d20f3233a0ad21cd8b36d0bca7a0cfa5cb8701
+  
+  Point R2;
+  ReadPoint (R2, CreateReadMemStream (std::data(writebuf), writebuf.size()));
+  print_pk_hex ("R2", R2); 
+
+  
+  // 0xdeadbeef54321
+  ws->SetPos (0, byte_stream::SeekMode::Abs); 
+  fixnum32 privk3;
+  Point P3; 
+  FE_t e3 = dr(F->New ("0xdeadbeef54321", 0 ));
+
+  F->Raw (arrtmp, e3, false);
+  copy_BE (privk3, arrtmp);
+    
+    // make the point
+  MakePublicKey (P3, privk3);
+  print_pk_hex ("P3", P3); 
+
+  // write it
+  size_t len_SEC_P3 = WritePoint (ws, P3, true); 
+  printf ("len_SEC_P1: %zu\n", len_SEC_P3);
+  
+  // print back out as hex
+  std::string hex3;
+  hex::encode (hex3, std::data(writebuf), ws->GetPos ());
+  printf ( "hexstr3[%zu]: %s\n " , hex3.size(), hex3.c_str());
+  
+  
+  Point R3;
+  ReadPoint (R3, CreateReadMemStream (&writebuf[0], writebuf.size()));
+  print_pk_hex ("R3", R3); 
+  // 0296be5b1292f6c856b3c5654e886fc13511462059089cdf9c479623bfcbe77690
+
+    
+  printf ("%s:EXIT\n", __FUNCTION__); 
+  
+  return 0; 
+}      
+
+
 int Test_CryptoPP(const std::vector<std::string>& args)
 {
   printf ("%s[...]\n", __FUNCTION__); 
@@ -519,7 +651,7 @@ int Test_CryptoPP(const std::vector<std::string>& args)
 
 
 
-void SEC256k1_test ()
+oid SEC256k1_test ()
 {
 
 

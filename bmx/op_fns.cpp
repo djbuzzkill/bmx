@@ -546,24 +546,49 @@ int bmx::proc_OP_CHECKSIG (script_env& env) {
   script_stack&       s    = env.stack; 
   script_stack&       alt  = env.alts;
   const command_list& cmds = env.cmds;
-
+  const digest32&     z    = env.z;
+  
   if (s.size () < 2)
     return false; 
 
   //size_t ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
+  std::string sigstr ; 
 
-  const bytearray&  pubkey_bin = s.top ();
+  const bytearray  pubkey_bin = s.top ();
   s.pop ();
   
-  bytearray& sig_bin    = s.top (); 
-  sig_bin.pop_back (); 
+  const bytearray sig_bin    = s.top (); 
+
+  // hex::encode (sigstr, &sig_bin[0], sig_bin.size()); 
+  // printf ("B4%s\n", sigstr.c_str()); 
+
+  //   hex::encode (sigstr, &sig_bin[0], sig_bin.size()); 
+  //   printf ("4F%s\n", sigstr.c_str()); 
   s.pop ();
+
   
-  env.z;
-  bmx::PublicKey P; 
-  size_t readlen = ReadPoint (P, CreateReadMemStream (&pubkey_bin[0], pubkey_bin.size()));
+  PublicKey pubkey; 
+  size_t readlen = ReadPoint (pubkey, CreateReadMemStream (&pubkey_bin[0], pubkey_bin.size()));
   assert (pubkey_bin.size() == readlen); 
-		 
+
+  Signature sig;
+  size_t sig_size = sig_bin.size () - 1; 
+  size_t read_len_sig = ReadSignature_DER (sig, sig_size , CreateReadMemStream (&sig_bin[0], sig_size)); 
+  assert (read_len_sig == sig_size); 
+
+  bytearray tmp;
+  FEConRef F (nullptr);
+  Init_FE_context (F); 
+  if (bmx::VerifySignature  (sig, pubkey, z)) {
+    printf ( "sig good ..[%s]\n" , __FUNCTION__); 
+
+    s.push (encode_num (tmp, F->New_si(1), F));
+  }
+  else {
+    printf ( "sig bad ..[%s]\n" , __FUNCTION__); 
+    s.push(encode_num (tmp, F->New_si(0), F)); 
+  }
+
   // def op_checksig(stack, z):
   //     if len(stack) < 2:
   //         return False
@@ -579,8 +604,8 @@ int bmx::proc_OP_CHECKSIG (script_env& env) {
   //     else:
   //         stack.append(encode_num(0))
   //     return True
-
-  return 0;
+  printf ( "Exiting..[%s]\n" , __FUNCTION__); 
+  return true;
 
 }
 

@@ -80,7 +80,7 @@ namespace af {
   //
   inline size_t write_byte32 (WriteStreamRef ws, const byte32& src) {
 
-    return ws->Write ( std::data(src), sizeof(byte32)); 
+    return ws->Write ( &src[0], src.max_size()); 
 
   }
 
@@ -88,7 +88,7 @@ namespace af {
   //
   inline size_t read_byte32 (byte32& out, ReadStreamRef rs) {
 
-    return rs->Read (std::data (out), sizeof(byte32)); 
+    return rs->Read (&out[0], out.max_size()); 
   }
   
   

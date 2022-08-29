@@ -84,45 +84,26 @@ bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
 size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
   
     size_t readlen = 0;
-    // def parse(self, sec_bin):
-    //     '''returns a Point object from a SEC binary (not hex)'''
-    //     if sec_bin[0] == 4:
-    //         x = int.from_bytes(sec_bin[1:33], 'big')
-    //         y = int.from_bytes(sec_bin[33:65], 'big')
-    //         return S256Point(x=x, y=y)
-    //     is_even = sec_bin[0] == 2
-    //     x = S256Field(int.from_bytes(sec_bin[1:], 'big'))
-    //     # right side of the equation y^2 = x^3 + 7
-    //     alpha = x**3 + S256Field(B)
-    //     # solve for left side
-    //     beta = alpha.sqrt()
-    //     if beta.num % 2 == 0:
-    //         even_beta = beta
-    //         odd_beta = S256Field(P - beta.num)
-    //     else:
-    //         even_beta = S256Field(P - beta.num)
-    //         odd_beta = beta
-    //         return S256Point(x, even_beta)
-    //     else:
-    //         return S256Point(x, odd_beta)
-    
-    // read first byte
+    // read prefix byte
     unsigned char pref = 0;
     readlen += rs->Read (&pref, 1);
     
     if (pref == 4) {
+
+      //printf ("%s:pref == 4\n", __FUNCTION__); 
       // both coord 
       readlen += read_byte32 (out.x, rs);
       readlen += read_byte32 (out.y, rs);
-      return readlen; 
     }
     else { // just the x coord
 
-      bool y_even = (pref == 2);
+      printf ("%s:[pref != 4]\n", __FUNCTION__); 
 
       FEConRef F (nullptr); 
       Init_FE_context (F); 
       ScopeDeleter dr (F); 
+
+      bool y_even = (pref == 2);
 
       readlen += read_byte32 (out.x, rs);
 
@@ -132,21 +113,16 @@ size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
       FE_t alpha = dr (F->New()); 
       FE_t beta  = dr (F->New()); 
 
-      //FE_t coeff_b = dr (F->New_ui(7);
-
-      // y^2 = X^3 + 7
+      // compute: y^2 = X^3 + 7
       F->Pow_ui (xxx, Px, 3);
       F->Add    (rhs, xxx, dr (F->New_ui(7))); 
       F->Sqrt   (beta, rhs);
       //
       FE_t even_beta = fe_null;
       FE_t odd_beta  = fe_null;
-     //beta % 2
       bool beta_even = (0 == F->TestBit (beta, 0))? true : false;
-      
-      if (beta_even) {
+      if (beta_even) { //beta % 2
 	even_beta = beta;
-
 	odd_beta = dr(F->New ());
 	F->Sub (odd_beta, F->p(), beta); 
       }
@@ -158,28 +134,16 @@ size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
       //
       bytearray rawtmp; 
       if (y_even) {
-	//out.y = even_beta;
+	// y = even_beta;
 	copy_BE (out.y, F->Raw (rawtmp, even_beta, false)); 
       }
       else {
-	//out.y = odd_beta; 
+	// y = odd_beta; 
 	copy_BE (out.y, F->Raw (rawtmp, odd_beta, false)); 
       }
     }
     
     return readlen;
-}
-
-//
-//
-size_t bmx::ReadSignature_DER (Signature& out, ReadStreamRef rs) {
-  
-  size_t readlen = 0; 
-  // comment
-  CODE_ME();
-  
-  return readlen;
-  
 }
 
 
@@ -209,33 +173,55 @@ size_t bmx::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
 //
 size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
 
-  /*
-  pt::map pm;
-  el::map em;
-
-  FEConRef F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
-  ECConRef EC = ffm::Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
-
-  ScopeDeleter dr(F);
-
-  */
-
-  assert (sig.r.size () == 32);
-  assert (sig.s.size () == 32);
   // assume
-  unsigned char rlen = (sig.r[0] & 0x80) ? 33 : 32;
-  unsigned char slen = (sig.s[0] & 0x80) ? 33 : 32;
   //printf ("rlen[%zu]\n", rlen);
   //printf ("slen[%zu]\n", slen);
+
+    // def der(self):
+
+    //     rbin = self.r.to_bytes(32, byteorder='big')
+    //     # remove all null bytes at the beginning
+    //     rbin = rbin.lstrip(b'\x00')
+
+    //     # if rbin has a high bit, add a \x00
+    //     if rbin[0] & 0x80:
+    //         rbin = b'\x00' + rbin
+    //     result = bytes([2, len(rbin)]) + rbin  # <1>
+
+    //     sbin = self.s.to_bytes(32, byteorder='big')
+    //     # remove all null bytes at the beginning
+    //     sbin = sbin.lstrip(b'\x00')
+
+    //     # if sbin has a high bit, add a \x00
+    //     if sbin[0] & 0x80:
+    //         sbin = b'\x00' + sbin
+    //     result += bytes([2, len(sbin)]) + sbin
+
+    //     return bytes([0x30, len(result)]) + result
   
   const unsigned char startmarker = 0x30;
   const unsigned char zerobyte    = 0; 
   const unsigned char markerbyte  = 0x02; 
 
-  const unsigned char sizesig = 4 + rlen + slen; 
+  unsigned char remptydigs = 0; 
+  while (sig.r[remptydigs] == 0 && remptydigs < 32) ++remptydigs;
+
+  unsigned char semptydigs = 0; 
+  while (sig.s[semptydigs] == 0 && semptydigs < 32) ++semptydigs; 
+
+  unsigned char rlen = sig.r.size () - remptydigs;
+  if (sig.r[0] & 0x80) ++rlen; 
+  
+  unsigned char slen = sig.s.size () - semptydigs; 
+  if (sig.s[0] & 0x80) ++slen; 
+
+
+  size_t begpos = ws->GetPos (); 
 
   size_t write_len = 0; 
-  size_t begpos   = ws->GetPos ();
+
+  unsigned char sizesig = slen + rlen + 6; 
+  
   // startbyte
   write_len += ws->Write (&startmarker, sizeof(startmarker)); 
 
@@ -245,33 +231,132 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   // marker
   write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
   // rlen
-  write_len += ws->Write (&rlen, sizeof(rlen)); 
+  write_len += ws->Write (&rlen, rlen); 
   // write r, leading '0' if needed
-  if (rlen > 32) write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
-  write_len += af::write_byte32 (ws, sig.r);
+
+  if (sig.r[0] & 0x80)
+    write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
+  write_len += ws->Write (&sig.r[0], sig.r.size()); 
+  //write_len += af::write_byte32 (ws, sig.r);
   
   // marker
   write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
+
   write_len += ws->Write (&slen, sizeof(slen)); 
   // write s,...
-  if (slen > 32) write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
-  write_len += write_byte32 (ws, sig.s);
+  if (sig.s[0] & 0x80)
+      write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
+  write_len += ws->Write (&sig.s[0], sig.s.size ()); 
 
-  
   size_t final_size = begpos = ws->GetPos ();
-
   //assert (final_size == write_len); 
 
   //printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
   //printf ( "%s:expected_size[%zu]\n", __FUNCTION__, expected_size);
   //printf ( "%s:final_size[%zu]\n",    __FUNCTION__, final_size);
-
   // total write size 
-  const size_t expected_size = sizesig + 2; 
   //return (final_size == expected_size); 
 
   return write_len; 
  }
+
+//
+//
+size_t bmx::ReadSignature_DER (Signature& osig, size_t binsize, ReadStreamRef rs) {
+  
+  size_t readlen = 0; 
+  const unsigned char startmarker = 0x30;
+  const unsigned char zerobyte    = 0; 
+  const unsigned char markerbyte  = 0x02; 
+
+  //const unsigned char sizesig = 4 + rlen + slen;
+  //printf ("binsize:%zu\n", binsize);   
+  // def parse(cls, signature_bin):
+  //     s = BytesIO(signature_bin)
+  unsigned char compound = 0;
+  readlen +=  rs->Read (&compound, 1); 
+  // compound = s.read(1)[0]
+
+  if (compound != startmarker) {
+    printf ("exiting, l:%i\n",  __LINE__); 
+    return readlen;
+  }
+    // if compound != 0x30:
+  //     raise SyntaxError("Bad Signature")
+  unsigned char length = 0;
+  readlen += rs->Read (&length, 1);
+  // length = s.read(1)[0]
+  if ( (length + 2) != binsize) {
+    // raise SyntaxError("Bad Signature Length")
+    printf ("exiting, l:%i\n", __LINE__); 
+    return readlen;
+  }
+  // if length + 2 != len(signature_bin):
+  //     raise SyntaxError("Bad Signature Length")
+
+  unsigned char marker = 0;
+  readlen += rs->Read (&marker, 1);
+  // marker = s.read(1)[0]
+  if (marker != markerbyte) {
+    // raise SyntaxError("Bad Signature")
+    printf ("exiting, l:%i\n", __LINE__); 
+    return readlen;
+  }
+  //     if marker != 0x02:
+  //         raise SyntaxError("Bad Signature")
+  unsigned char rlen = 0;
+  readlen += rs->Read (&rlen, 1); 
+  //  rlength = s.read(1)[0]
+
+  bytearray rtmp (rlen);
+
+  readlen += rs->Read (&rtmp[0], rlen);
+
+  int rbegind = rlen - 32;
+  if (rbegind > 0) 
+    std::copy (&rtmp[rbegind], &rtmp[rbegind+32], &osig.r[0]); 
+  else
+    copy_BE (osig.r, rtmp);
+  // r = int.from_bytes(s.read(rlength), 'big')
+
+  marker = 0; 
+  readlen += rs->Read (&marker, 1); 
+  //     marker = s.read(1)[0]
+  if (marker != markerbyte) {
+  // raise SyntaxError("Bad Signature")
+    printf ("exiting, l:%i\n", __LINE__); 
+    return readlen; 
+  }
+  // if marker != 0x02:
+  //     raise SyntaxError("Bad Signature")
+
+  unsigned char slen = 0;
+  readlen += rs->Read (&slen, 1);
+
+  // slength = s.read(1)[0]
+  bytearray stmp(slen);
+  //printf ("<slen %i>\n" , slen); 
+  readlen += rs->Read (&stmp[0], slen);
+
+  int sbegind = slen - 32;
+  if (sbegind > 0) 
+    std::copy (&stmp[sbegind], &stmp[sbegind+32], &osig.s[0]);
+  else
+    copy_BE (osig.s, stmp); 
+  //     s = int.from_bytes(s.read(slength), 'big')
+
+  if ((6 + rlen + slen) == binsize) {
+    printf ("..signature looks good\n", __FUNCTION__); 
+  }
+  else {
+    printf ("%s [len(sig) != binsize }\n", __FUNCTION__); 
+    // raise SyntaxError("Signature too long")
+  }
+  // if len(signature_bin) != 6 + rlength + slength:
+  //     raise SyntaxError("Signature too long")
+  // return cls(r, s)
+  return readlen;
+}
 
 
 //
@@ -334,6 +419,85 @@ std::string& bmx::MakeWIF (std::string& out, bool compr, bool mainnet, const Pri
 
 
 
+bool bmx::VerifySignature  (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
+
+    using namespace af;
+    using namespace ffm;
+    //    printf ("%s:enter\n", __FUNCTION__); 
+
+    FFM_Env env; 
+    Init_secp256k1_Env (env);
+    FEConRef&     F      = env.F;
+    ECConRef&     EC     = env.EC;
+    ffm::pt::map& points = env.pm; 
+    ffm::el::map& elems = env.em; 
+
+    ScopeDeleter dr (F);
+
+    FE_t z = dr (F->New_bin(std::data(z_msg), 32, false));
+    FE_t r = dr (F->New_bin(std::data(sig.r), 32, false));
+    FE_t s = dr (F->New_bin(std::data(sig.s), 32, false));
+    
+    FE_t s_inv = dr(F->New());
+
+    const std::string n = "n"; 
+    const std::string u = "u"; 
+    const std::string v = "v";
+    const std::string vP = "vP";
+    const std::string uG = "uG"; 
+
+    const std::string R = "R";
+    const std::string P = "P"; 
+
+    FE_t Gx = F->New (ksecp256k1_G_x_sz, 0);
+    FE_t Gy = F->New (ksecp256k1_G_y_sz, 0);
+    EC->MakePoint (G, Gx, Gy); 
+    //    EC->PrintPoint ("<G>", G, ffm::format::hex); 
+
+
+    FE_t Px = F->New_bin (std::data(pubk.x), 32, false);
+    FE_t Py = F->New_bin (std::data(pubk.y), 32, false); 
+    EC->MakePoint (P, Px, Py); 
+    //    EC->PrintPoint ("<P>", P, ffm::format::hex); 
+
+    // powm (out,  
+    FE_t n_minus_2 = dr(F->New());
+    F->Sub_ui(n_minus_2, elems[n], 2);
+    //EC->PrintElem ("{n-2}", n_minus_2, ffm::format::hex);
+    
+    F->PowM (s_inv, s, n_minus_2, elems[n]); 
+    
+    EC->MakeElem_ui(u, 0);
+    F->MulM (elems[u], z, s_inv, elems[n]);
+    
+    EC->MakeElem_ui (v, 0);
+    F->MulM (elems[v], r, s_inv, elems[n]);
+    
+    EC->MakePoint_ui (uG, 0, 0);
+    EC->Mul_scalar (uG, u, G);
+    
+    EC->MakePoint_ui (vP, 0, 0);
+    EC->Mul_scalar (vP, v, P); 
+    
+    EC->MakePoint_ui (R, 0, 0);
+    EC->AddPoint (R, uG, vP); 
+    
+    ffm::pt::struc& Rref = points[R];
+    bool oncurve = EC->IsPointOnCurve (pt::x(Rref), pt::y(Rref)); 
+    if (oncurve) {
+      printf ("R is on curve\n"); 
+    }
+    
+    EC->PrintElem ("R.x", pt::x(Rref), ffm::format::hex);
+    EC->PrintElem ("  r", r, ffm::format::hex);
+
+    return (F->Cmp (pt::x(Rref), r) == 0);
+  }
+
+
+
+
+
 //
 //
 bmx::secp256k1::secp256k1 () : elems (), points() { 
@@ -349,7 +513,7 @@ bmx::secp256k1::secp256k1 () : elems (), points() {
   ffm::FE_t t0 = dr (F->New ()); 
   
   
-  EC->PrintElem ("SECzy:n", "n", format::hex);
+  //EC->PrintElem ("SECzy:n", "n", format::hex);
   //    Ec->PrintElem ("
   
   //checkres ("n", EC->DefElem ("n", ksecp256k1_n_sz, 0));
@@ -633,4 +797,5 @@ bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map
   return false; 
 
 }
+
 

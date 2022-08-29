@@ -31,8 +31,8 @@ namespace bmx {
   // 
   // 
   struct Signature {
-    fixnum32 s;
-    fixnum32 r; 
+    af::fixnum32 r; 
+    af::fixnum32 s;
   };
 
   //
@@ -47,12 +47,13 @@ namespace bmx {
 
   //
   // Serialization 
-  size_t WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
-  size_t WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
-
   size_t ReadPoint          (Point& out , af::ReadStreamRef rs);
-  size_t ReadSignature_DER  (Signature& out, af::ReadStreamRef rs);
-  //
+  size_t WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
+
+
+  size_t ReadSignature_DER  (Signature& out, size_t binsize, af::ReadStreamRef rs);
+  size_t WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
+//
   
   // soon...
   namespace _secp256k1 {
@@ -63,7 +64,13 @@ namespace bmx {
   }
 
 
+  //
+  //
+  bool VerifySignature (const Signature& sig, const PublicKey& pubk, const digest32& zmsg); 
 
+  //
+  bool Sign (Signature& outsig, const PrivateKey& privatekey, const digest32& z);
+  //
   //
   //
   class secp256k1 {

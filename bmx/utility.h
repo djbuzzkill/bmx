@@ -1,6 +1,6 @@
 
-#ifndef CURV_UTILITY_H
-#define CURV_UTILITY_H
+#ifndef BMX_UTILITY_H
+#define BMX_UTILITY_H
 
 #include "common.h"
 

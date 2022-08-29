@@ -1,7 +1,9 @@
 
+
 #include "script.h"
 #include "op_fns.h"
 #include "script_types.h"
+#include "aframe/utility.h"
 
 
 using namespace af;
@@ -211,25 +213,25 @@ namespace priveval {
 //
 //
 bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
-
-  using namespace priveval;
-    
   //
-  script_env env;
-  env.z    = z; 
-  env.cmds = commands;
+  using namespace priveval;
+  //printf ("Enter:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
+  script_env env; // env (commands, z, F); 
 
-  printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
-  
-  while  (env.cmds.size ()) {
+  std::copy (z.begin(), z.end(),  env.z.begin());
+  std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
 
-    script_command& cmd = env.cmds.front (); 
+  //printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
+  while (env.cmds.size ()) {
+    // printf ("loop: %zu commands left\n", env.cmds.size ()); 
+    script_command cmd = env.cmds.front (); 
+
     env.cmds.pop_front ();
 
     switch (ty (cmd)) {
-
-    // SC_operation 
+      // SC_operation 
     case command_type::SC_operation:
+      
       if (op_map.count (op(cmd))) {
 	//assert (cmd.bin.size () == 1); 
 	//printf ("Op val : %x\n", op(cmd));
@@ -237,13 +239,18 @@ bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
 	//printf ("operation :%s\n", op_name[op(cmd)].c_str());
 	if ( !op_map[op(cmd)] (env) ) {
 	  // wtf
+	  //printf ("op:%s return false\n", op_name[op(cmd)].c_str ()); 
+	  //printf ("return false:%i", __LINE__ + 1);
 	  return false;
 	}
-
+	else {
+	  printf ("%s returned true\n", op_name[op(cmd)].c_str ());
+	}
       }
       else {
+	//printf ("op should not be missing:%i\n", __LINE__);
+	//printf ("return false:%i", __LINE__ + 1);
 	return false; //  __LINE__; 
-	// op not found 
       }
       break;
       
@@ -252,28 +259,29 @@ bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
       //printf ("element: push [%zu] \n", arr(cmd).size());
       env.stack.push (arr(cmd));
       break;
-
       // SC_uninitialized
     default:
-      // wtf 
-	return false; ////  __LINE__;
+      // wtf
+      //printf ("return false:%i", __LINE__ + 1);
+      return false; ////  __LINE__;
       break;
 
     }
 
-
   } // while 
 
-
   if (env.stack.empty ()) {
+    printf ("return false:%i", __LINE__ + 1);
     return false; //  __LINE__;
    // fail
   }
   if (env.stack.top().size () == 0) {
+    printf ("return false:%i", __LINE__ + 1);
     return false; //  __LINE__; 
     // empty string
   }
 
+  //printf ("Exit:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
   return true; 
 }
 

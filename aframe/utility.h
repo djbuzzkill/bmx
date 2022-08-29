@@ -7,6 +7,9 @@
 #include "binary_IO.h"
 
 #define CODE_ME(){printf("CODE_ME:%s|ln:%i\n", __FUNCTION__, __LINE__);} 
+#define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
+#define PR(s) printf("%s", (s));
+
 
 namespace af
 {
