@@ -16,17 +16,10 @@ namespace bmx {
 
   //
   // aka parse
-  size_t ReadScript (command_list& out, af::ReadStreamRef rs);
-
-    //
-  // aka serialize
+  size_t ReadScript  (command_list& out, af::ReadStreamRef rs);
   size_t WriteScript (af::WriteStreamRef ws, const command_list& out); 
-
-  //
-  bool EvalScript (const command_list& commands, const af::digest32& z);
-
-  // 
-  
+  bool   EvalScript  (script_env& env);
+  //bool EvalScript (const command_list& commands, const af::digest32& z);
   
 }
 

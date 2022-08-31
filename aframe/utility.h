@@ -58,8 +58,6 @@ namespace af
     return out; 
   } 
   
-  
-  
   //
   template<typename Ty> 
   inline bool in_bounds_incl (Ty val , Ty minval , Ty maxval) {
@@ -83,6 +81,23 @@ namespace af
     return (val > minval && val < maxval);
   }    
 
+  //
+  //
+  inline bool eql (const bytearray& lhs, const bytearray& rhs) {
+
+    if (lhs.size () != rhs.size())
+      return false;
+
+    for (auto i = 0; i < lhs.size(); ++i) {
+      if (lhs[i] != rhs[i])
+	return false; 
+    }
+
+    return true;
+  }
+
+
+  
   //
   // hexadecimal --------------------------- 
   namespace hex

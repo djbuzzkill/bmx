@@ -26,7 +26,15 @@ namespace ffm
     // printf ("bytes.size:%zu\n", bytes.size());
     return out; 
   }
- 
+
+
+  template<typename OutSeq, typename InSeq>
+  inline OutSeq& copy (OutSeq& out, InSeq& obj) {
+    out.resize (obj.size());
+    std::copy (obj.begin(), obj.end(), obj.begin());
+    return out;
+  }
+    
   // 
   template<typename Ty>
   inline Ty* swap_endian (Ty* x) {

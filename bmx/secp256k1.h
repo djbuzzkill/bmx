@@ -9,10 +9,9 @@
 namespace bmx {
 
   //
-  //
   typedef af::digest32 digest32;  
   typedef af::fixnum32 fixnum32; 
-  //
+
   //
   struct Point {
     fixnum32 x;
@@ -20,15 +19,12 @@ namespace bmx {
   };
 
   //
+  typedef Point PublicKey;
+
   //
   typedef fixnum32 PrivateKey;
 
-  //
-  //
-  typedef Point PublicKey;
-  
 
-  // 
   // 
   struct Signature {
     af::fixnum32 r; 
@@ -36,6 +32,14 @@ namespace bmx {
   };
 
   //
+  //
+  namespace secp256k1 
+  {
+    
+    bool Sign   (Signature& outsig, const PrivateKey& privatekey, const digest32& msghash);
+    bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
+
+  }
 
   //
   // 
@@ -43,7 +47,6 @@ namespace bmx {
   std::string& MakeAddress   (std::string& out, bool compr, bool mainnet, const PublicKey& pubk); 
   // 
   std::string& MakeWIF       (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk); 
-
 
   //
   // Serialization 
@@ -53,57 +56,29 @@ namespace bmx {
 
   size_t ReadSignature_DER  (Signature& out, size_t binsize, af::ReadStreamRef rs);
   size_t WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
-//
-  
-  // soon...
-  namespace _secp256k1 {
-    
-    bool Sign   (Signature& outsig, const PrivateKey& privatekey, const digest32& msghash);
-    bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
 
+  //
+  inline bool SECP256k1_Verify (const Signature& sig, const PublicKey& pubk, const digest32& z) {
+    return secp256k1::Verify (sig, pubk, z); 
+  }
+
+  //
+  inline bool SECP256k1_Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
+    return secp256k1::Sign (sig, privk, zbin); 
   }
 
 
-  //
-  //
-  bool VerifySignature (const Signature& sig, const PublicKey& pubk, const digest32& zmsg); 
-
-  //
-  bool Sign (Signature& outsig, const PrivateKey& privatekey, const digest32& z);
-  //
-  //
-  //
-  class secp256k1 {
-    //  3
-  public:
-    
-    secp256k1 ();
-    ~secp256k1 ();
-    
-    //bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
-    // bool Sign (unsigned char* z, unsigned char* r); 
-    
-    bool Sign   (Signature& outsig, const PrivateKey& privatekey, const digest32& msghash);
-    bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
-
-  protected:
-    
-    ffm::FEConRef F;
-    ffm::ECConRef EC;
-    ffm::el::map elems;
-    ffm::pt::map points; 
-  }; 
-  
-
+  // all things ffm together
   struct FFM_Env { 
+    //
     ffm::FEConRef F;
     ffm::ECConRef EC;
     ffm::el::map  em;
     ffm::pt::map  pm; 
-  }; 
-  
 
-  
+  }; 
+
+  //
   bool        Init_FE_context    (ffm::FEConRef& ofecon); 
   bool        Init_secp256k1_Env (ffm::FEConRef& ofecon, ffm::ECConRef& oeccon, ffm::el::map& em, ffm::pt::map& pm);
   inline bool Init_secp256k1_Env (FFM_Env& env) { return Init_secp256k1_Env (env.F, env.EC, env.em, env.pm); }  

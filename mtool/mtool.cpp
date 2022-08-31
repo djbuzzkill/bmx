@@ -26,6 +26,10 @@ const char kSEC256k1_coeff_b_sz[] = "0x7";
 const char kSEC256k1_n_sz[]       = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"; 
 // N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
 
+using namespace af;
+using namespace ffm; 
+using namespace bmx; 
+  
 
 // y^2 = x^3 +ax^2+b
 template<typename Seq>
@@ -58,10 +62,6 @@ int thicnspicy  (std::vector<std::string>& args)  {
 
   printf ("%s:ENTER\n", __FUNCTION__); 
 
-  using namespace af;
-  using namespace ffm; 
-  using namespace bmx; 
-  
   pt::map pm;
   el::map em;
 
@@ -143,133 +143,168 @@ void print_sig (const bmx::Signature& s) {
 }
 
 
-// 
-struct CH6_Fn { int operator()(const std::vector<std::string>& args) {
-    //
-  printf ("%s:ENTER\n", __FUNCTION__); 
-  //
-  using namespace af;
-  using namespace ffm; 
-  using namespace bmx;
-  
-  // pt::map pm;
-  // el::map em;
-  
-  // FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
-  // ECConRef EC = Create_EC_context (F, em, pm,
-  // 				   kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
-  // 				   kSEC256k1_n_sz, 0);
-  
+int Ex6_1 (const std::vector<std::string>& args) {
+  // using namespace af;
+  // using namespace ffm; 
+  // using namespace bmx;
+    
   //  ScopeDeleter dr(F);
-  {
-    PR ("CH 6.1.2\n"); 
-    // from script import Script
-    bytearray z_bin;
-    af::digest32 z; 
-    // z                       = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
-    const std::string z_xstr  = "7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d";
-    //z                      = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
-    copy_BE (z, hex::decode (z_bin, z_xstr));
-    
-    bytearray sec_bin;  
-    // sec       = bytes.fromhex('04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34')
-    const std::string sec_xstr = "04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
-    hex::decode (sec_bin, sec_xstr); 
-
-
-    PublicKey pubk;
-    size_t read_pubkey_size = ReadPoint (pubk, CreateReadMemStream (&sec_bin[0], sec_bin.size())); 
-    print_point ("from SECbin", pubk); 
-    
   
-    bytearray sig_bin; 
-    // sig       = bytes.fromhex('3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601')
-    const std::string sig_xstr = "3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601";
-    hex::decode (sig_bin, sig_xstr);
+  PR ("CH 6.1.2\n"); 
+  // from script import Script
+  bytearray z_bin;
+  af::digest32 z; 
+    // z                       = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
+  const std::string z_xstr  = "7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d";
+  //z                      = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
+  
+  bytearray sec_bin;  
+  // sec       = bytes.fromhex('04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34')
+  const std::string sec_xstr = "04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34";
+  hex::decode (sec_bin, sec_xstr); 
+  
+  
+  PublicKey pubk;
+  size_t read_pubkey_size = ReadPoint (pubk, CreateReadMemStream (&sec_bin[0], sec_bin.size())); 
+  print_point ("from SECbin", pubk); 
+  
+  bytearray sig_bin; 
+  // sig       = bytes.fromhex('3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601')
+  const std::string sig_xstr = "3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601";
+  hex::decode (sig_bin, sig_xstr);
 
-    bmx::Signature sig;
-    size_t sig_size = sig_bin.size () - 1;
+  bmx::Signature sig;
+  size_t sig_size = sig_bin.size () - 1;
 
-    bmx::ReadSignature_DER (sig, sig_size, CreateReadMemStream (&sig_bin[0], sig_size));
-
-    print_sig ("sig_bin", sig); 
-    // { PR ("wat"); 
-    //   bytearray sig_bin0 = sig_bin;
-    //   sig_bin0.pop_back();
-    //   bmx::Signature sig;
-    //   bmx::ReadSignature_DER (sig, sig_bin0.size (), CreateReadMemStream (&sig_bin0[0], sig_bin0.size ()));
-
-    //   secp256k1 verifier;
-    //   if (verifier.Verify (sig, pubk, z)) {
-    // 	printf ("verifier.Verify..GOOD!!!!\n");
-    //   }
-    //   else {
-    // 	printf ("verifier.Verify ..BAD :(\n"); 
-
-    // 	}
+  bmx::ReadSignature_DER (sig, sig_size, CreateReadMemStream (&sig_bin[0], sig_size));
+  print_sig ("sig_bin", sig); 
 
     // }
-    bmx::command_list script_sig = {
-      script_element  (sig_bin), 
-    };
+  bmx::command_list script_sig = {
+    script_element  (sig_bin), 
+  };
     
-    bmx::command_list script_pubkey = {
-      script_element   (sec_bin), 
-      script_operation (OP_CHECKSIG), // checksig
-    };
-    
+  bmx::command_list script_pubkey = {
+    script_element   (sec_bin), 
+    script_operation (OP_CHECKSIG), // checksig
+  };
 
-    printf ( "size(z_bin):%zu\n", z_bin.size()); 
+
+  
+  script_env env;
+  Init_secp256k1_Env (env.ffme);
+  copy_BE (env.z, hex::decode (z_bin, z_xstr));
+  append (append (env.cmds, script_sig), script_pubkey);
     
-    bmx::command_list comb_script; 
-    
-    for (auto& el : script_sig)
-      comb_script.push_back (el);
-    
-    for (auto& el : script_pubkey)
-      comb_script.push_back (el);
-    
-    if (bmx::EvalScript (comb_script, z)) {
-      PR ("!! bmx::EvalScript (comb_script) SUCCESS!!"); 
-    }
-    else {
-      PR ("!! FAILED  bmx::EvalScript (comb_script) !!");
-    }
-    
-    PR ("!! 188) !!");
+  
+  if (bmx::EvalScript (env)) {
+    PR ("bmx::EvalScript (comb_script) !! SUCCESS !!\n"); 
+  }
+  else {
+    PR ("!! FAILED !! bmx::EvalScript (comb_script)\n ");
   }
 
+
+
+  return 0;
   
-    // script_pubkey = Script([sec, 0xac])
-    // script_sig = Script([sig])
-    // combined_script = script_sig + script_pubkey
-    // print(combined_script.evaluate(z))
+}
+
     
-    
-    // z = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
-    // sec = bytes.fromhex('04887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34')
-    // sig = bytes.fromhex('3045022000eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c022100c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab601')
-    // script_pubkey = Script([sec, 0xac])
-    // script_sig = Script([sig])
-    // combined_script = script_sig + script_pubkey
-    // print(combined_script.evaluate(z))
-PR ("!! 205) !!");
-  return 0; 
+//
+//
+ int Ex6_3 (const std::vector<std::string>& args) {
 
-}};
+  printf ("%s:ENTER\n", __FUNCTION__); 
 
 
+   // Create a ScriptSig that can unlock this ScriptPubKey. Note OP_MUL multiplies the top two elements of the stack.
+
+   // 767695935687
+
+   // 56 = OP_6
+   // 76 = OP_DUP
+   // 87 = OP_EQUAL
+   // 93 = OP_ADD
+   // 95 = OP_MUL
+
+
+   command_list script_sig = {
+     script_operation (OP_2),
+     };
+
+   command_list script_pubkey = {
+     script_operation(OP_DUP),
+     script_operation(OP_DUP),
+     script_operation(OP_MUL),
+     script_operation(OP_ADD),
+     script_operation(OP_6),
+     script_operation(OP_EQUAL)
+     }; 
+
+
+   script_env env;
+   Init_secp256k1_Env (env.ffme);
+   //copy_BE (env.z, hex::decode (z_bin, z_xstr));
+   append (append (env.cmds, script_sig), script_pubkey); 
+
+   if (EvalScript (env)) {
+     PR ("bmx::EvalScript (comb_script) !! SUCCESS !!\n"); 
+   }
+   else {
+     PR ("!! FAILED !! bmx::EvalScript (comb_script)\n ");
+   }
+   
+
+   printf ("%s:EXIT\n", __FUNCTION__); 
+   
+   return 0; 
+ }
 
 //
-//  
+//
+ int Ex6_4 (const std::vector<std::string>& args) {
+
+   // Figure out what this Script is doing :
+
+   // `6e879169a77ca787`
+   
+   // * `69 = OP_VERIFY`
+   // * `6e = OP_2DUP`
+   // * `7c = OP_SWAP`
+   // * `87 = OP_EQUAL`
+   // * `91 = OP_NOT`
+   // * `a7 = OP_SHA1`
+   
+   command_list script_pubkey = {
+     scrop (OP_2DUP),  // 6e
+     scrop (OP_EQUAL), // 87
+     scrop (OP_NOT),   // 91
+     scrop (OP_VERIFY),// 69
+     scrop (OP_SHA1),  // a7
+     scrop (OP_SWAP),  // 7c
+     scrop (OP_SHA1),  // a7
+     scrop (OP_EQUAL), //87
+   }; 
+
+   // Use the `Script.parse` method and look up what various opcodes do at
+   // https://en.bitcoin.it/wiki/Script
+   
+   return 0;
+ }
+
+// 
 int CH6_Ex (std::vector<std::string>& args) {
+    //
+  printf ("%s:ENTER\n", __FUNCTION__);
 
-  CH6_Fn fn;
+  int res_6_1 = Ex6_1 (args); 
+  int res_6_3 = Ex6_3 (args); 
+  int res_6_4 = Ex6_4 (args);
 
-  return fn (args); 
-  
-} //
-
+  printf ("%s:EXIT\n", __FUNCTION__); 
+  return 0;
+}
 
 
 

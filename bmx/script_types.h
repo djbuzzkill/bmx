@@ -5,6 +5,7 @@
 #include "common.h"
 #include "aframe/af.h"
 
+#include "secp256k1.h"
 #include "opcode.h"
 
 
@@ -30,7 +31,9 @@ namespace bmx {
 
   script_command script_element   (const af::bytearray& b);
   script_command script_operation (unsigned char op); 
-    
+
+  inline script_command screl (const af::bytearray& b) { return script_element (b); } 
+  inline script_command scrop (unsigned char op) { return script_operation (op); }
     
      
   // convenience
@@ -44,11 +47,12 @@ namespace bmx {
 
   //
   //
-  typedef std::stack<af::bytearray> script_stack;
+  typedef std::vector<af::bytearray> script_stack;
 
   //
   //
   struct script_env {
+    FFM_Env      ffme;
     command_list cmds;  // current command stack
     script_stack stack; // main stack  
     script_stack alts;  // alt stack 

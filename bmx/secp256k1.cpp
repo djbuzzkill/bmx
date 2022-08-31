@@ -33,6 +33,32 @@ namespace
 }
 
 
+namespace bmx {
+
+  //
+  class _secp256k1 {
+    //  3
+  public:
+    
+    _secp256k1 ();
+    ~_secp256k1 ();
+    
+    //bool Verify (const char* sz_z, const char* sz_r, const char* sz_s); 
+    // bool Sign (unsigned char* z, unsigned char* r); 
+    
+    bool Sign   (Signature& outsig, const PrivateKey& privatekey, const digest32& msghash);
+    bool Verify (const Signature& sig, const PublicKey& pubk, const digest32& z); 
+
+  protected:
+    
+    ffm::FEConRef F;
+    ffm::ECConRef EC;
+    ffm::el::map elems;
+    ffm::pt::map points; 
+  }; 
+  
+
+}
 
 
 //
@@ -176,28 +202,6 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   // assume
   //printf ("rlen[%zu]\n", rlen);
   //printf ("slen[%zu]\n", slen);
-
-    // def der(self):
-
-    //     rbin = self.r.to_bytes(32, byteorder='big')
-    //     # remove all null bytes at the beginning
-    //     rbin = rbin.lstrip(b'\x00')
-
-    //     # if rbin has a high bit, add a \x00
-    //     if rbin[0] & 0x80:
-    //         rbin = b'\x00' + rbin
-    //     result = bytes([2, len(rbin)]) + rbin  # <1>
-
-    //     sbin = self.s.to_bytes(32, byteorder='big')
-    //     # remove all null bytes at the beginning
-    //     sbin = sbin.lstrip(b'\x00')
-
-    //     # if sbin has a high bit, add a \x00
-    //     if sbin[0] & 0x80:
-    //         sbin = b'\x00' + sbin
-    //     result += bytes([2, len(sbin)]) + sbin
-
-    //     return bytes([0x30, len(result)]) + result
   
   const unsigned char startmarker = 0x30;
   const unsigned char zerobyte    = 0; 
@@ -346,15 +350,13 @@ size_t bmx::ReadSignature_DER (Signature& osig, size_t binsize, ReadStreamRef rs
   //     s = int.from_bytes(s.read(slength), 'big')
 
   if ((6 + rlen + slen) == binsize) {
-    printf ("..signature looks good\n", __FUNCTION__); 
+    printf ("..sig read is good\n", __FUNCTION__); 
   }
   else {
     printf ("%s [len(sig) != binsize }\n", __FUNCTION__); 
     // raise SyntaxError("Signature too long")
   }
-  // if len(signature_bin) != 6 + rlength + slength:
-  //     raise SyntaxError("Signature too long")
-  // return cls(r, s)
+
   return readlen;
 }
 
@@ -416,103 +418,189 @@ std::string& bmx::MakeWIF (std::string& out, bool compr, bool mainnet, const Pri
   
 }
 
+//
+//
+bool bmx::secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& zmsg) { 
 
-
-
-bool bmx::VerifySignature  (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
-
-    using namespace af;
-    using namespace ffm;
+  using namespace af;
+  using namespace ffm;
     //    printf ("%s:enter\n", __FUNCTION__); 
 
-    FFM_Env env; 
-    Init_secp256k1_Env (env);
-    FEConRef&     F      = env.F;
-    ECConRef&     EC     = env.EC;
-    ffm::pt::map& points = env.pm; 
-    ffm::el::map& elems = env.em; 
+  FFM_Env env; 
+  Init_secp256k1_Env (env);
+  FEConRef&     F      = env.F;
+  ECConRef&     EC     = env.EC;
+  ffm::pt::map& points = env.pm; 
+  ffm::el::map& elems = env.em; 
 
-    ScopeDeleter dr (F);
+  ScopeDeleter dr (F);
+  
+  FE_t z = dr (F->New_bin(std::data(zmsg), 32, false));
+  FE_t r = dr (F->New_bin(std::data(sig.r), 32, false));
+  FE_t s = dr (F->New_bin(std::data(sig.s), 32, false));
+  
+  FE_t s_inv = dr(F->New());
 
-    FE_t z = dr (F->New_bin(std::data(z_msg), 32, false));
-    FE_t r = dr (F->New_bin(std::data(sig.r), 32, false));
-    FE_t s = dr (F->New_bin(std::data(sig.s), 32, false));
-    
-    FE_t s_inv = dr(F->New());
+  const std::string n = "n"; 
+  const std::string u = "u"; 
+  const std::string v = "v";
+  const std::string vP = "vP";
+  const std::string uG = "uG"; 
 
-    const std::string n = "n"; 
-    const std::string u = "u"; 
-    const std::string v = "v";
-    const std::string vP = "vP";
-    const std::string uG = "uG"; 
+  const std::string R = "R";
+  const std::string P = "P"; 
 
-    const std::string R = "R";
-    const std::string P = "P"; 
-
-    FE_t Gx = F->New (ksecp256k1_G_x_sz, 0);
-    FE_t Gy = F->New (ksecp256k1_G_y_sz, 0);
-    EC->MakePoint (G, Gx, Gy); 
-    //    EC->PrintPoint ("<G>", G, ffm::format::hex); 
+  FE_t Gx = F->New (ksecp256k1_G_x_sz, 0);
+  FE_t Gy = F->New (ksecp256k1_G_y_sz, 0);
+  EC->MakePoint (G, Gx, Gy); 
+  //    EC->PrintPoint ("<G>", G, ffm::format::hex); 
 
 
-    FE_t Px = F->New_bin (std::data(pubk.x), 32, false);
-    FE_t Py = F->New_bin (std::data(pubk.y), 32, false); 
-    EC->MakePoint (P, Px, Py); 
-    //    EC->PrintPoint ("<P>", P, ffm::format::hex); 
+  FE_t Px = F->New_bin (std::data(pubk.x), 32, false);
+  FE_t Py = F->New_bin (std::data(pubk.y), 32, false); 
+  EC->MakePoint (P, Px, Py); 
+  //    EC->PrintPoint ("<P>", P, ffm::format::hex); 
 
-    // powm (out,  
-    FE_t n_minus_2 = dr(F->New());
-    F->Sub_ui(n_minus_2, elems[n], 2);
-    //EC->PrintElem ("{n-2}", n_minus_2, ffm::format::hex);
+  FE_t n_minus_2 = dr(F->New());
+  F->Sub_ui(n_minus_2, elems[n], 2);
+  //EC->PrintElem ("{n-2}", n_minus_2, ffm::format::hex);
     
-    F->PowM (s_inv, s, n_minus_2, elems[n]); 
+  F->PowM (s_inv, s, n_minus_2, elems[n]); 
     
-    EC->MakeElem_ui(u, 0);
-    F->MulM (elems[u], z, s_inv, elems[n]);
+  EC->MakeElem_ui(u, 0);
+  F->MulM (elems[u], z, s_inv, elems[n]);
     
-    EC->MakeElem_ui (v, 0);
-    F->MulM (elems[v], r, s_inv, elems[n]);
+  EC->MakeElem_ui (v, 0);
+  F->MulM (elems[v], r, s_inv, elems[n]);
     
-    EC->MakePoint_ui (uG, 0, 0);
-    EC->Mul_scalar (uG, u, G);
+  EC->MakePoint_ui (uG, 0, 0);
+  EC->Mul_scalar (uG, u, G);
     
-    EC->MakePoint_ui (vP, 0, 0);
-    EC->Mul_scalar (vP, v, P); 
+  EC->MakePoint_ui (vP, 0, 0);
+  EC->Mul_scalar (vP, v, P); 
     
-    EC->MakePoint_ui (R, 0, 0);
-    EC->AddPoint (R, uG, vP); 
+  EC->MakePoint_ui (R, 0, 0);
+  EC->AddPoint (R, uG, vP); 
     
-    ffm::pt::struc& Rref = points[R];
-    bool oncurve = EC->IsPointOnCurve (pt::x(Rref), pt::y(Rref)); 
-    if (oncurve) {
-      printf ("R is on curve\n"); 
-    }
-    
-    EC->PrintElem ("R.x", pt::x(Rref), ffm::format::hex);
-    EC->PrintElem ("  r", r, ffm::format::hex);
-
-    return (F->Cmp (pt::x(Rref), r) == 0);
+  ffm::pt::struc& Rref = points[R];
+  bool oncurve = EC->IsPointOnCurve (pt::x(Rref), pt::y(Rref)); 
+  if (oncurve) {
+    printf ("R is on curve\n"); 
   }
+    
+  EC->PrintElem ("R.x", pt::x(Rref), ffm::format::hex);
+  EC->PrintElem ("  r", r, ffm::format::hex);
+  
+  return (F->Cmp (pt::x(Rref), r) == 0);
+}
 
 
 
+// soon...
+bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
+  
+  using namespace ffm;
+  // eG = P
+  FFM_Env env; 
+  Init_secp256k1_Env (env);
+  FEConRef&     F      = env.F;
+  ECConRef&     EC     = env.EC;
+  ffm::pt::map& points = env.pm; 
+  ffm::el::map& elems  = env.em; 
+  
+  //    const std::string G = "G"; 
+  const std::string P = "P";
+  const std::string R = "R";
+  //const std::string n = "n";
+  
+  ScopeDeleter dr (F); 
+  // kG = R
+  FE_t
+    e    = dr(F->New_bin(std::data(privk), 32, false)),
+    z    = dr(F->New_bin(std::data(zbin), 32, false)),
+    s    = dr(F->New ()),
+    stmp = dr(F->New()),
+    
+    tmp  = dr(F->New()),
+    snum = dr(F->New ());
+  
+  //
+  EC->MakePoint_ui(P, 0, 0);
+  EC->Mul_scalar (P, e, G); 
+  
+  // n-2
+  FE_t n_sub_2 = dr(F->New());
+  F->Sub_ui(n_sub_2, elems[n], 2);
+  elems["n-2"] = n_sub_2; 
+  
+  // n/2
+  FE_t n_div_2 = dr(F->New()); 
+  F->Div_ui(n_div_2, elems[n], 2); 
+  elems["n/2"] = n_div_2;
+  
+  // k = rand (n) <-- fix later
+  FE_t k = dr(F->New()); 
+  POUT("241")
+    F->Rand (k, elems[n]);
+  elems["k"] = k;
+  
+  // 1/k
+  FE_t k_inv= dr(F->New ());
+  F->PowM (k_inv, k, n_sub_2, elems[n]);  
+  elems["1/k"] = k_inv; 
+  
+  EC->MakePoint_ui (R, 0, 0); // <-- we should just make a plain 'alloc-point'
+  EC->Mul_scalar (R, "k", G); // we want R.x
+  // kG = R
+  
+  F->SMul (tmp, pt::x(points[R]), e);
+  F->SAdd (snum, z, tmp);
+  F->MulM (stmp, snum, k_inv, elems[n]); 
+  // s = (z+re)/k mod n
+  
+  // if s > n/2
+  //  s = n - s
+  int cmpres = F->Cmp (stmp, elems["n/2"]);
+  // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 = op2, or a negative value if op1 < op2.
+  if (cmpres > 0) {
+    printf ("..(s > n/2)\n");
+    F->Sub (s , elems[n], stmp); 
+  }
+  else {
+    F->Set (s, stmp);
+  }
+  
+  // write results, sig is (r,s) => sig(r,s)
+  {
+    af::bytearray rraw, sraw;
+    F->Raw (rraw, pt::x(points[R]), false);
+    ffm::copy_BE(sig.r, rraw); 
+    
+    F->Raw (sraw, s, false);
+    ffm::copy_BE(sig.s, sraw); 
+    
+    printf ("__SIGNATURE_GENERATED__\n");
+  }
+  
+  return true; 
+  
+}
+
+//
+//
 
 
 //
 //
-bmx::secp256k1::secp256k1 () : elems (), points() { 
+bmx::_secp256k1::_secp256k1 () : elems (), points() { 
   
   F = ffm::Create_FE_context (ksecp256k1_p_sz, 0);
   EC = ffm::Create_EC_context (F, elems, points, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
-  
     
   EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0);
   
-  
   ffm::ScopeDeleter dr (F);
   ffm::FE_t t0 = dr (F->New ()); 
-  
-  
   //EC->PrintElem ("SECzy:n", "n", format::hex);
   //    Ec->PrintElem ("
   
@@ -525,7 +613,7 @@ bmx::secp256k1::secp256k1 () : elems (), points() {
 
 //
 //
-bmx::secp256k1::~secp256k1 () {
+bmx::_secp256k1::~_secp256k1 () {
   
 }
 
@@ -601,7 +689,7 @@ bmx::secp256k1::~secp256k1 () {
 
 //
   //
-  bool bmx::secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
+bool bmx::_secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const digest32& z_msg) {
     //    printf ("%s:enter\n", __FUNCTION__); 
   
     ffm::ScopeDeleter dr (F);
@@ -672,7 +760,7 @@ bmx::secp256k1::~secp256k1 () {
 
 //
   //
-bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
+bool bmx::_secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
   
   using namespace ffm;
   // eG = P

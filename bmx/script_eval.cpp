@@ -212,19 +212,20 @@ namespace priveval {
 
 //
 //
-bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
+//bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
+bool bmx::EvalScript (script_env& env) {
   //
   using namespace priveval;
   //printf ("Enter:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
-  script_env env; // env (commands, z, F); 
+  //script_env env; // env (commands, z, F); 
 
-  std::copy (z.begin(), z.end(),  env.z.begin());
-  std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
+  //std::copy (z.begin(), z.end(),  env.z.begin());
+  //std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
 
   //printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
   while (env.cmds.size ()) {
     // printf ("loop: %zu commands left\n", env.cmds.size ()); 
-    script_command cmd = env.cmds.front (); 
+    const script_command cmd = std::move (env.cmds.front ()); 
 
     env.cmds.pop_front ();
 
@@ -257,7 +258,7 @@ bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
     // SC_element:
     case command_type::SC_element:
       //printf ("element: push [%zu] \n", arr(cmd).size());
-      env.stack.push (arr(cmd));
+      env.stack.push_back (arr(cmd));
       break;
       // SC_uninitialized
     default:
@@ -275,12 +276,12 @@ bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
     return false; //  __LINE__;
    // fail
   }
-  if (env.stack.top().size () == 0) {
+
+  if (env.stack.back().size () == 0) {
     printf ("return false:%i", __LINE__ + 1);
     return false; //  __LINE__; 
     // empty string
   }
-
   //printf ("Exit:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
   return true; 
 }
