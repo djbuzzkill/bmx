@@ -9,6 +9,8 @@
 #include "opcode.h"
 
 
+
+
 namespace bmx {
 
   //
@@ -21,29 +23,24 @@ namespace bmx {
   //
   struct script_command {
 
-    script_command () : typ (command_type::SC_uninitialized), bin() {
-    }
+    script_command () : typ (command_type::SC_uninitialized), bin() { }
+    script_command (const af::bytearray& b)  : typ (SC_element), bin (b) { }
+    script_command (unsigned char op) : typ (SC_operation), bin (1, op) { }
     
     command_type  typ;
     af::bytearray bin; 
-
   }; 
 
-  script_command script_element   (const af::bytearray& b);
-  script_command script_operation (unsigned char op); 
+  typedef script_command sco; 
 
-  inline script_command screl (const af::bytearray& b) { return script_element (b); } 
-  inline script_command scrop (unsigned char op) { return script_operation (op); }
     
-     
   // convenience
-  inline command_type         ty  (const script_command& sc) { return sc.typ; }
-  inline const af::bytearray& arr (const script_command& sc) { return sc.bin; }
-  inline OpCode               op  (const script_command& sc) { return OpCode(sc.bin[0]); }
+  inline command_type         ty               (const script_command& sc) { return sc.typ; }
+  inline const af::bytearray& arr              (const script_command& sc) { return sc.bin; }
+  inline OpCode               op               (const script_command& sc) { return OpCode(sc.bin[0]); }
   //
   //
   typedef std::list<script_command> command_list; 
-
 
   //
   //

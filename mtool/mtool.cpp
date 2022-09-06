@@ -154,7 +154,7 @@ int Ex6_1 (const std::vector<std::string>& args) {
   // from script import Script
   bytearray z_bin;
   af::digest32 z; 
-    // z                       = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
+  // z                       = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
   const std::string z_xstr  = "7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d";
   //z                      = 0x7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d
   
@@ -181,12 +181,12 @@ int Ex6_1 (const std::vector<std::string>& args) {
 
     // }
   bmx::command_list script_sig = {
-    script_element  (sig_bin), 
+    sco  (sig_bin), 
   };
     
   bmx::command_list script_pubkey = {
-    script_element   (sec_bin), 
-    script_operation (OP_CHECKSIG), // checksig
+    sco (sec_bin), 
+    sco (OP_CHECKSIG), // checksig
   };
 
 
@@ -216,30 +216,22 @@ int Ex6_1 (const std::vector<std::string>& args) {
  int Ex6_3 (const std::vector<std::string>& args) {
 
   printf ("%s:ENTER\n", __FUNCTION__); 
-
-
    // Create a ScriptSig that can unlock this ScriptPubKey. Note OP_MUL multiplies the top two elements of the stack.
 
    // 767695935687
 
-   // 56 = OP_6
-   // 76 = OP_DUP
-   // 87 = OP_EQUAL
-   // 93 = OP_ADD
-   // 95 = OP_MUL
-
-
    command_list script_sig = {
-     script_operation (OP_2),
+     sco (OP_2), 
      };
 
+
    command_list script_pubkey = {
-     script_operation(OP_DUP),
-     script_operation(OP_DUP),
-     script_operation(OP_MUL),
-     script_operation(OP_ADD),
-     script_operation(OP_6),
-     script_operation(OP_EQUAL)
+     sco(OP_DUP),
+     sco(OP_DUP),
+     sco(OP_MUL),
+     sco(OP_ADD),
+     sco(OP_6),
+     sco(OP_EQUAL)
      }; 
 
 
@@ -277,14 +269,14 @@ int Ex6_1 (const std::vector<std::string>& args) {
    // * `a7 = OP_SHA1`
    
    command_list script_pubkey = {
-     scrop (OP_2DUP),  // 6e
-     scrop (OP_EQUAL), // 87
-     scrop (OP_NOT),   // 91
-     scrop (OP_VERIFY),// 69
-     scrop (OP_SHA1),  // a7
-     scrop (OP_SWAP),  // 7c
-     scrop (OP_SHA1),  // a7
-     scrop (OP_EQUAL), //87
+     sco (OP_2DUP),  // 6e
+     sco (OP_EQUAL), // 87
+     sco (OP_NOT),   // 91
+     sco (OP_VERIFY),// 69
+     sco (OP_SHA1),  // a7
+     sco (OP_SWAP),  // 7c
+     sco (OP_SHA1),  // a7
+     sco (OP_EQUAL), //87
    }; 
 
    // Use the `Script.parse` method and look up what various opcodes do at
@@ -308,6 +300,19 @@ int CH6_Ex (std::vector<std::string>& args) {
 
 
 
+
+int CH7_Ex (std::vector<std::string>& args) {
+    //
+  printf ("%s:ENTER\n", __FUNCTION__);
+
+  printf ("%s:EXIT\n", __FUNCTION__); 
+  return 0;
+}
+
+
+
+
+
 // ----------------------- main --------------------------
 int main (int argv, char** argc) {
 
@@ -321,7 +326,8 @@ int main (int argv, char** argc) {
   //thicnspicy (args);
   //test_read_SEC_bin (args); 
 
-  CH6_Ex(args);
+  //CH6_Ex(args);
+  CH7_Ex(args); 
   
     // test_gcrypt (args);
   printf ("%s:EXIT\n", __FUNCTION__); 

@@ -14,7 +14,9 @@ namespace priveval {
   
   using namespace bmx; 
 
+  //
   typedef std::function<int(bmx::script_env&)>  op_proc;
+  ///
   typedef std::map<bmx::OpCode, op_proc>        OpFnMap;
   //
   //
@@ -230,7 +232,8 @@ bool bmx::EvalScript (script_env& env) {
     env.cmds.pop_front ();
 
     switch (ty (cmd)) {
-      // SC_operation 
+
+    // script op 
     case command_type::SC_operation:
       
       if (op_map.count (op(cmd))) {
@@ -255,21 +258,23 @@ bool bmx::EvalScript (script_env& env) {
       }
       break;
       
-    // SC_element:
+    // script element:
     case command_type::SC_element:
       //printf ("element: push [%zu] \n", arr(cmd).size());
-      env.stack.push_back (arr(cmd));
+      env.stack.push_back (std::move (arr(cmd)));
       break;
-      // SC_uninitialized
+
+
     default:
+      // how
       // wtf
       //printf ("return false:%i", __LINE__ + 1);
       return false; ////  __LINE__;
       break;
 
-    }
+    } // switch 
 
-  } // while 
+  } // eval loop
 
   if (env.stack.empty ()) {
     printf ("return false:%i", __LINE__ + 1);

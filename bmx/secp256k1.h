@@ -31,7 +31,7 @@ namespace bmx {
     af::fixnum32 s;
   };
 
-  //
+
   //
   namespace secp256k1 
   {
@@ -47,15 +47,23 @@ namespace bmx {
   std::string& MakeAddress   (std::string& out, bool compr, bool mainnet, const PublicKey& pubk); 
   // 
   std::string& MakeWIF       (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk); 
-
   //
   // Serialization 
-  size_t ReadPoint          (Point& out , af::ReadStreamRef rs);
-  size_t WritePoint         (af::WriteStreamRef ws, const Point& pt, bool compressed);
+  size_t ReadPoint           (Point& out , af::ReadStreamRef rs);
+  size_t WritePoint          (af::WriteStreamRef ws, const Point& pt, bool compressed);
 
+  size_t ReadSignature_DER   (Signature& out, size_t binsize, af::ReadStreamRef rs);
+  size_t WriteSignature_DER  (af::WriteStreamRef ws, const Signature& sig);  
 
-  size_t ReadSignature_DER  (Signature& out, size_t binsize, af::ReadStreamRef rs);
-  size_t WriteSignature_DER (af::WriteStreamRef ws, const Signature& sig);  
+  //
+  inline size_t ReadPublicKey_SEC (Point& out , af::ReadStreamRef rs) {
+    return  ReadPoint (out, rs);
+  }
+
+  //
+  inline size_t WritePublicKey_SEC (af::WriteStreamRef ws, const Point& pt, bool compressed) {
+    return WritePoint (ws, pt, compressed);
+  } 
 
   //
   inline bool SECP256k1_Verify (const Signature& sig, const PublicKey& pubk, const digest32& z) {

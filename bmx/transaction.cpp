@@ -8,6 +8,7 @@
 #include "aframe/binary_IO.h"
 #include "aframe/utility.h"
 #include "ffm/ffm.h"
+#include "secp256k1.h"
 
 
 using namespace af;
@@ -82,7 +83,7 @@ bool bmx::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, Tx
   // 
   if (cache.count (txid_hex)) {
 
-    const bytearray& val = cache[txid_hex]; 
+    const af::bytearray& val = cache[txid_hex]; 
     out.resize (val.size ()); 
     std::copy (val.begin (), val.end (), out.begin ()); 
     
@@ -94,7 +95,7 @@ bool bmx::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, Tx
 
 
 //
-bool bmx::TxFetcher::Fetch (bytearray& out, const std::string& txid_hex, bool mainnet) {
+bool bmx::TxFetcher::Fetch (af::bytearray& out, const std::string& txid_hex, bool mainnet) {
   return FetchTx (out, mainnet, txid_hex, cache); 
 }
 
@@ -117,16 +118,10 @@ size_t read_and_parse_txin (bmx::TxIn& txin, af::ReadStreamRef rs) {
   readlen += rs->Read (&txin.prev_txid[0], 32);  
   readlen += rs->Read (&txin.prev_index, 4);
 
-  size_t script_beg = rs->GetPos();
-  
+  //size_t script_beg = rs->GetPos();
   readlen += ReadScript (txin.script_sig, rs); 
+  //size_t script_len = rs->GetPos() - script_beg; 
 
-  size_t script_len = rs->GetPos() - script_beg; 
-
-  // printf ("%s:script_len:%zu\n", __FUNCTION__, script_len);
- 
-  
-  //readlen += rs->Read (&txin.script_sig[0], script_size);
   readlen += rs->Read (&txin.sequence, sizeof (unsigned int)); 
 
   return readlen;
@@ -140,18 +135,16 @@ size_t read_and_parse_txin (bmx::TxIn& txin, af::ReadStreamRef rs) {
 size_t read_and_parse_txout (bmx::TxOut& txout, af::ReadStreamRef rs) {
   using namespace bmx;
 
-  
   size_t readlen     = 0;
-  size_t script_size = 0;
-  
+  //size_t script_size = 0;
   readlen += rs->Read (&txout.amount, 8);     // amount
-  readlen += util::read_varint (script_size, rs, 0); // __FUNCTION__); // varint :sizeof(ScriptKey)
-  
+  // readlen += util::read_varint (script_size, rs, 0); // __FUNCTION__); // varint :sizeof(ScriptKey)
+  // txout.script_pubkey.resize (script_size);   
+  // readlen += rs->Read (&txout.script_pubkey[0], script_size); // ScriptKey
   //printf ("script_size:%zu\n", script_size); 
-  
-  txout.script_bin.resize (script_size);   
-  readlen += rs->Read (&txout.script_bin[0], script_size); // ScriptKey
+  readlen += ReadScript (txout.script_pubkey, rs); 
 
+  
   return readlen; 
 }
 
@@ -213,10 +206,11 @@ size_t write_tx_outputs (bmx::TxOutputs& tx, af::WriteStreamRef ws) {
   for (auto i = 0; i < tx.size(); ++i) {
 
     bmx::TxOut& out = tx[i]; 
-    writelen += ws->Write          (&out.amount, sizeof(size_t)); 
-    writelen += util::write_varint (ws, out.script_bin.size());
-    writelen += ws->Write          (&out.script_bin[0], out.script_bin.size());
+    writelen += ws->Write          (&out.amount, sizeof(size_t));
 
+    writelen += WriteScript (ws, out.script_pubkey);
+    // writelen += util::write_varint (ws, out.script_pubkey.size());
+    // writelen += ws->Write          (&out.script_pubkey[0], out.script_pubkey.size());
   }
 
   return writelen; 
@@ -226,7 +220,18 @@ size_t write_tx_outputs (bmx::TxOutputs& tx, af::WriteStreamRef ws) {
 //
 size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& out) {
   write_tx_inputs;  
-    
+
+
+
+
+
+
+
+  CODE_ME (); 
+
+
+
+  
   write_tx_outputs;
   return 0; 
 }
@@ -244,8 +249,7 @@ void bmx::print_txin (const TxIn& txin, size_t indent) {
   
   printf ("%s  prev_ind:%u\n",    space.c_str(), txin.prev_index);        // int LE
 
-
-  printf ("%s  script_size:%zu\n", space.c_str(), txin.script_sig.size ());
+  printf ("%s  script_sig(%zu)\n", space.c_str(), txin.script_sig.size ());
 
   hex::encode (stmp, &txin.sequence, sizeof(txin.sequence)); 
   printf ("%s  sequence:0x%s\n",    space.c_str(), stmp.c_str());   //
@@ -256,7 +260,7 @@ void bmx::print_txin (const TxIn& txin, size_t indent) {
 
 //
 //
-void bmx::print_txo  (const TxOut& txo, size_t indent) {
+void bmx::print_txo (const TxOut& txo, size_t indent) {
 
   std::string space (indent, ' '); 
   std::string stmp;  
@@ -264,8 +268,120 @@ void bmx::print_txo  (const TxOut& txo, size_t indent) {
   printf ( "%sTxOut {\n", space.c_str());
   printf ( "%s  amount:%zu\n",   space.c_str(), txo.amount);
 
-  hex::encode (stmp, &txo.script_bin[0], txo.script_bin.size()); 
-  printf ( "%s  scriptbin:0x%s\n",   space.c_str(), stmp.c_str()); 
+  printf ( "%s  script_pubkey(%zu)\n", space.c_str() , txo.script_pubkey.size ()); 
+      //hex::encode (stmp, &txo.script_pubkey[0], txo.script_pubkey.size()); 
+  //printf ( "%s  scriptbin:0x%s\n",   space.c_str(), stmp.c_str()); 
   printf ( "%s}\n",       space.c_str());
   
+}
+
+
+//
+//
+digest32& bmx::Tx::SignatureHash (digest32& osh,  const Transaction& tx) {
+
+  using namespace ffm;
+  
+  const size_t   buf_size = 1024 * 1024; 
+  bytearray      workb       (buf_size, 0); 
+  WriteStreamRef ws          = CreateWriteMemStream (&workb[0], buf_size);
+
+  FFM_Env env; 
+  Init_secp256k1_Env (env);
+  FEConRef& F      = env.F;
+  ECConRef& EC     = env.EC;
+  pt::map&  points = env.pm; 
+  el::map&  elems  = env.em; 
+
+  ScopeDeleter dr (F);
+
+
+  
+  
+
+  
+  const unsigned int ver = 4;  // x86 LE
+
+  
+  
+
+
+    // def sig_hash(self, input_index):
+    //     '''Returns the integer representation of the hash that needs to get
+    //     signed for index input_index'''
+    //     # start the serialization with version
+    //     # use int_to_little_endian in 4 bytes
+    //     # add how many inputs there are using encode_varint
+    //     # loop through each input using enumerate, so we have the input index
+    //         # if the input index is the one we're signing
+    //         # the previous tx's ScriptPubkey is the ScriptSig
+    //         # Otherwise, the ScriptSig is empty
+    //         # add the serialization of the input with the ScriptSig we want
+    //     # add how many outputs there are using encode_varint
+    //     # add the serialization of each output
+    //     # add the locktime using int_to_little_endian in 4 bytes
+    //     # add SIGHASH_ALL using int_to_little_endian in 4 bytes
+    //     # hash256 the serialization
+    //     # convert the result to an integer using int.from_bytes(x, 'big')
+    //     raise NotImplementedError
+  
+ 
+
+  return osh; 
+}
+
+
+//
+// 
+bool bmx::Tx::VerifyInput  (const Transaction& tx) {
+
+    // def verify_input(self, input_index):
+    //     '''Returns whether the input has a valid signature'''
+    //     # get the relevant input
+    //     # grab the previous ScriptPubKey
+    //     # get the signature hash (z)
+    //     # combine the current ScriptSig and the previous ScriptPubKey
+    //     # evaluate the combined script
+    //     raise NotImplementedError
+
+		     
+  CODE_ME(); 
+  return false; 
+}
+
+//
+//
+bool bmx::Tx::Verify (const Transaction& tx) {
+		     
+  CODE_ME(); 
+
+  //   # tag::source2[]
+  //   def verify(self):
+  //       '''Verify this transaction'''
+  //       if self.fee() < 0:  # <1>
+  //           return False
+  //       for i in range(len(self.tx_ins)):
+  //           if not self.verify_input(i):  # <2>
+  //               return False
+  //       return True
+  //   # end::source2[]
+
+   return false; 
+}
+
+//
+//
+bmx::Transaction& bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int index, const bmx::PrivateKey& p) {
+
+    // def sign_input(self, input_index, private_key):
+    //     # get the signature hash (z)
+    //     # get der signature of z from private key
+    //     # append the SIGHASH_ALL to der (use SIGHASH_ALL.to_bytes(1, 'big'))
+    //     # calculate the sec
+    //     # initialize a new script with [sig, sec] as the cmds
+    //     # change input's script_sig to new script
+    //     # return whether sig is valid using self.verify_input
+    //     raise NotImplementedError
+
+  return otx; 
 }

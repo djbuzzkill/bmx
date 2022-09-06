@@ -122,7 +122,7 @@ size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
       out.push_back (read_OP_PUSH2 (obj, rs, leader, accum));
     }
     else {
-      out.push_back (script_operation (leader)); 
+      out.push_back (script_command (leader)); 
       //
     }
     

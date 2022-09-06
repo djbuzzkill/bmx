@@ -67,11 +67,13 @@ bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
 
   pt::map pm;
   el::map em;
-  FEConRef F  = Create_FE_context (ksecp256k1_p_sz);
-  ECConRef EC =
-    Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
+  // FEConRef F  = Create_FE_context (ksecp256k1_p_sz);
+  // ECConRef EC = Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
 
-
+  FFM_Env env; 
+  Init_secp256k1_Env (env);
+  FEConRef const& F  = env.F; 
+  ECConRef const& EC = env.EC; 
   // checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
   EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0); 
 

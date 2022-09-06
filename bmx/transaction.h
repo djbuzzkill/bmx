@@ -14,12 +14,17 @@
 // 
 namespace bmx {
 
+  // -----------------------------------------------------------------
   // 
+  // -----------------------------------------------------------------
   typedef std::map<std::string, af::bytearray> TxMap; 
   // 
   bool FetchTx (af::bytearray& out, bool mainnet, const std::string& txid_hex, TxMap& cache);
 
   // 
+  // -----------------------------------------------------------------
+  // 
+  // -----------------------------------------------------------------
   struct TxFetcher  {
 
     TxMap cache; 
@@ -31,57 +36,66 @@ namespace bmx {
    
   };
 
-  // input transaction
+  // -----------------------------------------------------------------
+  // 
+  // Input 
+  // -----------------------------------------------------------------
   struct TxIn { 
-    af::byte32   prev_txid;   // 32b LE
-    unsigned int prev_index;  // int LE
-
-    bmx::command_list script_sig; 
-    //af::bytearray script_sig; // variable
-    unsigned int  sequence;   // 
+    af::byte32         prev_txid;   // 32b LE
+    unsigned int       prev_index;  // int LE
+    bmx::command_list  script_sig;  // af::bytearray script_sig; mebe bytes?
+    unsigned int       sequence;    // 
   }; 
 
   typedef std::vector<TxIn> TxInputs; 
-
+  // -----------------------------------------------------------------
+  // 
   // output transaction
-  struct TxOut { // r the diffrint
-    size_t        amount; 
-    af::bytearray script_bin;
+  // -----------------------------------------------------------------
+  struct TxOut {
+    size_t             amount; 
+    bmx::command_list  script_pubkey;
   }; 
 
   typedef std::vector<TxOut>  TxOutputs;
 
-  // 
-  // we
-  struct Transaction {
-    //
-    Transaction () : version (0), inputs (), locktime (0), outputs (0) {
-    }
 
-    // 
-    unsigned int version;    
-    TxInputs       inputs;
-    unsigned int locktime; //; 
-    TxOutputs     outputs; 
+  // -----------------------------------------------------------------
+  //  
+  // -----------------------------------------------------------------
+  namespace Tx {
+
+    struct Struc {
+      //
+      Struc () : version (0), inputs (), locktime (0), outputs (0) {
+      }
+
+      // 
+      unsigned int  version;    
+      TxInputs      inputs;
+      TxOutputs     outputs; 
+      unsigned int  locktime; //; 
       
-  };
+    };
+  
+    digest32& SignatureHash   (digest32& ohash,  const Struc& tx); 
+    bool      VerifyInput     (const Struc& tx); 
+    Struc&    SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&); 
+    bool      Verify          (const Struc& tx) ; 
+  }
   
   //
-  //
-  void print_txin (const TxIn& txin, size_t len); 
-
-  //
-  //
-  void print_txo  (const TxOut& txo, size_t len);
-  
-  //
+  typedef Tx::Struc Transaction; 
+  // -----------------------------------------------------------------
   // 
-  size_t ReadTransaction  (Transaction& out, af::ReadStreamRef rs);
+  // -----------------------------------------------------------------
+  void       print_txin       (const TxIn& txin, size_t len); 
+  void       print_txo        (const TxOut& txo, size_t len);
   
+  // 
+  size_t     ReadTransaction  (Transaction& out, af::ReadStreamRef rs);
+  size_t     WriteTransaction (af::WriteStreamRef ws, const Transaction& out); 
 
-  //
-  // serialize 
-  size_t WriteTransaction (af::WriteStreamRef ws, const Transaction& out); 
   
 } // bmx
 #endif

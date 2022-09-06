@@ -24,12 +24,12 @@ namespace bmx {
   namespace util {
 
     // 
-    size_t read_varint (size_t& out, af::ReadStreamRef rs, const char* trace = 0); 
+    size_t         read_varint  (size_t& out, af::ReadStreamRef rs, const char* trace = 0); 
+    size_t         write_varint (af::WriteStreamRef ws, size_t v) ;
 
+    af::bytearray& encode_num   (af::bytearray& enc_out, ffm::FE_t num, ffm::FEConRef F); 
+    ffm::FE_t      decode_num   (ffm::FE_t num, ffm::FEConRef F, const af::bytearray& n_enc); 
 
-  
-    //
-    size_t write_varint (af::WriteStreamRef ws, size_t v) ;
   }
 
 }
