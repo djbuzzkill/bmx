@@ -1,17 +1,5 @@
 
 
-//
-int CH7_Ex (std::vector<std::string>& args) {
-    //
-  printf ("%s:ENTER\n", __FUNCTION__);
-
-
-
-  
-  printf ("%s:EXIT\n", __FUNCTION__); 
-  return 0;
-}
-
 
 
 
@@ -216,11 +204,6 @@ int tx_test_p2  (std::vector<std::string>& args) {
 //         tx = Tx.parse(stream)
 //         self.assertEqual(tx.fee(), 140500)
 
-//     def test_sig_hash(self):
-//         tx = TxFetcher.fetch('452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03')
-//         want = int('27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6', 16)
-//         self.assertEqual(tx.sig_hash(0), want)
-
 //     def test_verify_p2pkh(self):
 //         tx = TxFetcher.fetch('452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03')
 //         self.assertTrue(tx.verify())
@@ -242,3 +225,50 @@ int tx_test_p2  (std::vector<std::string>& args) {
     
   return 0; 
 }
+
+int tx_test_sig_hash  (std::vector<std::string>& args) {
+
+  bool on_mainnet = true; 
+  printf ("<fn:%s | ln:%i> EXIT \n" , __FUNCTION__, __LINE__); 
+
+  bmx::TxFetcher txf;
+  bmx::Transaction tx;
+  txf.Fetch (tx, "452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03", on_mainnet); 
+  tx.on_mainnet = on_mainnet; 
+  
+  std::string wanthex = "27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6"; 
+
+  digest32 testhash; 
+  Tx::SignatureHash  (testhash, tx, 0); 
+
+  std::string testhex; 
+  hex::encode (testhex,  &testhash[0], testhash.size()); 
+
+  printf ("(fn:%s | ln:%i) wanthex:%s\n" , __FUNCTION__, __LINE__, wanthex.c_str()); 
+  printf ("(fn:%s | ln:%i) testhex:%s\n" , __FUNCTION__, __LINE__, testhex.c_str()); 
+
+  assert (testhex == wanthex); 
+    
+  // def test_sig_hash(self):
+  //     tx = TxFetcher.fetch('452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03')
+  //     want = int('27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6', 16)
+  //     self.assertEqual(tx.sig_hash(0), want)
+  printf ("<fn:%s | ln:%i> EXIT \n" , __FUNCTION__, __LINE__); 
+  return 0; 
+}
+
+
+//
+int CH7_Ex (std::vector<std::string>& args) {
+    //
+  printf ("%s:ENTER\n", __FUNCTION__);
+
+  tx_test_p1 (args); 
+  tx_test_p2 (args); 
+  tx_test_sig_hash  (args); 
+
+  
+  printf ("%s:EXIT\n", __FUNCTION__); 
+  return 0;
+}
+

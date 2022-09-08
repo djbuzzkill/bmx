@@ -62,7 +62,7 @@ bool bmx::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, Tx
 
     CURL* curl = curl_easy_init (); 
       
-    std::string url = tx_lookup_uri (txid_hex, false);
+    std::string url = tx_lookup_uri (txid_hex, mainnet);
     printf ("url:%s\n", url.c_str ());
     curl_easy_setopt (curl, CURLOPT_URL,  url.c_str());
     curl_easy_setopt (curl, CURLOPT_HTTPGET, 1);
@@ -178,9 +178,7 @@ size_t read_and_parse_txout (bmx::TxOut& txout, af::ReadStreamRef rs) {
 //
 // --------------------------------------------------------------
 size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
-
   //printf ("%s:ENTER\n", __FUNCTION__);
-
   size_t readlen     = 0; 
   size_t num_inputs  = 0; 
   size_t num_outputs = 0; 
@@ -210,7 +208,6 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 
   // locktime
   readlen += rs->Read (&tx.locktime, sizeof(tx.locktime)); 
-
   //printf ("%s:EXIT\n", __FUNCTION__);
   return readlen; 
 } 
@@ -269,9 +266,13 @@ size_t write_tx_outputs (af::WriteStreamRef ws, const bmx::TxOutputs& txos) {
 size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& tx) {
   //printf ("%s:%i streampos (%zu) \n",   __FUNCTION__, __LINE__,   ws->GetPos ());       
   size_t writelen = 0;
+  // version
   writelen += ws->Write (&tx.version, sizeof(tx.version));
+  // inputs
   writelen += write_tx_inputs  (ws, tx.inputs) ;
+  // outputs
   writelen += write_tx_outputs (ws, tx.outputs);
+  // locktime
   writelen += ws->Write (&tx.locktime, sizeof (tx.locktime));
   //printf ("%s:%i streampos (%zu) \n",   __FUNCTION__, __LINE__,   ws->GetPos ());       
   return writelen; 
@@ -320,6 +321,8 @@ void bmx::print_txo (const TxOut& txo, size_t indent) {
 //
 digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind) {
 
+    printf ("%s:ENTER \n", __FUNCTION__); 
+
   using namespace ffm;
   
   const std::uint32_t ver      = 4;  // x86 LE
@@ -353,12 +356,15 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
       txin.prev_index; 
 
       Tx::Struc prev_tx;
-      txfr.Fetch (txbin, hex::encode (txid_hex, &txin.prev_txid[0], txin.prev_txid.size ()), tx.on_mainnet);  
-
-      ReadTransaction (prev_tx, CreateReadMemStream (&txbin[0], txbin.size())); 
+      txfr.Fetch (prev_tx, hex::encode (txid_hex, &txin.prev_txid[0], txin.prev_txid.size ()), tx.on_mainnet);
 
       prev_tx.outputs[txin.prev_index].script_pubkey; 
+
+CODE ME  
       
+      //bmx::command_list& bmx::ScriptPubKey (bmx::command_list& outpubkey, const Transaction& tx, size_t txoind) {
+
+      //prev_tx.outputs[txin.prev_index].script_pubkey; 
       // bmx::command_list& bmx::ScriptPubKey (
       //   bmx::command_list&       outpubkey,
       //   const Transaction&        tx,
@@ -367,7 +373,7 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
     }
     else {
       tx.inputs[i].prev_txid; 
-    tx.inputs[i].prev_index;
+      tx.inputs[i].prev_index;
 
 	// clear out script_sig; 
       }
@@ -387,8 +393,11 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
   // HASHTYPE also LE 
 #endif
   writelen += ws->Write (&tx.locktime, sizeof(tx.locktime)); 
-  writelen += ws->Write (&hashtype, sizeof (hashtype)); 
+  writelen += ws->Write (&hashtype, sizeof (hashtype));
 
+
+
+  printf ("%s:EXIT \n", __FUNCTION__); 
 
   return hash256 (osh, &workb[0], ws->GetPos ());
   

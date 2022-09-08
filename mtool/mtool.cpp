@@ -162,10 +162,7 @@ int main (int argv, char** argc) {
   //test_read_SEC_bin (args); 
 
   //CH6_Ex(args);
-
   //test_sig_hash (args); 
-  tx_test_p1 (args); 
-  tx_test_p2 (args); 
   CH7_Ex(args); 
   
     // test_gcrypt (args);
