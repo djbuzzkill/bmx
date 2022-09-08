@@ -53,11 +53,13 @@ int test_sig_hash (std::vector<std::string>& args) {
   return 0;
 }
 
-int tx_test  (std::vector<std::string>& args) {
 
+
+int tx_test_p1  (std::vector<std::string>& args) {
+
+  printf ("(fn:%s | ln:%i) ENTER \n" , __FUNCTION__, __LINE__); 
+  
   bool on_mainnet = false; 
-
-
 
   const std::string txhex =
     "0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600"; 
@@ -84,7 +86,6 @@ int tx_test  (std::vector<std::string>& args) {
     printf ("\nprev_txid_hex:%s\n", prev_txid_hex.c_str()); 
     assert (prev_txid_hex == want_txid_hex); 
 
-
     const std::string want_sig_hex = "6b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278a"; 
     bytearray script_sig_bin (want_sig_hex.size (), 0); 
 
@@ -92,16 +93,12 @@ int tx_test  (std::vector<std::string>& args) {
     std::string script_sig_hex ; 
     hex::encode (script_sig_hex, &script_sig_bin[0], script_sig_len); 
 
-    printf ("\nscript_sig_hex :%s\n", script_sig_hex .c_str()); 
-    printf ("\nwant_sig_hex:%s\n"   , want_sig_hex .c_str()); 
-
-
+    printf ("script_sig_hex :%s\n", script_sig_hex .c_str()); 
+    printf ("want_sig_hex:%s\n"   , want_sig_hex .c_str()); 
     assert (script_sig_hex == want_sig_hex); 
-
-    //tx.tx_ins[0].script_sig
-    
     // self.assertEqual(tx.tx_ins[0].script_sig.serialize(), want)
-    // self.assertEqual(tx.tx_ins[0].sequence, 0xfffffffe)
+    assert (tx.inputs[0].sequence ==  0xfffffffe);
+  // self.assertEqual(tx.tx_ins[0].sequence, 0xfffffffe)
 
   }
   
@@ -112,42 +109,88 @@ int tx_test  (std::vector<std::string>& args) {
 //         raw_tx = bytes.fromhex('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600')
 //         stream = BytesIO(raw_tx)
 //         tx = Tx.parse(stream)
+    assert (tx.outputs.size () == 2); 
 //         self.assertEqual(len(tx.tx_outs), 2)
 //         want = 32454049
+    assert (tx.outputs[0].amount == 32454049); 
+
 //         self.assertEqual(tx.tx_outs[0].amount, want)
-//         want = bytes.fromhex('1976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac')
-//         self.assertEqual(tx.tx_outs[0].script_pubkey.serialize(), want)
-//         want = 10011545
-//         self.assertEqual(tx.tx_outs[1].amount, want)
-//         want = bytes.fromhex('1976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac')
-//         self.assertEqual(tx.tx_outs[1].script_pubkey.serialize(), want)
+//         want_pubkey_hex  = bytes.fromhex('1976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac')
+
+    printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
+
+    bytearray script_pubkey_bin (1024);
+    size_t script_pubkey_len = WriteScript (CreateWriteMemStream (&script_pubkey_bin[0], 1024) , tx.outputs[0].script_pubkey); 
+
+    printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
+
+    // test_input_pubkey(self):
+
+    std::string script_pubkey_hex; 
+    hex::encode (script_pubkey_hex, &script_pubkey_bin[0],  script_pubkey_len); 
+    std::string want_pubkey_hex  = "1976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac"; 
+
+    printf ("script_pubkey_hex:%s\n", script_pubkey_hex .c_str()); 
+    printf ("want_pubkey_hex:%s\n", want_pubkey_hex .c_str()); 
+    assert (script_pubkey_hex == want_pubkey_hex);
+
+    //self.assertEqual(tx.tx_outs[0].script_pubkey.serialize(), want)
+    assert (tx.locktime == 410393);
+  
+
+    
+    // self.assertEqual(tx.locktime, 410393)
+
+
+    // want = 10011545
+    // self.assertEqual(tx.tx_outs[1].amount, want)
+    assert (tx.outputs[1].amount == 10011545); 
+    printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
+
+    // want = bytes.fromhex('1976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac')
+    // self.assertEqual(tx.tx_outs[1].script_pubkey.serialize(), want)
   }
 
+  printf ("(fn:%s | ln:%i) EXIT \n" , __FUNCTION__, __LINE__); 
   
-//     def test_parse_locktime(self):
-//         raw_tx = bytes.fromhex('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600')
-//         stream = BytesIO(raw_tx)
-//         tx = Tx.parse(stream)
-//         self.assertEqual(tx.locktime, 410393)
   return 0;
 }
 
     //script_command obj;  
-    
-// class TxTest(TestCase):
-//     cache_file = '../tx.cache'
+int tx_test_p2  (std::vector<std::string>& args) {
+  printf ("(fn:%s | ln:%i) ENTER  \n" , __FUNCTION__, __LINE__); 
+  
 
-//     @classmethod
-//     def setUpClass(cls):
-//         # fill with cache so we don't have to be online to run these tests
-//         TxFetcher.load_cache(cls.cache_file)
+  bool on_mainnet = false; 
 
 
-//     def test_serialize(self):
-//         raw_tx = bytes.fromhex('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600')
-//         stream = BytesIO(raw_tx)
-//         tx = Tx.parse(stream)
-//         self.assertEqual(tx.serialize(), raw_tx)
+
+  const std::string txhex =
+    "0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600"; 
+
+  bytearray txbin; 
+  hex::decode (txbin, txhex); 
+  bmx::Transaction tx; 
+
+  size_t txreadlen =  ReadTransaction (tx, CreateReadMemStream (&txbin[0],  txbin.size ()));
+
+  {
+    // def test_serialize(self):
+    // raw_tx = bytes.fromhex('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600')
+    // stream = BytesIO(raw_tx)
+    // tx = Tx.parse(stream)
+    // self.assertEqual(tx.serialize(), raw_tx)
+
+    bytearray txobin (txreadlen, 0);
+
+    size_t writeotxlen = WriteTransaction (CreateWriteMemStream (&txobin[0], txobin.size ()), tx); 
+
+    assert (writeotxlen == txreadlen); 
+    printf ("(fn:%s | ln:%i) writeotxlen:%zu\n" , __FUNCTION__, __LINE__, writeotxlen); 
+    printf ("(fn:%s | ln:%i) txreadlen  :%zu\n" , __FUNCTION__, __LINE__, txreadlen  ); 
+    assert (writeotxlen == txreadlen); 
+
+  }
 
 //     def test_input_value(self):
 //         tx_hash = 'd1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81'
@@ -195,3 +238,7 @@ int tx_test  (std::vector<std::string>& args) {
 //         self.assertTrue(tx_obj.sign_input(0, private_key))
 //         want = '010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d0000006b4830450221008ed46aa2cf12d6d81065bfabe903670165b538f65ee9a3385e6327d80c66d3b502203124f804410527497329ec4715e18558082d489b218677bd029e7fa306a72236012103935581e52c354cd2f484fe8ed83af7a3097005b2f9c60bff71d35bd795f54b67ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'
 //         self.assertEqual(tx_obj.serialize().hex(), want)
+  printf ("(fn:%s | ln:%i) EXIT \n" , __FUNCTION__, __LINE__); 
+    
+  return 0; 
+}

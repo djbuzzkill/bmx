@@ -14,6 +14,7 @@ using bmx::util::decode_num;
   //
   //  
 size_t bmx::WriteScript (af::WriteStreamRef ws, const command_list& wout) {
+  printf (">%s:ENTER \n", __FUNCTION__); 
 
   const size_t size_workbuf = 1024 * 10; 
   af::bytearray workmem (size_workbuf, 0); 
@@ -23,42 +24,49 @@ size_t bmx::WriteScript (af::WriteStreamRef ws, const command_list& wout) {
 
   //
   for (auto e : wout) {
-    size_t            arr_len = arr(e).size ();
-    const  bytearray& bytes   = arr(e); 
+    const  bytearray& bytes  = arr(e); 
+    size_t            arrlen = bytes.size (); 
     //
     switch (ty (e)) {
       
     case command_type::SC_operation: 
+      printf   ("SC_operation (%2x) \n", bytes[0]);       
       innerlen += iw->Write (&bytes[0], 1);
       break;
       
     case command_type::SC_element:
-      
-      if (arr_len < 76) {
-	unsigned char uclen = arr_len; 
-	innerlen  += iw->Write (&uclen, 1);
+      printf   ("SC_element");       
+      if (arrlen < 75) {
+	printf   (" (arrlen < 75) \n");       
+
+	unsigned char uclen = arrlen; 
+	innerlen += iw->Write (&uclen, 1);
       }
-      else if (arr_len > 75 && arr_len < 256) {
+      else if (arrlen > 75 && arrlen < 256) {
 	const unsigned char uc76 = 76; 
-	std::uint16_t  u8len = arr_len;  
+	std::uint8_t  u8len = arrlen;  
+	printf   (" (arrlen > 75 && arrlen < 256) \n");       
 	innerlen += iw->Write (&uc76, 1); 
 	innerlen += iw->Write (&u8len, 1);
       }
-      else if (arr_len > 255 && arr_len < 521) {
+      else if (arrlen > 255 && arrlen < 521) {
 	const unsigned char uc77   = 77; 
-	std::uint16_t       u16len = arr_len;  
+	std::uint16_t       u16len = arrlen;  
 #ifdef ARCH_BIG_ENDIAN
 	// swap_endian (u16len); 
 #endif
+	printf   (" (arrlen > 255 && arrlen < 521) \n");       
 	innerlen += iw->Write (&uc77, 1); 
-	innerlen += iw->Write (&u16len, sizeof(std::uint16_t));
+	innerlen += iw->Write (&u16len, sizeof(u16len));
       }
       else {
+	printf (" how did you do this \n");       
 	// raise ValueError('too long an cmd')
 	return 0; 
       }
-      
-      innerlen += iw->Write (&bytes[0], arr_len);
+
+      //
+      innerlen += iw->Write (&bytes[0], arrlen);
       break;
 
     default: // switch command_type default
@@ -74,14 +82,12 @@ size_t bmx::WriteScript (af::WriteStreamRef ws, const command_list& wout) {
   size_t writelen = 0;
 
   writelen += util::write_varint (ws, innerlen);
-  printf ("%s:writelen_b4:%zu\n", __FUNCTION__, writelen); 
 
   writelen += ws->Write (&workmem[0], innerlen); 
 
 
-  printf ("%s:inner_len:%zu\n" , __FUNCTION__, innerlen); 
-  printf ("%s:writelen:%zu\n", __FUNCTION__, writelen); 
-  
+  printf ("<%s:EXIT \n", __FUNCTION__); 
+
   return writelen;
 }
 

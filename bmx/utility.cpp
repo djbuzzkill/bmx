@@ -53,9 +53,7 @@ size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
   }
   else {
     // must be big if u got this far
-    const unsigned char leader = 0xff;
-    writelen += ws->Write (&leader, 1); 
-    writelen += ws->Write (&v, 1);
+    assert (false); 
     
   }
   return writelen; 

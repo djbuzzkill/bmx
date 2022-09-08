@@ -62,9 +62,10 @@ namespace privread {
    
     std::uint16_t lendat16 = 0;
     acc += rs->Read (&lendat16, sizeof(lendat16));
-
-    printf ("%s:lendata[%u]\n", __FUNCTION__, lendat16);
-
+#ifdef ARCH_BIG_ENDIAN
+    //swap_endian (lendat16); 
+#endif
+    //printf ("%s:lendata[%u]\n", __FUNCTION__, lendat16);
     cmd.bin.resize (lendat16); 
     acc += rs->Read (&cmd.bin[0], lendat16); 
     
@@ -82,43 +83,38 @@ namespace privread {
 //
 size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
 
+  printf ("%s:ENTER \n", __FUNCTION__); 
+
   using namespace privread; 
-    
   out.clear (); 
   //
   // readlen : total lenghth of bytes read in this function
   size_t readlen = 0; 
-
-  //
   // scriptlen : the claimed length of the following object
   size_t scriptlen = 0;
   readlen += util::read_varint (scriptlen, rs, 0);
-
-  printf ( "%s:size(varint) [%zu]\n", __FUNCTION__, readlen );
-  printf ( "%s:scriptlen [%zu]\n", __FUNCTION__, scriptlen );
-
-  
+  // printf ( "%s:size(varint) [%zu]\n", __FUNCTION__, readlen );
+  // printf ( "%s:scriptlen [%zu]\n", __FUNCTION__, scriptlen );
   size_t accum = 0;
-  //
   while (accum < scriptlen) {
 
     unsigned char leader = 0;
     accum += rs->Read (&leader, 1); 
     
     if (leader > 0 && leader < 76) {
-      printf ( " *>read_script_element(%u)<* \n", leader); 
+      printf ( " -> element(%u) \n", leader); 
       out.push_back (read_script_element (rs, leader, accum));
     }
     else if (leader == 76) {
-      printf ( " *>read_OP_PUSH1<* \n"); 
+      printf ( " -> read_OP_PUSH1 \n"); 
       out.push_back (read_OP_PUSH1 (rs, leader, accum));
     }
     else if (leader == 77) {
-      printf ( " *>read_OP_PUSH2<* \n"); 
+      printf ( " -> read_OP_PUSH2 \n"); 
       out.push_back (read_OP_PUSH2 (rs, leader, accum));
     }
     else {
-      printf (" *>script_command (%u)<* \n", leader); 
+      printf (" -> OP(%x) \n", leader); 
       out.push_back (script_command (leader)); 
       //
     }
@@ -131,6 +127,7 @@ size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
     printf ("%s(accum(%zu) != scriptlen(%zu))\n", __FUNCTION__, accum, scriptlen); 
   }
   
+  printf ("%s:EXIT \n", __FUNCTION__); 
   return readlen; 
 }
 

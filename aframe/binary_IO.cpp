@@ -118,11 +118,15 @@ namespace af {
 
       size_t write_len = len; 
 
-      if (!in_bounds_excl<size_t> (offs+len, 0, max_size)) {
-
+      if (!in_bounds_incl<size_t> (offs+len, 0, max_size)) {
+	printf ("[%s:|%i] max_size:%zu  \n",   __FUNCTION__, __LINE__, max_size);
+	printf ("[%s:|%i] offs:%zu  \n",   __FUNCTION__, __LINE__, offs);
+	printf ("[%s:|%i] len:%zu  \n",   __FUNCTION__, __LINE__, len);
 	assert (false); 
 
 	write_len = max_size - offs;
+
+
       }
       
       std::copy (ucsrc, ucsrc+write_len, mem+offs); 

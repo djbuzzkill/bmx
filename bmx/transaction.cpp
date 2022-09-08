@@ -179,11 +179,11 @@ size_t read_and_parse_txout (bmx::TxOut& txout, af::ReadStreamRef rs) {
 // --------------------------------------------------------------
 size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 
-  printf ("%s:ENTER\n", __FUNCTION__);
+  //printf ("%s:ENTER\n", __FUNCTION__);
+
   size_t readlen     = 0; 
   size_t num_inputs  = 0; 
   size_t num_outputs = 0; 
-
 
   // version
   readlen += rs->Read (&tx.version, sizeof(tx.version));
@@ -196,8 +196,6 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 
   // inputs
   readlen += util::read_varint (num_inputs, rs, 0); // __FUNCTION__ );
-  //printf ("%s:184\n", __FUNCTION__);
-  //printf ("%s:num_inputs%zu\n", __FUNCTION__, num_inputs);
 
   tx.inputs.resize (num_inputs);
   for (auto i = 0; i < num_inputs; ++i) 
@@ -205,6 +203,7 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 
   // outputs
   readlen += util::read_varint (num_outputs, rs, 0); // __FUNCTION__);
+
   tx.outputs.resize (num_outputs);
   for (auto i = 0; i < num_outputs; ++i) 
     readlen += read_and_parse_txout (tx.outputs[i], rs);
@@ -212,9 +211,7 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   // locktime
   readlen += rs->Read (&tx.locktime, sizeof(tx.locktime)); 
 
-  printf ("%s:EXIT\n", __FUNCTION__);
-
-  //
+  //printf ("%s:EXIT\n", __FUNCTION__);
   return readlen; 
 } 
 
@@ -226,24 +223,42 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
 // --------------------------------------------------------------
 //
 // --------------------------------------------------------------
-size_t write_tx_inputs (bmx::TxInputs& tx, af::ReadStreamRef ws) {
-  // CODE_ME ();
-  return 0 ;
+size_t write_tx_inputs (af::WriteStreamRef ws, const bmx::TxInputs& txis) {
+
+  using namespace bmx;
+  size_t writelen = 0;
+
+  writelen += util::write_varint (ws, txis.size ());
+
+  for (auto i = 0; i < txis.size(); ++i) {
+
+    const bmx::TxIn& txi = txis[i];
+
+    byte32 txid_LE = txi.prev_txid;
+    std::reverse (txid_LE.begin(), txid_LE.end());
+    writelen += ws->Write   (&txid_LE[0], 32);
+
+    writelen += ws->Write   (&txi.prev_index, sizeof(txi.prev_index));
+    writelen += WriteScript (ws, txi.script_sig);
+    writelen += ws->Write   (&txi.sequence, sizeof (txi.sequence)); 
+  }
+
+  return writelen ;
 }
 
 //
 //
-size_t write_tx_outputs (bmx::TxOutputs& tx, af::WriteStreamRef ws) {
+size_t write_tx_outputs (af::WriteStreamRef ws, const bmx::TxOutputs& txos) {
   using namespace bmx;
-
   size_t writelen = 0;
-  //
-  for (auto i = 0; i < tx.size(); ++i) {
 
-    bmx::TxOut& out = tx[i]; 
-    writelen += ws->Write          (&out.amount, sizeof(size_t));
+  writelen += util::write_varint (ws, txos.size ());
 
-    writelen += WriteScript (ws, out.script_pubkey);
+  for (auto i = 0; i < txos.size(); ++i) {
+
+    const bmx::TxOut& txo = txos[i]; 
+    writelen += ws->Write (&txo.amount, sizeof(txo.amount));
+    writelen += WriteScript (ws, txo.script_pubkey);
   }
 
   return writelen; 
@@ -251,22 +266,15 @@ size_t write_tx_outputs (bmx::TxOutputs& tx, af::WriteStreamRef ws) {
 
 
 //
-size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& out) {
-  write_tx_inputs;  
-
-
-
-
-
-
-
-  CODE_ME (); 
-
-
-
-  
-  write_tx_outputs;
-  return 0; 
+size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& tx) {
+  //printf ("%s:%i streampos (%zu) \n",   __FUNCTION__, __LINE__,   ws->GetPos ());       
+  size_t writelen = 0;
+  writelen += ws->Write (&tx.version, sizeof(tx.version));
+  writelen += write_tx_inputs  (ws, tx.inputs) ;
+  writelen += write_tx_outputs (ws, tx.outputs);
+  writelen += ws->Write (&tx.locktime, sizeof (tx.locktime));
+  //printf ("%s:%i streampos (%zu) \n",   __FUNCTION__, __LINE__,   ws->GetPos ());       
+  return writelen; 
 }
 
 //

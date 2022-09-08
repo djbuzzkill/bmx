@@ -75,7 +75,7 @@ namespace bmx {
   
   // 
   size_t        ReadTransaction  (Transaction& out, af::ReadStreamRef rs);
-  size_t        WriteTransaction (af::WriteStreamRef ws, const Transaction& out); 
+  size_t        WriteTransaction (af::WriteStreamRef ws, const Transaction& tx); 
 
 
   
