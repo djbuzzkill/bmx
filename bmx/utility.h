@@ -10,6 +10,9 @@
 namespace bmx {
 
 
+  constexpr std::uint32_t SIGHASH_ALL    = 1; 
+  constexpr std::uint32_t SIGHASH_NONE   = 2; 
+  constexpr std::uint32_t SIGHASH_SINGLE = 3; 
   //
   //
   inline command_list& append (command_list& out, const command_list& l) {

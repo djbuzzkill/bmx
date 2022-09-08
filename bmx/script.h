@@ -20,6 +20,9 @@ namespace bmx {
   size_t WriteScript (af::WriteStreamRef ws, const command_list& out); 
   bool   EvalScript  (script_env& env);
   //bool EvalScript (const command_list& commands, const af::digest32& z);
+
+
+  
   
 }
 

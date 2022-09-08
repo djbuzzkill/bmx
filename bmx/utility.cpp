@@ -23,7 +23,7 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
   case 253: readlen += rs->Read (&out, 2); break;
   case 254: readlen += rs->Read (&out, 4); break;
   case 255: readlen += rs->Read (&out, 8); break;
-  default: out = leaderbyte; break;
+  default: out = leaderbyte;               break;
   }
   
   return readlen; 
@@ -39,13 +39,13 @@ size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
   if (v < 253) {
     writelen +=  ws->Write (&v, 1);
   }
-  if (v < 0x10000) { // revise ranges
+  else if (v < 0x10000) { // one_with_four_zeros_following
     const unsigned char leader = 0xfd;
     writelen += ws->Write  (&leader, 1); 
     writelen += ws->Write (&v, 2); 
     // 2 bytes
   }
-  else if (v < 0x100000000) {
+  else if (v < 0x100000000) { // one_with_eight_zeros_following
     const unsigned char leader = 0xfe; 
     // 4 bytes
     writelen += ws->Write (&leader, 1); 

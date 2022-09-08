@@ -2,6 +2,7 @@
 #define FFM_COMMON_H
 
 #include <cstdio>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <map>
