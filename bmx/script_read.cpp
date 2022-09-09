@@ -82,9 +82,7 @@ namespace privread {
 //
 //
 size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
-
-  printf ("%s:ENTER \n", __FUNCTION__); 
-
+  // FN_SCOPE ("dsa"); 
   using namespace privread; 
   out.clear (); 
   //
@@ -102,19 +100,19 @@ size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
     accum += rs->Read (&leader, 1); 
     
     if (leader > 0 && leader < 76) {
-      printf ( " -> element(%u) \n", leader); 
+      //printf ( " -> element(%u) \n", leader); 
       out.push_back (read_script_element (rs, leader, accum));
     }
     else if (leader == 76) {
-      printf ( " -> read_OP_PUSH1 \n"); 
+      //printf ( " -> read_OP_PUSH1 \n"); 
       out.push_back (read_OP_PUSH1 (rs, leader, accum));
     }
     else if (leader == 77) {
-      printf ( " -> read_OP_PUSH2 \n"); 
+      //printf ( " -> read_OP_PUSH2 \n"); 
       out.push_back (read_OP_PUSH2 (rs, leader, accum));
     }
     else {
-      printf (" -> OP(%x) \n", leader); 
+      //printf (" -> OP(%x) \n", leader); 
       out.push_back (script_command (leader)); 
       //
     }
@@ -127,7 +125,6 @@ size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
     printf ("%s(accum(%zu) != scriptlen(%zu))\n", __FUNCTION__, accum, scriptlen); 
   }
   
-  printf ("%s:EXIT \n", __FUNCTION__); 
   return readlen; 
 }
 

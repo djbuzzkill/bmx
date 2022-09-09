@@ -10,6 +10,8 @@
 #define POUT(s) {printf("%s|ln:%i\n", (s), __LINE__);}
 #define PR(s) printf("%s", (s));
 
+#define PR_CHECK(m,c) if((c)){printf("SUCCEEDED >> %s\n", m);}else{printf("!! %s << FAILED\n", m);}
+#define FN_SCOPE(m) fnscope ____FNSCOPE(__FUNCTION__,(m)); 
 
 namespace af
 {
@@ -96,6 +98,24 @@ namespace af
     return true;
   }
 
+
+  //
+  // print scope 
+  class fnscope {
+
+    const char*        f;
+    const std::string& m; 
+    
+  public: 
+    fnscope (const char* fn, const std::string& msg = std::string("")) :f(fn), m(msg) {
+      printf ("<ENTER:%s>(%s)\n" , f, m.c_str()); 
+    }
+    
+    ~fnscope () {
+      printf ("<EXIT:%s>(%s)\n" , f, m.c_str()); 
+    } 
+    
+  };
 
   
   //

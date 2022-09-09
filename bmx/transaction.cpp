@@ -63,7 +63,9 @@ bool bmx::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, Tx
     CURL* curl = curl_easy_init (); 
       
     std::string url = tx_lookup_uri (txid_hex, mainnet);
-    printf ("url:%s\n", url.c_str ());
+
+    printf ("%s from: %s\n", __FUNCTION__, url.c_str () );
+    
     curl_easy_setopt (curl, CURLOPT_URL,  url.c_str());
     curl_easy_setopt (curl, CURLOPT_HTTPGET, 1);
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, curl_write_cb);
@@ -97,21 +99,24 @@ bool bmx::FetchTx (bytearray& out, bool mainnet, const std::string& txid_hex, Tx
 
 
 //
-bool bmx::TxFetcher::Fetch  (af::bytearray& out, const std::string& txid_hex, bool mainnet) {
+bool bmx::TxFetcher::Fetch (af::bytearray& out, const std::string& txid_hex, bool mainnet) {
   return FetchTx (out, mainnet, txid_hex, cache); 
 }
 
 
-
-bool bmx::TxFetcher:: Fetch (Transaction &otx, const std::string &txid_hex, bool mainnet) {
+//
+//
+bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool mainnet) {
 
   af::bytearray txbin; 
   af::bytearray txhex;
   std::string   strhex; 
   if (Fetch (txhex, txid_hex, mainnet)) {
 
+    printf ("\n--> %s: recv > %zu bytes \n", __FUNCTION__, txhex.size ());
+
     strhex.assign (txhex.begin(), txhex.end ());
-    printf ("\n--> %s:strhex:%s\n", __FUNCTION__, strhex.c_str());
+    // printf ("\n--> %s:strhex:%s\n", __FUNCTION__, strhex.c_str());
     af::hex::decode (txbin, strhex);
     
     size_t txlen  = ReadTransaction (otx, CreateReadMemStream (&txbin[0], txbin.size()));
@@ -261,7 +266,7 @@ size_t write_tx_outputs (af::WriteStreamRef ws, const bmx::TxOutputs& txos) {
   return writelen; 
 } 
 
-
+//
 //
 size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& tx) {
   //printf ("%s:%i streampos (%zu) \n",   __FUNCTION__, __LINE__,   ws->GetPos ());       
@@ -314,92 +319,83 @@ void bmx::print_txo (const TxOut& txo, size_t indent) {
       //hex::encode (stmp, &txo.script_pubkey[0], txo.script_pubkey.size()); 
   //printf ( "%s  scriptbin:0x%s\n",   space.c_str(), stmp.c_str()); 
   printf ( "%s}\n",       space.c_str());
-  
 }
 
-//
-//
-digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind) {
 
-    printf ("%s:ENTER \n", __FUNCTION__); 
+//
+//
+digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet) {
+  FN_SCOPE("sig"); 
+  
+  //    printf ("%s:ENTER \n", __FUNCTION__); 
 
   using namespace ffm;
   
   const std::uint32_t ver      = 4;  // x86 LE
-  const size_t        buf_size = 1024 * 8; 
-  bytearray           workb    (buf_size, 0); 
-  WriteStreamRef      ws       = CreateWriteMemStream (&workb[0], buf_size);
+  const size_t        buf_size = 1024 * 4; 
+  bytearray           workb    (buf_size); 
+  
+  size_t writetxlen = WriteTransaction (CreateWriteMemStream (&workb[0], buf_size) , tx );
 
+  Transaction htx ; 
+  size_t readtxlen =  ReadTransaction (htx, CreateReadMemStream (&workb[0], buf_size)); 
+  
+  PR ("b4 assert\n");
+  assert (writetxlen == readtxlen); 
+  PR ("a4 assert\n");
+
+  
 #ifdef ARCH_BIG_ENDIAN
   // make sure ver is written out LE
   // swap_endian (ver); 
 #endif
 
-  //
-  size_t writelen = 0;
-  //
-  // version
-  writelen += ws->Write (&ver, sizeof (ver)); 
-  
-  //  inputs
-  writelen += util::write_varint (ws, tx.inputs.size ()); 
-  for (size_t i = 0;  i < tx.inputs.size (); ++i)  {
+  for (size_t i = 0;  i < htx.inputs.size (); ++i)  {
 
-    if (i == txind) { 
+    TxIn& cur_txin = htx.inputs[i];
+
+    if (i == txind) {
+      PR ("(cur_txin.script_sig = script_pubkey)"); 
       bytearray txbin; 
       TxFetcher txfr;
       std::string txid_hex; 
-      // put script_pubkey from txo  into script_sig
-      ScriptPubKey ;
-		  
-      TxIn txin = tx.inputs[i];
-      txin.prev_index; 
-
-      Tx::Struc prev_tx;
-      txfr.Fetch (prev_tx, hex::encode (txid_hex, &txin.prev_txid[0], txin.prev_txid.size ()), tx.on_mainnet);
-
-      prev_tx.outputs[txin.prev_index].script_pubkey; 
-
-CODE ME  
-      
-      //bmx::command_list& bmx::ScriptPubKey (bmx::command_list& outpubkey, const Transaction& tx, size_t txoind) {
-
-      //prev_tx.outputs[txin.prev_index].script_pubkey; 
-      // bmx::command_list& bmx::ScriptPubKey (
-      //   bmx::command_list&       outpubkey,
-      //   const Transaction&        tx,
-      //   size_t                    txoind) 
-  
+      {
+	Tx::Struc prev_tx;
+	txfr.Fetch (prev_tx, hex::encode (txid_hex, &cur_txin.prev_txid[0], cur_txin.prev_txid.size ()), on_mainnet);
+	// replade script_sig, replace w/script_pubkey
+	cur_txin.script_sig.clear ();
+	append (cur_txin.script_sig, prev_tx.outputs[cur_txin.prev_index].script_pubkey);
+      }
     }
     else {
-      tx.inputs[i].prev_txid; 
-      tx.inputs[i].prev_index;
-
-	// clear out script_sig; 
+      PR ("(else clear)"); 
+      cur_txin.script_sig.clear (); 
       }
   } // inputs
 
-  // outputs
-  writelen += util::write_varint (ws, tx.outputs.size ()); 
-  for (size_t i = 0; i < tx.outputs.size(); ++i) {
-    // pass txo's unchanged
-  } // outputs
 
-
-  std::uint32_t hashtype = SIGHASH_ALL; 
+  const std::uint32_t hashtype = SIGHASH_ALL; 
   
 #ifdef ARCH_BIG_ENDIAN
-  // locktime is written in LE
   // HASHTYPE also LE 
 #endif
-  writelen += ws->Write (&tx.locktime, sizeof(tx.locktime)); 
-  writelen += ws->Write (&hashtype, sizeof (hashtype));
 
+  WriteStreamRef wsh = CreateWriteMemStream (&workb[0], buf_size);
+  
+  size_t txlen_to_hash = 0; 
+  txlen_to_hash += WriteTransaction (wsh, htx);
+  txlen_to_hash += wsh->Write (&hashtype , sizeof(SIGHASH_ALL));
 
+  size_t streampos = wsh->GetPos (); 
+  
+  // printf ("%s:EXIT \n", __FUNCTION__);
+  if (txlen_to_hash != streampos) {
+    printf("<wsh|streamposition: %zu\n", streampos);
+    printf("<wsh|txlen_to_hash: %zu\n", txlen_to_hash);
+    assert (txlen_to_hash == streampos);
+  }
 
-  printf ("%s:EXIT \n", __FUNCTION__); 
-
-  return hash256 (osh, &workb[0], ws->GetPos ());
+  return hash256 (osh, &workb[0], wsh->GetPos ());
   
 }
 
@@ -459,20 +455,6 @@ bmx::Transaction& bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int index,
   return otx; 
 }
 
-
-
-//
-//
-bmx::command_list& bmx::ScriptPubKey (bmx::command_list& outpubkey, const Transaction& tx, size_t txoind) {
-
-  outpubkey.clear (); 
-  if  (txoind < tx.outputs.size ()) {
-    append (outpubkey, tx.outputs[txoind].script_pubkey); 
-  }
-
-  return outpubkey; 
-  
-} 
 
 //
 // bmx::command_list& bmx::ScriptPubKey (command_list& outpubkey, const af::byte32 txid, size_t txind, bool mainnet)  {

@@ -5,8 +5,10 @@
 
 //
 int test_sig_hash (std::vector<std::string>& args) {
+
+  //FN_SCOPE ("");
   //
-  printf ("%s:ENTER\n", __FUNCTION__);
+  //printf ("%s:ENTER\n", __FUNCTION__);
 
   bmx::Transaction tx; 
   bmx::TxFetcher   txf;
@@ -37,7 +39,7 @@ int test_sig_hash (std::vector<std::string>& args) {
 
   
   
-  printf ("%s:EXIT\n", __FUNCTION__); 
+  //printf ("%s:EXIT\n", __FUNCTION__); 
   return 0;
 }
 
@@ -45,7 +47,9 @@ int test_sig_hash (std::vector<std::string>& args) {
 
 int tx_test_p1  (std::vector<std::string>& args) {
 
-  printf ("(fn:%s | ln:%i) ENTER \n" , __FUNCTION__, __LINE__); 
+  //FN_SCOPE ("");
+
+  //printf ("(fn:%s | ln:%i) ENTER \n" , __FUNCTION__, __LINE__); 
   
   bool on_mainnet = false; 
 
@@ -69,9 +73,11 @@ int tx_test_p1  (std::vector<std::string>& args) {
     std::string prev_txid_hex; 
 
     hex::encode (prev_txid_hex, &tx.inputs[0].prev_txid[0], tx.inputs[0].prev_txid.size());
-
-    printf ("\nwant_txid_hex:%s\n", want_txid_hex.c_str()); 
-    printf ("\nprev_txid_hex:%s\n", prev_txid_hex.c_str()); 
+    
+    if (prev_txid_hex != want_txid_hex) {  
+      printf ("\nwant_txid_hex:%s\n", want_txid_hex.c_str()); 
+      printf ("\nprev_txid_hex:%s\n", prev_txid_hex.c_str());
+    }
     assert (prev_txid_hex == want_txid_hex); 
 
     const std::string want_sig_hex = "6b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278a"; 
@@ -81,8 +87,10 @@ int tx_test_p1  (std::vector<std::string>& args) {
     std::string script_sig_hex ; 
     hex::encode (script_sig_hex, &script_sig_bin[0], script_sig_len); 
 
-    printf ("script_sig_hex :%s\n", script_sig_hex .c_str()); 
-    printf ("want_sig_hex:%s\n"   , want_sig_hex .c_str()); 
+    if (script_sig_hex != want_sig_hex) { 
+      printf ("script_sig_hex :%s\n", script_sig_hex .c_str()); 
+      printf ("want_sig_hex:%s\n"   , want_sig_hex .c_str());
+    }
     assert (script_sig_hex == want_sig_hex); 
     // self.assertEqual(tx.tx_ins[0].script_sig.serialize(), want)
     assert (tx.inputs[0].sequence ==  0xfffffffe);
@@ -105,12 +113,12 @@ int tx_test_p1  (std::vector<std::string>& args) {
 //         self.assertEqual(tx.tx_outs[0].amount, want)
 //         want_pubkey_hex  = bytes.fromhex('1976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac')
 
-    printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
+    //printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
 
     bytearray script_pubkey_bin (1024);
     size_t script_pubkey_len = WriteScript (CreateWriteMemStream (&script_pubkey_bin[0], 1024) , tx.outputs[0].script_pubkey); 
 
-    printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
+    //printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
 
     // test_input_pubkey(self):
 
@@ -124,11 +132,6 @@ int tx_test_p1  (std::vector<std::string>& args) {
 
     //self.assertEqual(tx.tx_outs[0].script_pubkey.serialize(), want)
     assert (tx.locktime == 410393);
-  
-
-    
-    // self.assertEqual(tx.locktime, 410393)
-
 
     // want = 10011545
     // self.assertEqual(tx.tx_outs[1].amount, want)
@@ -139,14 +142,15 @@ int tx_test_p1  (std::vector<std::string>& args) {
     // self.assertEqual(tx.tx_outs[1].script_pubkey.serialize(), want)
   }
 
-  printf ("(fn:%s | ln:%i) EXIT \n" , __FUNCTION__, __LINE__); 
+  //printf ("(fn:%s | ln:%i) EXIT \n" , __FUNCTION__, __LINE__); 
   
   return 0;
 }
 
     //script_command obj;  
 int tx_test_p2  (std::vector<std::string>& args) {
-  printf ("(fn:%s | ln:%i) ENTER  \n" , __FUNCTION__, __LINE__); 
+
+  //FN_SCOPE ("");
   
 
   bool on_mainnet = false; 
@@ -173,9 +177,9 @@ int tx_test_p2  (std::vector<std::string>& args) {
 
     size_t writeotxlen = WriteTransaction (CreateWriteMemStream (&txobin[0], txobin.size ()), tx); 
 
-    assert (writeotxlen == txreadlen); 
     printf ("(fn:%s | ln:%i) writeotxlen:%zu\n" , __FUNCTION__, __LINE__, writeotxlen); 
     printf ("(fn:%s | ln:%i) txreadlen  :%zu\n" , __FUNCTION__, __LINE__, txreadlen  ); 
+    PR_CHECK ("writeotxlen == txreadlen", writeotxlen == txreadlen);
     assert (writeotxlen == txreadlen); 
 
   }
@@ -221,25 +225,29 @@ int tx_test_p2  (std::vector<std::string>& args) {
 //         self.assertTrue(tx_obj.sign_input(0, private_key))
 //         want = '010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d0000006b4830450221008ed46aa2cf12d6d81065bfabe903670165b538f65ee9a3385e6327d80c66d3b502203124f804410527497329ec4715e18558082d489b218677bd029e7fa306a72236012103935581e52c354cd2f484fe8ed83af7a3097005b2f9c60bff71d35bd795f54b67ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'
 //         self.assertEqual(tx_obj.serialize().hex(), want)
-  printf ("(fn:%s | ln:%i) EXIT \n" , __FUNCTION__, __LINE__); 
-    
+  
   return 0; 
 }
 
-int tx_test_sig_hash  (std::vector<std::string>& args) {
 
-  bool on_mainnet = true; 
-  printf ("<fn:%s | ln:%i> EXIT \n" , __FUNCTION__, __LINE__); 
 
-  bmx::TxFetcher txf;
-  bmx::Transaction tx;
-  txf.Fetch (tx, "452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03", on_mainnet); 
-  tx.on_mainnet = on_mainnet; 
+//
+//
+int tx_test_sig_hash (std::vector<std::string>& args) {
+
+  FN_SCOPE ("hashY"); 
+  //prscope scope (__FUNCTION__, __LINE__, "tst"); 
+
   
-  std::string wanthex = "27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6"; 
+  const bool        on_mainnet = true; 
+  const std::string wanthex    = "27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6"; 
+
+  bmx::Transaction  tx;
+  bmx::TxFetcher    txf;
+  txf.Fetch (tx, "452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03", on_mainnet); 
 
   digest32 testhash; 
-  Tx::SignatureHash  (testhash, tx, 0); 
+  Tx::SignatureHash  (testhash, tx, 0, on_mainnet);
 
   std::string testhex; 
   hex::encode (testhex,  &testhash[0], testhash.size()); 
@@ -247,15 +255,15 @@ int tx_test_sig_hash  (std::vector<std::string>& args) {
   printf ("(fn:%s | ln:%i) wanthex:%s\n" , __FUNCTION__, __LINE__, wanthex.c_str()); 
   printf ("(fn:%s | ln:%i) testhex:%s\n" , __FUNCTION__, __LINE__, testhex.c_str()); 
 
-  assert (testhex == wanthex); 
-    
+  PR_CHECK ("testhex == wanthex", testhex == wanthex); 
   // def test_sig_hash(self):
   //     tx = TxFetcher.fetch('452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03')
   //     want = int('27e0c5994dec7824e56dec6b2fcb342eb7cdb0d0957c2fce9882f715e85d81a6', 16)
   //     self.assertEqual(tx.sig_hash(0), want)
-  printf ("<fn:%s | ln:%i> EXIT \n" , __FUNCTION__, __LINE__); 
   return 0; 
 }
+
+
 
 
 //

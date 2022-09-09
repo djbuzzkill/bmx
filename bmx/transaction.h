@@ -44,20 +44,17 @@ namespace bmx {
 
     struct Struc {
       //
-      Struc () : version (0), inputs (), locktime (0), outputs (0), on_mainnet(false) {
+      Struc () : version (0), inputs (), locktime (0), outputs (0) {
       }
-      
       // 
       std::uint32_t version;    
       TxInputs      inputs;
       TxOutputs     outputs; 
       std::uint32_t locktime; //; 
-
-      bool on_mainnet; 
-      
+      //
     };
   
-    digest32& SignatureHash   (digest32& ohash, const Struc& tx, size_t indx); 
+    digest32& SignatureHash   (digest32& ohash, const Struc& tx, size_t indx, bool mainnet); 
     bool      VerifyInput     (const Struc& tx); 
     Struc&    SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&); 
     bool      Verify          (const Struc& tx) ; 
@@ -81,7 +78,7 @@ namespace bmx {
   
   //  command_list& ScriptPubKey (command_list& outpubkey, const af::byte32 txid, size_t txind, bool mainnet_is_true = false); 
 
-  command_list& ScriptPubKey (command_list& outpubkey, const Transaction& tx, size_t txind); 
+  //command_list& ScriptPubKey (command_list& outpubkey, const Transaction& tx, size_t txind); 
 			     
 
   // -----------------------------------------------------------------
