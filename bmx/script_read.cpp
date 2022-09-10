@@ -17,7 +17,12 @@ namespace privread {
 				       ReadStreamRef   rs,
 				       unsigned char   len,
 				       size_t&         acc) {
+    FN_SCOPE ();
 
+    
+   printf("%s|len:%u\n", __FUNCTION__, len);
+      
+    
     script_command cmd; 
     //
     if ( len > 75) {
@@ -82,7 +87,7 @@ namespace privread {
 //
 //
 size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
-  // FN_SCOPE ("dsa"); 
+  FN_SCOPE (); 
   using namespace privread; 
   out.clear (); 
   //
@@ -90,9 +95,11 @@ size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
   size_t readlen = 0; 
   // scriptlen : the claimed length of the following object
   size_t scriptlen = 0;
+
   readlen += util::read_varint (scriptlen, rs, 0);
-  // printf ( "%s:size(varint) [%zu]\n", __FUNCTION__, readlen );
-  // printf ( "%s:scriptlen [%zu]\n", __FUNCTION__, scriptlen );
+
+  printf ( "%s:size(varint) [%zu]\n", __FUNCTION__, readlen );
+  printf ( "%s:scriptlen [%zu]\n", __FUNCTION__, scriptlen );
   size_t accum = 0;
   while (accum < scriptlen) {
 

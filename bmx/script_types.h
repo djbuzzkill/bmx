@@ -25,7 +25,7 @@ namespace bmx {
 
     script_command () : typ (command_type::SC_uninitialized), bin() { }
     script_command (const af::bytearray& b)  : typ (SC_element), bin (b) { }
-    script_command (unsigned char op) : typ (SC_operation), bin (1, op) { }
+    script_command (unsigned char op) : typ (SC_operation), bin (1, af::byte{op}) { }
 
     command_type  typ;
     af::bytearray bin; 

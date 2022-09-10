@@ -121,13 +121,26 @@ namespace af
   // hexadecimal --------------------------- 
   namespace hex
   {
+
     //
     // uc -> hex 
-    std::string from_uc (unsigned char c); 
+    std::string from_uc (unsigned char c);
+
+    //
+    // byte -> string
+    std::string  from_byte (byte b); 
 
     //
     // hex -> uc
-    unsigned char to_uc (const std::string& chars); 
+    unsigned char to_uc (const std::string& chars);
+
+
+    //
+    // string -> byte
+    byte  to_byte (const std::string& hexv); 
+
+
+
     // 
     inline unsigned char octet (const std::string& str) {
       return to_uc(str);

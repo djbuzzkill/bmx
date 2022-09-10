@@ -8,9 +8,20 @@
 
 namespace ffm
 {
-  // 
-  typedef af::fixnum32 fixnum32;  
+  //
+  typedef af::int8 int8 ; 
+  typedef af::int16 int16 ; 
+  typedef af::int32 int32 ; 
+  typedef af::int64 int64 ;
 
+  typedef af::uint8 uint8 ; 
+  typedef af::uint16 uint16 ; 
+  typedef af::uint32 uint32 ; 
+  typedef af::uint64 uint64 ; 
+
+  typedef af::fixnum32 fixnum32;  
+  typedef af::byte byte; 
+  
   //
   // copy a binary number to out , fail if size(bytes) > 32
   template<typename SeqTy> 
@@ -23,7 +34,7 @@ namespace ffm
     if (bytes.size() > out.max_size())
       return out;
 
-    out.fill(0);
+    out.fill(byte{0});
     std::copy (bytes.begin(), bytes.end(), out.end () - bytes.size());
 
     // printf ("out.max_size:%zu\n", out.max_size());

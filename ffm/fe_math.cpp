@@ -247,22 +247,22 @@ public:
 
 
     union {
-      unsigned lenbin; 
-      unsigned char uclen[4];
+      uint32 lenbin; 
+      byte   blen[4];
     }; 
     
     lenbin = len; 
-    bytearray bytes (len+6, 0); 
-    bytes[0] = uclen[3];
-    bytes[1] = uclen[2];
-    bytes[2] = uclen[1];
-    bytes[3] = uclen[0];
+    bytearray bytes (len+6, byte{0}); 
+    bytes[0] = blen[3];
+    bytes[1] = blen[2];
+    bytes[2] = blen[1];
+    bytes[3] = blen[0];
 
     //printf ("bytes.size: %zu\n", bytes.size()); 
 
     FILE* fp = fmemopen (std::data(bytes), bytes.size(), "rb") ;
 
-    const unsigned char* ucbin = reinterpret_cast<const unsigned char*> (bin); 
+    const byte* ucbin = reinterpret_cast<const byte*> (bin); 
     if (isLE) { // strv is LE
       std::reverse_copy (ucbin, ucbin+len, &bytes[4]); 
     }
@@ -500,13 +500,14 @@ public:
   
   bool FE_ctx_impl::Rand (FE_t out, FE_t f) {
 
+    // Print ("b4:out", out); 
+    // Print ("Rand:f", f); 
 
-    Print ("Rand:out", out); 
-    Print ("Rand:f", f); 
-
-    printf ("%s|%i\n", __FUNCTION__, __LINE__); 
+    //printf ("%s|%i\n", __FUNCTION__, __LINE__); 
     mpz_urandomm (el(out), randstate, el(f)); 
-    printf ("%s|%i\n", __FUNCTION__, __LINE__);
+    //printf ("%s|%i\n", __FUNCTION__, __LINE__);
+    //Print ("Rand:out", out); 
+
     return true; 
   }
   //
@@ -598,7 +599,7 @@ public:
     // printf ("num_limbs[%zu] \n", num_limbs); 
     // printf ("bufsize[%zu] \n", bufsize); 
     
-    bytearray tmp (bufsize, 0);
+    bytearray tmp (bufsize, byte{0});
     FILE* memf  = fmemopen (std::data(tmp), tmp.size(), "w"); 
     
     if (!memf ) {
@@ -620,8 +621,8 @@ public:
     // limbs are written in decreasing significance order (i.e., in
     // big-endian).
     union {
-      int  numbytes;
-      unsigned char _bytes[4]; 
+      int32  numbytes;
+      byte _bytes[4]; 
     };
     
     // b/c we x86
@@ -640,7 +641,7 @@ public:
     // printf ("out_size:%i\n", out_size);
     // printf ("[%s]numbytes[%u]\n", __FUNCTION__, numbytes); 
     
-    out.resize(absnum, 0);
+    out.resize(absnum);
     
     std::copy (&tmp[4], &tmp[4+absnum], out.begin ());
     

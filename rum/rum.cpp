@@ -37,14 +37,13 @@ int test_curl (const std::vector<std::string>& args) {
 
   const std::string tx_id = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"; 
 
-  af::bytearray   txbytes;
+  std::string   txbytes;
   bmx::TxFetcher fetcher;
 
   if (fetcher.Fetch (txbytes, tx_id, false)) {
 
-    std::string printstr  (&txbytes[0], &txbytes[txbytes.size()]);
    printf ("\n\n\n\n\n\n"); 
-   printf ("contents: %s\n",printstr.c_str()); 
+   //   printf ("contents: %s\n",printstr.c_str()); 
 
   }
     

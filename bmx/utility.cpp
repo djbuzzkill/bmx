@@ -17,7 +17,7 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
   
   readlen += rs->Read (&leaderbyte,  1); 
   
-  //    printf ("%s:leaderbyte:%i\n", __FUNCTION__, leaderbyte);
+  printf ("%s:leaderbyte:%i\n", __FUNCTION__, leaderbyte);
   
   switch (leaderbyte)  {
   case 253: readlen += rs->Read (&out, 2); break;
@@ -25,7 +25,8 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
   case 255: readlen += rs->Read (&out, 8); break;
   default: out = leaderbyte;               break;
   }
-  
+
+  printf ("varint:%zu\n", out ); 
   return readlen; 
   
 }
@@ -81,16 +82,16 @@ bytearray& bmx::util::encode_num (bytearray& enc_out, FE_t num, FEConRef F) {
   F->Raw (n_raw, sign_n, num, true_here);  // false == BE?
   enc_out = n_raw; 
 
-  if (enc_out.back () & 0x80 ) {
+  if (std::to_integer<uint8>(enc_out.back()) & 0x80 ) {
     if (sign_n < 0) {
-      enc_out.push_back (0x80); // printf ("enc_out.push_back(0x80)\n"); 
+      enc_out.push_back (byte{0x80}); // printf ("enc_out.push_back(0x80)\n"); 
     }
     else {
-      enc_out.push_back (0x0); // printf ("enc_out.push_back(0x0)\n"); 
+      enc_out.push_back (byte{0x0}); // printf ("enc_out.push_back(0x0)\n"); 
     }
   }
   else if (sign_n < 0) {
-    enc_out.back () |= 0x80; // printf ("enc_out |= 0x80\n"); 
+    enc_out.back () |= byte{0x80}; // printf ("enc_out |= 0x80\n"); 
   }
   return enc_out; 
 }
@@ -110,14 +111,14 @@ FE_t bmx::util::decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) {
   // end_byte knows
   auto end_byte = n_BE.back ();
   
-  if (end_byte & 0x80) {
-    n_BE.back () = end_byte & 0x7f;
+  if (std::to_integer<uint8>(end_byte) & 0x80) {
+    n_BE.back () = end_byte & byte{0x7f};
   }
   
   const bool true_here_too = true; 
   F->Set_bin (num, &n_BE[0], n_BE.size(), true_here_too);
   
-  if (end_byte & 0x80) {
+  if (std::to_integer<uint8>(end_byte) & 0x80) {
     F->SNeg (num, num); 
   }
   

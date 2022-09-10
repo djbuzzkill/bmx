@@ -10,7 +10,7 @@ using namespace af;
 using bmx::util::encode_num;
 using bmx::util::decode_num;
 
-const size_t k_global_work_buff_size = 128 * 1024; 
+const size_t k_max_work_buff_size = 128 * 1024; 
 
 size_t compute_script_size (const bmx::command_list& scrip) {
 
@@ -64,8 +64,8 @@ size_t bmx::WriteScript (af::WriteStreamRef ws, const command_list& scrip) {
   size_t expected_size = compute_script_size (scrip); 
   // printf ("expected inner size:%zu\n", expected_size); 
   
-  const size_t size_workbuf =  k_global_work_buff_size; 
-  af::bytearray workmem (size_workbuf, 0); 
+  const size_t size_workbuf =  k_max_work_buff_size ; 
+  af::bytearray workmem (size_workbuf, byte{0x0}); 
   // write to inner work stream 
   af::WriteStreamRef  iw = CreateWriteMemStream (&workmem[0], size_workbuf); 
   size_t              innerlen = 0; 

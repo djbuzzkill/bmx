@@ -3,6 +3,7 @@
 #define AF_COMMON_H
 
 #include <cstdio>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <memory>

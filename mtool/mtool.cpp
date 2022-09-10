@@ -78,7 +78,7 @@ int thicnspicy  (std::vector<std::string>& args)  {
   PublicKey   pubk;
   PrivateKey  privatek; 
   std::string addressa;
-  bytearray   amem (256, 0x0);
+  bytearray   amem (256, byte{0x0});
   
   const std::string msgfile = "/home/djbuzzkill/secret.msg"; 
   printf  ( "msgfile:%s\n", msgfile.c_str());    

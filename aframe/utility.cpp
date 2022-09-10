@@ -35,6 +35,23 @@ using namespace af;
 
 
 
+std::string af::hex::from_byte(byte b) {
+
+  const std::string hexdigits = "0123456789abcdef";
+  std::string ret = "";
+  
+  byte lo = byte{0x0f} & b;
+  byte hi = b >> 4;
+  
+  //printf ("%s[hi:%i|lo:%i|c:%i]\n", __FUNCTION__, hi, lo, c);
+  
+  ret += hexdigits[std::to_integer<uint8>(hi)] ;
+  ret += hexdigits[std::to_integer<uint8>(lo)] ; 
+  
+  return ret; 
+  
+  
+}
 
 // 
 //  u8 value into hex 'XX' 
@@ -102,6 +119,81 @@ unsigned char af::hex::to_uc (const std::string& chars) {
   return out; 
 
 }
+
+
+byte af::hex::to_byte(const std::string& chars) {
+
+  
+  // static std::map<char, byte> hex_enc = {
+  //   {'0', 0 },
+  //   {'1', 1 }, 
+  //   {'2', 2 },
+  //   {'3', 3 }, 
+  //   {'4', 4 },
+  //   {'5', 5 }, 
+  //   {'6', 6 },
+  //   {'7', 7 }, 
+  //   {'8', 8 },
+  //   {'9', 9 }, 
+  //   {'a', 10},
+  //   {'b', 11}, 
+  //   {'c', 12},
+  //   {'d', 13}, 
+  //   {'e', 14}, 
+  //   {'f', 15}, 
+  //   {'A', 10},
+  //   {'B', 11}, 
+  //   {'C', 12},
+  //   {'D', 13}, 
+  //   {'E', 14}, 
+  //   {'F', 15}, 
+  // };
+
+  static std::map<char, byte> hex_encb = {
+    {'0', byte{0 }},
+    {'1', byte{1 }}, 
+    {'2', byte{2 }},
+    {'3', byte{3 }}, 
+    {'4', byte{4 }},
+    {'5', byte{5 }}, 
+    {'6', byte{6 }},
+    {'7', byte{7 }}, 
+    {'8', byte{8 }},
+    {'9', byte{9 }}, 
+    {'a', byte{10}},
+    {'b', byte{11}}, 
+    {'c', byte{12}},
+    {'d', byte{13}}, 
+    {'e', byte{14}}, 
+    {'f', byte{15}}, 
+    {'A', byte{10}},
+    {'B', byte{11}}, 
+    {'C', byte{12}},
+    {'D', byte{13}}, 
+    {'E', byte{14}}, 
+    {'F', byte{15}}, 
+  };  
+  
+  const uint8 hi = 0;
+  const uint8 lo = 1;
+  
+  if (0 == hex_encb.count (chars[hi])) {
+    return byte{0};
+  }
+  
+  if (0 == hex_encb.count (chars[lo])) {
+    return byte{0};
+  }
+
+  if (chars.size() < 2)
+    return hex_encb[chars[lo]];
+
+  byte out = hex_encb[chars[hi]] << 4; 
+  out |= hex_encb[chars[lo]];
+  return out; 
+}
+
+
 
 // turn  binary number into string
 std::string& af::base58::encode (std::string& out, const void* inBE, size_t len) {
@@ -211,7 +303,7 @@ af::bytearray& af::hex::decode (af::bytearray& out, const std::string& str ) {
   for (auto ich = 0; ich < num_out_bytes; ++ich) {
     
     auto str_ind = 2 * ich ;
-    out.push_back (to_uc ( str.substr(str_ind, 2))); 
+    out.push_back (to_byte ( str.substr(str_ind, 2))); 
   }
   
   return out;

@@ -2,6 +2,7 @@
 //
 //
 #include "secp256k1.h"
+#include <bitset>
 
 #include "aframe/hash.h"
 #include "aframe/utility.h"
@@ -82,7 +83,7 @@ bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
   
     
   ScopeDeleter dr     (F);
-  bytearray    arrtmp (256, 0);
+  bytearray    arrtmp (256, byte{0});
     
   FE_t e = dr(F->New_bin (std::data(secr), secr.size(), false));
   
@@ -177,16 +178,23 @@ size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
 
 size_t bmx::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
   
-  size_t write_len = 0; 
+  size_t write_len = 0;
+
+  // lest sig byte in y
+
+
+  
+  const std::bitset<8> lobyte (std::to_integer<uint8>(p.y[31])); 
   
   if (compr) { // figure out if y is odd or even
-    unsigned char pref =  (p.y[31] & 0x1 ? 0x3 : 0x2); 
+    byte pref = ( lobyte[0] ? byte{0x3} : byte{0x2}); 
+    //byte pref = (p.y[31] & byte{0x1} ? byte{0x3} : byte{0x2}); 
     write_len += ws->Write    (&pref, 1); 
     write_len += write_byte32 ( ws, p.x); 
     //return write_len ; //  = 33);
   }
   else {      // write both coords
-    unsigned char pref =  0x4;
+    byte  pref {0x4};
     write_len += ws->Write    (&pref, 1); 
     write_len += write_byte32 ( ws, p.x); 
     write_len += write_byte32 ( ws, p.y); 
@@ -201,24 +209,111 @@ size_t bmx::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
 //
 size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
 
-  // assume
-  //printf ("rlen[%zu]\n", rlen);
-  //printf ("slen[%zu]\n", slen);
-  
-  const unsigned char startmarker = 0x30;
-  const unsigned char zerobyte    = 0; 
-  const unsigned char markerbyte  = 0x02; 
+  const byte startmarker { 0x30 };
+  const byte zerobyte    { 0 }; 
+  const byte markerbyte  { 0x02 }; 
 
-  unsigned char remptydigs = 0; 
+
+  uint8  remptydigs = 0; 
+  while (sig.r[remptydigs] == zerobyte && remptydigs < 32) ++remptydigs;
+
+  uint8  semptydigs = 0; 
+  while (sig.s[semptydigs] == zerobyte && semptydigs < 32) ++semptydigs; 
+
+  uint8 rlen = sig.r.size () - remptydigs;
+  if (std::to_integer<uint8>(sig.r[0]) & 0x80) ++rlen; 
+  
+  uint8 slen = sig.s.size () - semptydigs; 
+  if (std::to_integer<uint8>(sig.s[0]) & 0x80) ++slen; 
+
+
+  size_t begpos = ws->GetPos (); 
+
+  size_t write_len = 0; 
+
+  uint8 sizesig = slen + rlen + 6; 
+  
+  // startbyte
+  write_len += ws->Write (&startmarker, sizeof(startmarker)); 
+
+  // size size
+  write_len += ws->Write (&sizesig, sizeof(sizesig)); 
+  
+  // marker
+  write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
+  // rlen
+  write_len += ws->Write (&rlen, rlen); 
+  // write r, leading '0' if needed
+
+  if (std::to_integer<uint8>(sig.r[0]) & 0x80)
+    write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
+  write_len += ws->Write (&sig.r[0], sig.r.size()); 
+  //write_len += af::write_byte32 (ws, sig.r);
+  
+  // marker
+  write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
+
+  write_len += ws->Write (&slen, sizeof(slen)); 
+  // write s,...
+  if (std::to_integer<uint8>(sig.s[0]) & 0x80)
+      write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
+  write_len += ws->Write (&sig.s[0], sig.s.size ()); 
+
+  size_t final_size = begpos = ws->GetPos ();
+  //assert (final_size == write_len); 
+
+  printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
+  //printf ( "%s:expected_size[%zu]\n", __FUNCTION__, expected_size);
+  //printf ( "%s:final_size[%zu]\n",    __FUNCTION__, final_size);
+  // total write size 
+  //return (final_size == expected_size); 
+
+  return write_len; 
+ }
+
+
+    // def der(self):
+    //     rbin = self.r.to_bytes(32, byteorder='big')
+    //     # remove all null bytes at the beginning
+    //     rbin = rbin.lstrip(b'\x00')
+    //     # if rbin has a high bit, add a \x00
+    //     if rbin[0] & 0x80:
+    //         rbin = b'\x00' + rbin
+    //     result = bytes([2, len(rbin)]) + rbin  # <1>
+    //     sbin = self.s.to_bytes(32, byteorder='big')
+    //     # remove all null bytes at the beginning
+    //     sbin = sbin.lstrip(b'\x00')
+    //     # if sbin has a high bit, add a \x00
+    //     if sbin[0] & 0x80:
+    //         sbin = b'\x00' + sbin
+    //     result += bytes([2, len(sbin)]) + sbin
+    //     return bytes([0x30, len(result)]) + result
+
+
+
+
+
+
+//
+//
+#ifdef __OLD_WRITE_SIG_DER__
+ 
+ size_t WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
+
+  const uint8 startmarker = 0x30;
+  const uint8 zerobyte    = 0; 
+  const uint8 markerbyte  = 0x02; 
+
+  uint8  remptydigs = 0; 
   while (sig.r[remptydigs] == 0 && remptydigs < 32) ++remptydigs;
 
-  unsigned char semptydigs = 0; 
+  uint8  semptydigs = 0; 
   while (sig.s[semptydigs] == 0 && semptydigs < 32) ++semptydigs; 
 
-  unsigned char rlen = sig.r.size () - remptydigs;
+  uint8 rlen = sig.r.size () - remptydigs;
   if (sig.r[0] & 0x80) ++rlen; 
   
-  unsigned char slen = sig.s.size () - semptydigs; 
+  uint8 slen = sig.s.size () - semptydigs; 
   if (sig.s[0] & 0x80) ++slen; 
 
 
@@ -226,7 +321,7 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
 
   size_t write_len = 0; 
 
-  unsigned char sizesig = slen + rlen + 6; 
+  uint8 sizesig = slen + rlen + 6; 
   
   // startbyte
   write_len += ws->Write (&startmarker, sizeof(startmarker)); 
@@ -257,7 +352,7 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   size_t final_size = begpos = ws->GetPos ();
   //assert (final_size == write_len); 
 
-  //printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
+  printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
   //printf ( "%s:expected_size[%zu]\n", __FUNCTION__, expected_size);
   //printf ( "%s:final_size[%zu]\n",    __FUNCTION__, final_size);
   // total write size 
@@ -266,6 +361,11 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   return write_len; 
  }
 
+ #endif
+ 
+
+
+ 
 //
 //
 size_t bmx::ReadSignature_DER (Signature& osig, size_t binsize, ReadStreamRef rs) {

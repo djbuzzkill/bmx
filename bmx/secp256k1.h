@@ -27,8 +27,8 @@ namespace bmx {
 
   // 
   struct Signature {
-    af::fixnum32 r; 
-    af::fixnum32 s;
+    fixnum32 r; 
+    fixnum32 s;
   };
 
 

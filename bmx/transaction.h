@@ -63,7 +63,7 @@ namespace bmx {
     bool         VerifyInput     (const Struc& tx, size_t input_index, bool mainnet); 
     std::int64_t Fee             (const Struc& tx, bool mainnet); 
     
-    Struc&       SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&, bool mainnet); 
+    bool         SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&, bool mainnet); 
     bool         Verify          (const Struc& tx, bool mainnet); 
   }
   
@@ -93,7 +93,7 @@ namespace bmx {
   // -----------------------------------------------------------------
   typedef std::map<std::string, af::bytearray> TxMap; 
   // 
-  bool FetchTx (af::bytearray& out, bool mainnet, const std::string& txid_hex, TxMap& cache);
+  bool FetchTx (std::string& out, bool mainnet, const std::string& txid_hex, TxMap& cache);
   // 
   // -----------------------------------------------------------------
   // 
@@ -105,7 +105,7 @@ namespace bmx {
     TxFetcher () : cache() {} 
     ~TxFetcher() {} 
 
-    bool Fetch (af::bytearray& out, const std::string& txid_hex, bool mainnet);
+    bool Fetch (std::string& out, const std::string& txid_hex, bool mainnet);
     bool Fetch (Transaction& out, const std::string& txid_hex, bool mainnet);
    
   };
