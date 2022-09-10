@@ -16,6 +16,10 @@ namespace ffm
   template<typename SeqTy> 
   inline SeqTy& copy_BE (SeqTy& out, af::bytearray &bytes) {
 
+    if (bytes.size() <  out.max_size()) {
+      printf ("<%s> bytes[%zu] < outseq[%zu]\n" , __FUNCTION__, bytes.size(), out.max_size());
+    }
+
     if (bytes.size() > out.max_size())
       return out;
 

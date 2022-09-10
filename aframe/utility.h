@@ -11,7 +11,7 @@
 #define PR(s) printf("%s", (s));
 
 #define PR_CHECK(m,c) if((c)){printf("SUCCEEDED >> %s\n", m);}else{printf("!! %s << FAILED\n", m);}
-#define FN_SCOPE(m) fnscope ____FNSCOPE(__FUNCTION__,(m)); 
+#define FN_SCOPE() fnscope ____FNSCOPE(__FUNCTION__); 
 
 namespace af
 {
@@ -104,15 +104,14 @@ namespace af
   class fnscope {
 
     const char*        f;
-    const std::string& m; 
     
   public: 
-    fnscope (const char* fn, const std::string& msg = std::string("")) :f(fn), m(msg) {
-      printf ("<ENTER:%s>(%s)\n" , f, m.c_str()); 
+    fnscope (const char* fn) :f(fn) {
+      printf (" <ENTER:%s> \n" , f ); 
     }
     
     ~fnscope () {
-      printf ("<EXIT:%s>(%s)\n" , f, m.c_str()); 
+      printf (" <EXIT:%s>\n" , f ); 
     } 
     
   };

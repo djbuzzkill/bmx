@@ -492,8 +492,11 @@ bool bmx::proc_OP_ADD (script_env& env) {
 //     element2 = decode_num(stack.pop_back())
 //     stack.append(encode_num(element2 - element1))
 //     return True
- }  
- bool bmx::proc_OP_MUL               (script_env& env) {
+ }
+
+
+
+bool bmx::proc_OP_MUL (script_env& env) {
    printf ( "I AM  %s.\n" , __FUNCTION__);
 
 // def op_mul(stack):

@@ -26,7 +26,12 @@ namespace bmx {
     std::uint32_t      sequence;    // 
   }; 
 
-  typedef std::vector<TxIn> TxInputs; 
+  TxIn&         ScriptPubKey (TxIn &inout, bool mainnet);
+  std::uint64_t Amount       (const TxIn& txin, bool mainnet); 
+
+  typedef std::vector<TxIn> TxInputs;
+
+
   // -----------------------------------------------------------------
   // 
   // output transaction pubkey in here
@@ -54,10 +59,12 @@ namespace bmx {
       //
     };
   
-    digest32& SignatureHash   (digest32& ohash, const Struc& tx, size_t indx, bool mainnet); 
-    bool      VerifyInput     (const Struc& tx); 
-    Struc&    SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&); 
-    bool      Verify          (const Struc& tx) ; 
+    digest32&    SignatureHash   (digest32& ohash, const Struc& tx, size_t indx, bool mainnet); 
+    bool         VerifyInput     (const Struc& tx, size_t input_index, bool mainnet); 
+    std::int64_t Fee             (const Struc& tx, bool mainnet); 
+    
+    Struc&       SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&, bool mainnet); 
+    bool         Verify          (const Struc& tx, bool mainnet); 
   }
   
   //

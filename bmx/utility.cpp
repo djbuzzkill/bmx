@@ -71,10 +71,16 @@ bytearray& bmx::util::encode_num (bytearray& enc_out, FE_t num, FEConRef F) {
   const bool true_here = true; 
   int        sign_n = 0;
   bytearray  n_raw; 
+
   
-  F->Raw (n_raw, sign_n, num , true_here);  // false == BE?
+  if (F->Cmp_ui (num, 0) == 0) {
+    return enc_out; 
+  }
+
+  //
+  F->Raw (n_raw, sign_n, num, true_here);  // false == BE?
   enc_out = n_raw; 
-  //printf ("[size(enc_out):%zu|back:%i]\n", enc_out.size(), enc_out.back ()); 
+
   if (enc_out.back () & 0x80 ) {
     if (sign_n < 0) {
       enc_out.push_back (0x80); // printf ("enc_out.push_back(0x80)\n"); 
