@@ -1,11 +1,12 @@
-
-#ifndef AF_COMMON_H
-#define AF_COMMON_H
+#ifndef AFRAME_COMMON_H
+#define AFRAME_COMMON_H
 
 #include <cstdio>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <cassert>
+#include <cmath>
 #include <memory>
 #include <map>
 #include <array>
@@ -15,9 +16,5 @@
 #include <algorithm>
 #include <tuple>
 #include <functional>
-
-#include <cassert>
-#include <cstddef>
-#include <cstdint>
 
 #endif

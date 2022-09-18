@@ -42,9 +42,9 @@ namespace ffm
     return out; 
   }
 
-
-  template<typename OutSeq, typename InSeq>
-  inline OutSeq& copy (OutSeq& out, InSeq& obj) {
+  //
+  template<typename InSeq>
+  inline af::bytearray& copy_bytes (af::bytearray& out, InSeq& obj) {
     out.resize (obj.size());
     std::copy (obj.begin(), obj.end(), obj.begin());
     return out;

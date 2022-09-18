@@ -25,6 +25,19 @@ namespace af
  
   }
 
+
+  //
+  //
+  template<typename Seq> 
+  inline void pr_a(const Seq& a, const char* msg = 0) {
+    printf ("%s -> ", (msg ? msg : __FUNCTION__));
+
+    for (auto e : a) printf ("%02x", e);
+
+    printf ("\n "); 
+  }
+
+
   //
   size_t SizeOf_file (const std::string& fq);
 
@@ -87,18 +100,72 @@ namespace af
   //
   inline bool eql (const bytearray& lhs, const bytearray& rhs) {
 
-    if (lhs.size () != rhs.size())
+    printf ("%s -> lhs(%zu), rhs(%zu) \n", __FUNCTION__, lhs.size(), rhs.size());
+
+    if (lhs.size () != rhs.size()) {
       return false;
+    }
+
 
     for (auto i = 0; i < lhs.size(); ++i) {
-      if (lhs[i] != rhs[i])
-	return false; 
+
+      if (lhs[i] != rhs[i]) {
+	printf ("%s -> lhs[%zu]:%x, rhs[%zu]:%x\n", __FUNCTION__, i, lhs[i], i , rhs[i]); 	
+	return false;
+      }
+
     }
 
     return true;
   }
 
 
+  //
+  //
+  template<typename Seq>
+  inline void print_bytes (const Seq& seq) {
+    for (auto e : seq)   
+      printf ("%x ", e);  
+  }
+
+
+
+
+
+
+
+  //
+  //
+  template<typename Seq>
+  inline std::string  fmthex(const Seq& seq) {
+
+    uint8 stride = 3;
+    
+    std::vector<char> buf (stride * seq.size(), ' ');
+    size_t counter = 0;
+    bool firsttime = true;
+    for (auto e : seq ) {
+
+      if (firsttime) 
+	sprintf (&buf[counter], "%02x", e);
+      else
+	sprintf (&buf[counter], " %02x", e);
+
+
+      if (firsttime) { 
+	counter += stride - 1;
+	firsttime = false;
+      }
+      else {
+	counter += stride;
+      }
+	
+      
+    }
+
+    return std::string (&buf[0]); 
+  }    
+  
   //
   // print scope 
   class fnscope {
@@ -135,10 +202,12 @@ namespace af
     unsigned char to_uc (const std::string& chars);
 
 
+    inline
+    uint8 to_u8 (const std::string& chars) { return to_uc(chars);}
+
     //
     // string -> byte
     byte  to_byte (const std::string& hexv); 
-
 
 
     // 

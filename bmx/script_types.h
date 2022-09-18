@@ -32,7 +32,6 @@ namespace bmx {
   }; 
 
   typedef script_command sco; 
-
   // convenience
   inline command_type         ty               (const script_command& sc) { return sc.typ; }
   inline const af::bytearray& arr              (const script_command& sc) { return sc.bin; }

@@ -13,6 +13,7 @@
 #include "utility.h"
 
 
+
 using namespace af;
 //
 //
@@ -54,7 +55,7 @@ namespace {
 // 
 // --------------------------------------------------------------
 bool bmx::FetchTx (std::string& out, bool mainnet, const std::string& txid_hex, TxMap& cache) {
-
+  FN_SCOPE ()
   if (!cache.count (txid_hex)) {
     
     const size_t   buffsize = 128 * 1024; 
@@ -106,15 +107,29 @@ bool bmx::TxFetcher::Fetch (std::string& out, const std::string& txid_hex, bool 
 bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool mainnet) {
 
   af::bytearray txbin; 
-  std::string   strhex; 
+  std::string   strhex;
+  size_t txbinlen = 0;
   if (Fetch (strhex, txid_hex, mainnet)) {
-    printf ("--> %s: recv: %zu bytes \n", __FUNCTION__, strhex.size ());
-    printf ("\n--> %s:strhex:%s\n", __FUNCTION__, strhex.c_str());
+    printf ("--> %s: recv: [%zu] bytes \n", __FUNCTION__, strhex.size ()); // , strhex.c_str());
+    //    printf ("\n--> %s:strhex:%s\n", __FUNCTION__, strhex.c_str());
     af::hex::decode (txbin, strhex);
 
-    size_t txlen  = ReadTransaction (otx, CreateReadMemStream (&txbin[0], txbin.size()));
+    size_t binoffs = 0;
+    if (std::to_integer<uint8>(txbin[4]) == 0) {
+      txbin[5] = txbin[3];
+      txbin[4] = txbin[2];
+      txbin[3] = txbin[1];
+      txbin[2] = txbin[0];
+      txbinlen += ReadTransaction (otx, CreateReadMemStream (&txbin[2], txbin.size() - 2));
+      otx.locktime = *reinterpret_cast<uint32*> (&txbin[txbin.size() - 4]); 
+    }
+    else {
+      txbinlen += ReadTransaction (otx, CreateReadMemStream (&txbin[0], txbin.size()));
+    }
 
-    return (txlen == txbin.size ()); 
+      
+
+    return (txbinlen == txbin.size ()); 
   }
 
   return false; 
@@ -128,7 +143,7 @@ bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool 
    //
 // --------------------------------------------------------------
 size_t read_and_parse_txin (bmx::TxIn& txin, af::ReadStreamRef rs) {
-  FN_SCOPE (); 
+  //FN_SCOPE (); 
   using namespace bmx;
 
   size_t readlen = 0;
@@ -193,18 +208,23 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   }
 
   // inputs
-  readlen += util::read_varint (num_inputs, rs, 0); // __FUNCTION__ );
-  printf ("num_inputs:%zu\n", num_inputs); 
+  readlen += util::read_varint (num_inputs, rs, "reading num inputs"); // __FUNCTION__ );
+  //printf ("[num_inputs:%zu\n", num_inputs); 
   tx.inputs.resize (num_inputs);
-  for (auto i = 0; i < num_inputs; ++i) 
+  for (auto i = 0; i < num_inputs; ++i) {
+    //printf  ( "input no.%zu\n", i);
     readlen +=  read_and_parse_txin (tx.inputs[i], rs);
+  }
+  
 
   // outputs
-  readlen += util::read_varint (num_outputs, rs, 0); // __FUNCTION__);
-  printf ("num_outputs:%zu\n", num_outputs); 
+  readlen += util::read_varint (num_outputs, rs, "reading num ouputs"); // __FUNCTION__);
+  //printf ("[num_outputs:%zu\n", num_outputs); 
   tx.outputs.resize (num_outputs);
-  for (auto i = 0; i < num_outputs; ++i) 
+  for (auto i = 0; i < num_outputs; ++i) {
+    //printf ( "ouput no.%zu\n", i);
     readlen += read_and_parse_txout (tx.outputs[i], rs);
+  }
 
   // locktime
   readlen += rs->Read (&tx.locktime, sizeof(tx.locktime)); 
@@ -319,37 +339,32 @@ void bmx::print_txo (const TxOut& txo, size_t indent) {
 digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet) {
   FN_SCOPE(); 
   using namespace ffm;
-  
+
+  printf ("txind:%zu\n", txind); 
   //const std::uint32_t ver      = 4;  // x86 LE
   const size_t        buf_size = 1024 * 128; 
   bytearray           workb    (buf_size); 
   size_t writetxlen = WriteTransaction (CreateWriteMemStream (&workb[0], buf_size) , tx );
-  PR ("330\n");   
-
-  printf  ("writetxlen:%zu\n", writetxlen);
-
+  //printf  ("writetxlen:%zu\n", writetxlen);
   Transaction htx ; 
-  size_t readtxlen =  ReadTransaction (htx, CreateReadMemStream (&workb[0], buf_size)); 
-  PR ("334\n");   
+  size_t readtxlen = ReadTransaction (htx, CreateReadMemStream (&workb[0], buf_size)); 
   
   if (writetxlen != readtxlen) {
-    printf("..writetxlen: %zu\n", writetxlen );
+    printf("..writetxlen: %zu\n", writetxlen);
     printf("..readtxlen: %zu\n", readtxlen);
     assert (writetxlen == readtxlen); 
   }
 
+  command_list script_pubkey;
   //
   for (size_t i = 0;  i < htx.inputs.size (); ++i)  {
 
-    TxIn& cur_txin = htx.inputs[i];
-
-    PR ("loop\n");   
-
     if (i == txind) {
-      ScriptPubKey (cur_txin, on_mainnet); 
+
+      htx.inputs[i].script_sig = ScriptPubKey (script_pubkey, htx.inputs[i], on_mainnet);
     }
     else {
-      cur_txin.script_sig.clear (); 
+      htx.inputs[i].script_sig.clear ();
     }
   }
 
@@ -363,7 +378,6 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
   size_t tx_for_hashing_len = 0; 
   tx_for_hashing_len += WriteTransaction (wsh, htx);
   tx_for_hashing_len += wsh->Write (&hashtype , sizeof(SIGHASH_ALL));
-  PR ("\n368");   
 
   //
   size_t streampos = wsh->GetPos (); 
@@ -373,23 +387,33 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
     assert (tx_for_hashing_len == streampos);
   }
 
-
   //
-  return hash256 (osh, &workb[0], wsh->GetPos ());
+  //digest32 ztmp; 
+  hash256 (osh, &workb[0], wsh->GetPos ());
+  //std::reverse(osh.begin(), osh.end()); 
+  return osh;
 }
 
 //
-//
-bmx::TxIn& bmx::ScriptPubKey (TxIn &txin, bool mainnet) {
+//  TxIn&         ScriptPubKey (command_list& oscr, const TxIn &inout, bool mainnet);
+
+bmx::command_list& bmx::ScriptPubKey (bmx::command_list& oscr, const TxIn &txin, bool mainnet) {
   FN_SCOPE ();
   TxFetcher txfr;
   Tx::Struc prev_tx;
-  std::string txid_hex; 
+  std::string txid_hex;
+
+  oscr.clear ();
+
+  //printf ("%s -> txin.prev_index:%i", __FUNCTION__, txin.prev_index); 
+    
   txfr.Fetch (prev_tx, hex::encode (txid_hex, &txin.prev_txid[0], txin.prev_txid.size ()), mainnet);
-  // replace script_sig, replace w/script_pubkey
-  txin.script_sig.clear ();
-  append (txin.script_sig, prev_tx.outputs[txin.prev_index].script_pubkey);
-  return txin; 
+
+  
+  printf ("%s -> TxIn { prev_index:%i, prev_tx:%s } \n", __FUNCTION__, txin.prev_index, txid_hex.c_str()); 
+
+  
+  return append (oscr, prev_tx.outputs[txin.prev_index].script_pubkey); 
 }
 
 //
@@ -431,93 +455,128 @@ std::int64_t bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
 }
 
 //
-// 
+//
+
 bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainnet) {
   FN_SCOPE ();
-  // make a copy 
-  TxIn txin = tx.inputs[input_index]; 
 
-  ScriptPubKey (txin, mainnet); 
-  const command_list& script_pubkey = txin.script_sig; // is sigpubkey now
-
-  PR ("433\n"); 
   script_env env;
   Init_secp256k1_Env (env.ffme); 
-  //digest32 sighash;
-  PR ("437\n"); 
 
+  printf ("%s -> input_index: %zu\n", __FUNCTION__, input_index ); 
+  // make a copy 
+  command_list script_pubkey; // txin.script_sig; // is sigpubkey now
+  printf ("<%s -> BEGIN ScriptPubKey  \n", __FUNCTION__); 
+  ScriptPubKey (script_pubkey, tx.inputs[input_index], mainnet);
+  printf ("len (script_pubkey): %zu\n", script_pubkey.size ()); 
+  printf ("<%s -> =====================================================  \n", __FUNCTION__);
+
+
+  {
+    std::string hexs;
+    command_list pubkey_copy = script_pubkey ; 
+    pubkey_copy.pop_front ();
+    pubkey_copy.pop_front ();
+    hex::encode (hexs, &pubkey_copy.front ().bin[0], pubkey_copy.front ().bin.size()); 
+    printf ("script_pubkey[2]:%s\n", hexs.c_str());
+    // len (script_pubkey): 5
+    // <VerifyInput -> =====================================================
+    // script_pubkey[2]:d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f<VerifyInput ->
+    // END ScriptPubKey
+    //  <ENTER:SignatureHash>
+  }
+  
+  printf ("<%s -> END ScriptPubKey  \n", __FUNCTION__); 
+  
+  //digest32 sighash;
   SignatureHash (env.z , tx, input_index, mainnet);
 
-  
-  append (append (env.cmds, tx.inputs[input_index].script_sig), script_pubkey); 
-  PR ("441\n"); 
+  printf ( "%s:SignatureHash <%s> [%s]\n", __FUNCTION__, (mainnet ? "main" : "test" ), fmthex(env.z).c_str());
 
-  return EvalScript (env); 
+  pr_a (env.z); 
+  
+  // ?? std::reverse (env.z.begin(), env.z.end()); 
+  
+  printf ("<%s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  \n", __FUNCTION__);
+
+  append (append (env.cmds, tx.inputs[input_index].script_sig), script_pubkey);
+
+
+  bool eval_res = EvalScript (env);
+  printf ( "%s -> %s\n", __FUNCTION__, (eval_res ? "true" : "false")); 
+  return eval_res;
 }
 
 //
 //
 bool bmx::Tx::Verify (const Transaction& tx, bool mainnet) {
+
   FN_SCOPE ();
 		     
-  if (Tx::Fee (tx, mainnet) < 0) 
-    return false; 
+  if (Tx::Fee (tx, mainnet) < 0) {
+    printf (" -----------------------------return false\n"); 
+    return false;
+  }
 
-  for (size_t i = 0; i < tx.inputs.size (); ++i)
-    {
-    if ( !VerifyInput (tx, i, mainnet))
-      return false; 
+  for (size_t i = 0; i < tx.inputs.size (); ++i) {
+
+    if ( !VerifyInput (tx, i, mainnet) ) {
+      printf(" |||||||||| %s ||||||||||| input (%zu) return false\n", __FUNCTION__, i);
+      return false;
     }
-  
-   return true; 
+  }
+
+  printf ("<true>\n"); 
+  return true; 
 }
 
 //
 //
 bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const bmx::PrivateKey& p, bool mainnet) {
+  FN_SCOPE ();
 
   digest32 zhash;
-  SignatureHash (zhash, otx, input_index, mainnet) ; 
+  SignatureHash (zhash, otx, input_index, mainnet) ;
 
-  printf ("privatekey:\n");
-  for ( auto uc : p )
-    printf ("%x ", uc); 
-  printf ("\nprivatekey:end\n");
   
+  pr_a (zhash); 
+  
+
+  printf ("\n%s INPUT<private key [%s]\n", __FUNCTION__, fmthex(p).c_str()); 
+
   Signature sig;
   if (SECP256k1_Sign (sig, p, zhash)) {
-
+    printf ("\n%s + sig(r) [%s]\n", __FUNCTION__, fmthex(sig.r).c_str()); 
+    printf ("\n%s + sig(s) [%s]\n", __FUNCTION__, fmthex(sig.s).c_str()); 
+   
     bytearray memDER (8 * 1024, byte{0}) ;
-
+  
     WriteStreamRef ws = CreateWriteMemStream (&memDER[0], memDER.size()); 
-    
+  
     const std::uint32_t hashtype = SIGHASH_ALL;
-
+  
     size_t lensig  = 0;
     unsigned char one = 1; 
     lensig += WriteSignature_DER(ws, sig);
     lensig += ws->Write (&one, 1);
     bytearray elDER (&memDER[0], &memDER[lensig]); 
-    printf ("lensig:%zu\n", lensig); 
-    
-    
+    //printf ("lensig:%zu\n", lensig); 
     bytearray memSEC (8 * 1024, byte{0}) ; 
     PublicKey   pubkey;
     const bool  pubkey_compress = true; 
     size_t SEC_len = WritePublicKey_SEC (CreateWriteMemStream(&memSEC[0], memSEC.size()), MakePublicKey (pubkey, p), pubkey_compress); 
     bytearray elSEC (&memSEC[0], &memSEC[SEC_len]);
-    printf ("SEC_len:%zu\n", SEC_len); 
-    
+    //printf ("SEC_len:%zu\n", SEC_len); 
     otx.inputs[input_index].script_sig = {
       // sig + sec; 
       sco (elDER),
       sco (elSEC)
     };
-
-    return VerifyInput (otx, input_index, mainnet); 
+  
+    printf ("%s :verifying input..\n", __FUNCTION__); 
+    return VerifyInput (otx, input_index, mainnet);
   }
-
-
+  
 
     // def sign_input(self, input_index, private_key):
   //     z = self.sig_hash(input_index)
@@ -527,6 +586,7 @@ bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const 
   //     self.tx_ins[input_index].script_sig = Script([sig, sec])
   //     return self.verify_input(input_index)
 
+  printf ("%s :return false", __FUNCTION__); 
   return false; 
 }
 

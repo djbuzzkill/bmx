@@ -3,6 +3,44 @@
 #include "gcrypt.h"
 
 
+
+
+
+
+
+
+static void local_init_gcry() {
+
+  //If you don’t have a need for secure memory, for example if your application does not use secret keys or other confidential data or it runs in a controlled environment where key material floating around in memory is not a problem, you should initialize Libgcrypt this way:
+
+  /* Version check should be the very first call because it
+     makes sure that important subsystems are initialized.
+     #define NEED_LIBGCRYPT_VERSION to the minimum required version. */
+
+  if (!gcry_check_version (GCRYPT_VERSION)) {
+    fprintf (stderr, "libgcrypt is too old (need %s, have %s)\n", GCRYPT_VERSION , gcry_check_version (NULL));
+    exit (2);
+  }
+
+  /* Disable secure memory.  */
+  gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
+
+  /* ... If required, other initialization goes here.  */
+
+  /* Tell Libgcrypt that initialization has completed. */
+  gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
+
+  
+}
+
+
+
+
+
+
+
+
+
 //
 af::digest32& af::sha256 (digest32& out, const void* in, size_t lin) {
  
@@ -42,3 +80,39 @@ af::digest20& af::hash160 (digest20& out, const void* in, size_t lin) {
 }
 
 
+
+af::digest32& af::hmac_sha256 (digest32& omac, const fixnum32& key, const void* txt, size_t lentxt) {
+
+  omac.fill(byte{0x0});
+
+  const size_t  expected_mac_len = 32; 
+  //GCRY_MAC_HMAC_SHA256;
+
+  gcry_error_t err; 
+  // Function:
+  // gcry_error_t
+  // gcry_mac_setkey (gcry_mac_hd_t h, const void *key, size_t keylen)
+
+  gcry_ctx_t    ctx = nullptr;
+  gcry_mac_hd_t hdl = nullptr;
+  uint32 flags = 0; 
+  if (GPG_ERR_NO_ERROR == gcry_mac_open (&hdl, GCRY_MAC_HMAC_SHA256, flags, ctx)) {
+
+    assert (expected_mac_len  == gcry_mac_get_algo_maclen (gcry_mac_get_algo(hdl))); 
+    //printf("algo name %s\n", gcry_mac_algo_name (gcry_mac_get_algo(hdl) )); 
+    err = gcry_mac_setkey(hdl, &key[0], key.size () );
+    assert(err == GPG_ERR_NO_ERROR);
+
+    //printf ("maclen:%i | keylen:%i \n", gcry_mac_get_algo_maclen (gcry_mac_get_algo(hdl)), gcry_mac_get_algo_keylen (gcry_mac_get_algo(hdl))); 
+    err = gcry_mac_write  (hdl, txt, lentxt);
+    assert(err == GPG_ERR_NO_ERROR);
+
+    size_t mac_len = gcry_mac_get_algo_maclen (gcry_mac_get_algo(hdl)); 
+    err = gcry_mac_read (hdl, &omac[0], &mac_len); 
+    assert(err == GPG_ERR_NO_ERROR);
+
+    gcry_mac_close(hdl);
+  }
+  
+  return omac; 
+}

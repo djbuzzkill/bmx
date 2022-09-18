@@ -19,7 +19,9 @@ namespace af {
   // ------------------------------------------------------------
   digest20& ripemd160 (digest20& out, const void* in, size_t lin);
   digest20& hash160   (digest20& out, const void* in, size_t lin);
-  
+
+
+  digest32& hmac_sha256 (digest32&, const fixnum32& key, const void* txt, size_t lentxt); 
 
 }
 

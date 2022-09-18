@@ -8,16 +8,20 @@ using namespace ffm;
 //
 // 
 size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
-  
-  if (trace)
-    printf ( "%s:%s()\n", trace, __FUNCTION__); 
+
+
+
+  // if (trace)
+  //   printf ( "%s %s -> ", __FUNCTION__, trace);
+  // else
+  //   printf ( "%s -> ", __FUNCTION__); 
   
   size_t readlen = 0; 
   unsigned char leaderbyte = 0;
   
   readlen += rs->Read (&leaderbyte,  1); 
   
-  printf ("%s:leaderbyte:%i\n", __FUNCTION__, leaderbyte);
+  //printf ("leaderbyte:%i\n",leaderbyte);
   
   switch (leaderbyte)  {
   case 253: readlen += rs->Read (&out, 2); break;
@@ -26,13 +30,11 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
   default: out = leaderbyte;               break;
   }
 
-  printf ("varint:%zu\n", out ); 
+  //printf (" %zu\n", out); 
   return readlen; 
   
 }
-  
-//  
-//
+        //
 size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
     
   size_t writelen = 0; 

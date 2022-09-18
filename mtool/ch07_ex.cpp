@@ -317,72 +317,6 @@ int test_verify_p2sh (std::vector<std::string>& args) {
 }
 
 
-int test_sign_input (std::vector<std::string>& args) {
-
-  FFM_Env env;
-  bmx::Init_secp256k1_Env (env);
-  ScopeDeleter dr (env.F); 
-  int prksign = 0;
-  // secret=8675309
-  FE_t privkey = dr(env.F->New_ui (8675309));
-
-  bytearray privatekeybin;  
-  env.F->Raw (privatekeybin, prksign, privkey, false); 
-  PrivateKey privatekey;
-  copy_BE (privatekey, privatekeybin);
-
-  const bool on_mainnet = false;
-
-
-  std::string tx_hex = "010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d00000000ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000"; 
-  bytearray txbin;
-  hex::decode (txbin, tx_hex); 
-  Transaction tx;
-  size_t readtxlen = ReadTransaction (tx, CreateReadMemStream (&txbin[0], txbin.size ()));
-
-  PR_CHECK ("Tx::SignInput", Tx::SignInput (tx, 0, privatekey, on_mainnet));
-
-  //stream = BytesIO(bytes.fromhex('010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d00000000ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'))
-
-  // def test_sign_input(self):
-  //     private_key = PrivateKey(secret=8675309)
-  //     stream = BytesIO(bytes.fromhex('010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d00000000ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'))
-  //     tx_obj = Tx.parse(stream, testnet=True)
-  //     self.assertTrue(tx_obj.sign_input(0, private_key))
-  //     want = '010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d0000006b4830450221008ed46aa2cf12d6d81065bfabe903670165b538f65ee9a3385e6327d80c66d3b502203124f804410527497329ec4715e18558082d489b218677bd029e7fa306a72236012103935581e52c354cd2f484fe8ed83af7a3097005b2f9c60bff71d35bd795f54b67ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'
-  //     self.assertEqual(tx_obj.serialize().hex(), want)
-  return 0;
-}
-
-
-int test_input_pubkey (std::vector<std::string>& args) {
-  // FN_SCOPE(); 
-  // def test_input_pubkey(self):
-  const bool on_mainnet = true; 
-  const size_t      default_sequence = 0xffffffff;
-  const std::string tx_hash_hex = "d1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81"; 
-  bytearray txidbin;
-
-  TxIn txin; 
-  
-  txin.prev_index = 0;
-  copy_BE (txin.prev_txid, hex::decode (txidbin, tx_hash_hex));
-  txin.sequence = default_sequence;
-
-  // test ScriptBubKey
-  ScriptPubKey (txin, on_mainnet); 
-  bytearray scriptbin (1024, byte{0});
-  // serialize 
-  size_t writescriptlen = WriteScript (CreateWriteMemStream(&scriptbin[0], scriptbin.size()), txin.script_sig);
-
-  std::string test_script_hex;
-  hex::encode (test_script_hex, &scriptbin[0], writescriptlen);
-  const std::string  want = "1976a914a802fc56c704ce87c42d7c92eb75e7896bdc41ae88ac";
-  //PR_CHECK ("test_script_hex == want", test_script_hex == want);
-  PR_CHECK (std::string(__FUNCTION__).c_str(), test_script_hex == want);
-
-  return 0;
-}
 
 //
 //
@@ -404,25 +338,203 @@ int test_problem_tx (std::vector<std::string>& args) {
   return 0; 
   
 }
+
+
+
+int test_input_pubkey (std::vector<std::string>& args) {
+  // FN_SCOPE(); 
+  // def test_input_pubkey(self):
+  const bool on_mainnet = true; 
+  const size_t      default_sequence = 0xffffffff;
+  const std::string tx_hash_hex = "d1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81"; 
+  bytearray txidbin;
+
+  TxIn txin; 
+  
+  txin.prev_index = 0;
+  copy_BE (txin.prev_txid, hex::decode (txidbin, tx_hash_hex));
+  txin.sequence = default_sequence;
+
+  // test ScriptBubKey
+  command_list script_pubkey; 
+  txin.script_sig = ScriptPubKey (script_pubkey, txin, on_mainnet); 
+  bytearray scriptbin (1024, byte{0});
+  // serialize 
+  size_t writescriptlen = WriteScript (CreateWriteMemStream(&scriptbin[0], scriptbin.size()), txin.script_sig);
+
+  std::string test_script_hex;
+  hex::encode (test_script_hex, &scriptbin[0], writescriptlen);
+  const std::string  want = "1976a914a802fc56c704ce87c42d7c92eb75e7896bdc41ae88ac";
+  //PR_CHECK ("test_script_hex == want", test_script_hex == want);
+  PR_CHECK (std::string(__FUNCTION__).c_str(), test_script_hex == want);
+
+  return 0;
+}
+
+
+
+int test_sign_input (std::vector<std::string>& args) {
+  FN_SCOPE (); 
+  
+  FFM_Env env;
+  bmx::Init_secp256k1_Env (env);
+  ScopeDeleter dr (env.F);
+
+  int prksign = 0;
+  // secret=8675309
+  
+  FE_t privkey = dr(env.F->New_ui (8675309));
+
+  // CL-USER> #xed5f84 -> 15556484 (24 bits, #xED5F84)
+  // CL-USER> #x845fed -> 8675309  (24 bits, #x845FED)
+
+
+  
+  bytearray privatekeybin;  
+  env.F->Raw (privatekeybin, prksign, privkey, false);
+
+  //printf ("privatekeybin.prksign -> {%i | %zu]\n", prksign, privatekeybin.size () ); 
+  
+  PrivateKey privatekey;
+  copy_BE (privatekey, privatekeybin);
+
+
+  int num_O_lines = 20; 
+  for  (int i = 0; i < num_O_lines; ++i) {
+    printf ("|-------------------o(O)o----------------------->\n"); 
+  }
+
+  printf ("\n\n");
+
+  for (auto e : privatekeybin) { printf ("0x%x " , e); }
+
+
+  printf ("\n\n"); 
+
+
+  for  (auto e : privatekey)  { printf ("0x%x " , e); }
+
+  printf ("\n\n"); 
+
+  for (int i = 0; i < num_O_lines; ++i) {
+    printf ("|-------------------o(O)o----------------------->\n"); 
+  }
+  
+
+  
+  const bool on_mainnet = false;
+
+
+  printf ("READING TRANSACTION BEGIN\n");   
+  std::string tx_hex = "010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d00000000ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000"; 
+  bytearray txbin;
+  hex::decode (txbin, tx_hex); 
+  Transaction tx;
+  size_t readtxlen = ReadTransaction (tx, CreateReadMemStream (&txbin[0], txbin.size ()));
+  printf ("READING TRANSACTION END\n");
+  printf ("READING TRANSACTION END\n");
+  printf ("READING TRANSACTION END\n");
+  printf ("READING TRANSACTION END\n");
+  printf ("READING TRANSACTION END\n");
+
+  //stream = BytesIO(bytes.fromhex('010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d00000000ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'))
+  //want = '010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d0000006b4830450221008ed46aa2cf12d6d81065bfabe903670165b538f65ee9a3385e6327d80c66d3b502203124f804410527497329ec4715e18558082d489b218677bd029e7fa306a72236012103935581e52c354cd2f484fe8ed83af7a3097005b2f9c60bff71d35bd795f54b67ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'
+  // int a1 = 69; 
+  // std::string b1=  "wat";
+  // float c1 = 1.0f;
+
+  
+  {
+    bytearray obin (readtxlen, byte{0});
+    std::string ohex; 
+    Transaction tx_out;
+    size_t writetxlen = WriteTransaction (CreateWriteMemStream (&obin[0], obin.size()), tx);
+    hex::encode (ohex, &obin[0], obin.size());
+
+    PR_CHECK ("writetxlen == readtxlen", writetxlen == readtxlen);
+    PR_CHECK ("ohex == tx_hex", ohex == tx_hex) ; 
+  }
+
+  PR_CHECK ("Tx::SignInput", Tx::SignInput (tx, 0, privatekey, on_mainnet));
+
+
+		       
+  return 0;
+}
+
+//
+//
+int test_hmac_sha256 (std::vector<std::string>& args) {
+  FN_SCOPE();
+
+  FFM_Env env;
+  bmx::Init_secp256k1_Env (env);
+  ScopeDeleter dr (env.F);
+  FEConRef& F = env.F; 
+  int prksign = 0;
+  // secret=8675309
+ 
+  bytearray bin; 
+  FE_t fe_priv = dr(env.F->New_ui (8675309));
+  int prv_sign = 0;
+  F->Raw (bin, prv_sign, fe_priv); 
+  PrivateKey privatekey;
+  copy_BE (privatekey, bin);
+
+  const size_t txt_bin_max_size = 1024;
+  bytearray input_txt_bin ( txt_bin_max_size );   
+
+  af::WriteStreamRef wstxt = CreateWriteMemStream ( &input_txt_bin[0], txt_bin_max_size); 
+  // cat text here
+
+  digest32 odigest; 
+  af::hmac_sha256 (odigest, privatekey, &input_txt_bin[0], wstxt->GetPos ());
+
+
+  return 0 ;  
+}
+
+
+int test_Deterministic_K (std::vector<std::string>& args) {
+  FN_SCOPE (); 
+
+  //digest32&  Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z); 
+  return 0; 
+}
+
+
+
 //
 int CH7_Ex (std::vector<std::string>& args) {
 
   FN_SCOPE();
   
-  tx_test_p1          (args); 
-  tx_test_p2          (args); 
-  tx_test_sig_hash    (args); 
-  tx_test_fee         (args);
-  tx_test_input_value (args); 
-
-
-  test_problem_tx (args);
-
-  test_input_pubkey    (args);
-  test_sign_input      (args);
+  // tx_test_p1          (args); 
+  // tx_test_p2          (args); 
+  // tx_test_fee         (args);
+  // tx_test_input_value (args); 
+    
+    
+  //test_problem_tx (args);
+  // tx_test_sig_hash (args); 
+  // test_input_pubkey    (args);
   // tx_test_verify_p2pkh (args);
   // test_verify_p2sh     (args);
-  
+  //tx_test_sig_hash (args);
+
+  // test_hmac_sha256 (args); 
+  // test_Deterministic_K (args) ; 
+  test_sign_input      (args);
+
   return 0;
 }
 
+
+
+void look_at_this_shhhhi () {
+
+  auto tup = std::tuple{ 420, "wtf", 3.15f}; 
+  auto& [a1, b1, c1] = tup; 
+
+  
+  }

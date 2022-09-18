@@ -87,10 +87,46 @@ int int_2_hexes (const std::vector<std::string> &args) {
 }
 
 
+//
+//
+
+int test_hmac_sha256 (const std::vector<std::string> &args) {
+  FN_SCOPE ();
+
+  digest32 odigest;
+  fixnum32 key;
+
+  const size_t txt_bin_max_size = 1024;
+  bytearray input_txt_bin ( txt_bin_max_size );   
+
+
+  af::WriteStreamRef wstxt = CreateWriteMemStream ( &input_txt_bin[0], txt_bin_max_size); 
+  // cat text here
+
+
+
+
+  
+  af::hmac_sha256 (odigest, key, &input_txt_bin[0], wstxt->GetPos ()); 
+
+  
+  
+
+
+  
+  //af::digest32&
+  //af::hmac_sha256 (digest32& oz, const fixnum32& key, const void* txt, size_t lentxt) ; 
+  return 0; 
+}
+
+
 // -----------------------------------------
 int main (int argv, char** argc) {
   std::vector<std::string> args (argc, argc + argv);
-  return int_2_hexes  (args);
+
+  int res =  test_hmac_sha256 (args); 
+
+  //return int_2_hexes  (args);
   //int watres = Wat (args);
   //int testres = test_zmq (args); 
   //  return testres;

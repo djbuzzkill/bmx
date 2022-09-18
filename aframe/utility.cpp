@@ -116,10 +116,8 @@ unsigned char af::hex::to_uc (const std::string& chars) {
 
   unsigned char out = hex_enc[chars[hi]] << 4; 
   out += hex_enc[chars[lo]];
-  return out; 
-
+  return out;
 }
-
 
 byte af::hex::to_byte(const std::string& chars) {
 

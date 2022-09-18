@@ -8,12 +8,10 @@
 
 using namespace af;
 
-  //
-
+//
 namespace priveval {
   
   using namespace bmx; 
-
   //
   typedef std::function<int(bmx::script_env&)>  op_proc;
   ///
@@ -211,44 +209,46 @@ namespace priveval {
   };  
 }
 
-
 //
 //
 //bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
 bool bmx::EvalScript (script_env& env) {
-  //
+  FN_SCOPE (); 
   using namespace priveval;
   //printf ("Enter:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
-  //script_env env; // env (commands, z, F); 
+  //script_env env; // env (commands, z, F);
 
   //std::copy (z.begin(), z.end(),  env.z.begin());
   //std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
-
+  size_t op_num  = 1;
+  
   //printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
   while (env.cmds.size ()) {
-    // printf ("loop: %zu commands left\n", env.cmds.size ()); 
-    const script_command cmd = std::move (env.cmds.front ()); 
+
+    printf ("%s [op no.%zu]-> current stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
+
+    // printf ("loop: %zu commands left\n", env.cmds.size ());
+
+    script_command cmd = std::move (env.cmds.front ()); 
 
     env.cmds.pop_front ();
 
     switch (ty (cmd)) {
-
-    // script op 
+    // -------------------------------------------------------- 
+    // OPERATION
+    // -------------------------------------------------------- 
     case command_type::SC_operation:
-      
+      printf ("[[ operation(0x%x) ]] ", op(cmd)); 
       if (op_map.count (op(cmd))) {
-	//assert (cmd.bin.size () == 1); 
 	//printf ("Op val : %x\n", op(cmd));
-	//printf ("cmd.bin[0]:%i\n", cmd.bin[0] ); 
 	//printf ("operation :%s\n", op_name[op(cmd)].c_str());
 	if ( !op_map[op(cmd)] (env) ) {
 	  // wtf
-	  //printf ("op:%s return false\n", op_name[op(cmd)].c_str ()); 
-	  //printf ("return false:%i", __LINE__ + 1);
+	  printf (" %s -> FALSE\n", op_name[op(cmd)].c_str ()); 
 	  return false;
 	}
 	else {
-	  printf ("%s returned true\n", op_name[op(cmd)].c_str ());
+	  printf (" %s -> TRUE\n", op_name[op(cmd)].c_str ());
 	}
       }
       else {
@@ -258,24 +258,49 @@ bool bmx::EvalScript (script_env& env) {
       }
       break;
       
-    // script element:
+    // -------------------------------------------------------- 
+    // ELEMENT
+    // -------------------------------------------------------- 
     case command_type::SC_element:
       //printf ("element: push [%zu] \n", arr(cmd).size());
+      printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
       env.stack.push_back (std::move (arr(cmd)));
       break;
-
 
     default:
       // how
       // wtf
-      //printf ("return false:%i", __LINE__ + 1);
+      printf ("return false from default :%i", __LINE__ + 1);
+
+
       return false; ////  __LINE__;
       break;
 
     } // switch 
 
+
+    static bool print_stack = true; 
+    if (print_stack) {
+      printf ("stack[%zu]\n", env.stack.size ()); 
+      for (size_t ist = 0; ist < env.stack.size (); ++ist) {
+	size_t stack_ind = env.stack.size () - 1 - ist;
+	bytearray& cur_el = env.stack[stack_ind];
+	
+	std::string hexs;
+	hex::encode (hexs, &cur_el[0], cur_el.size()); 
+	printf ("  (%zu) [%zu]%s\n",  stack_ind, cur_el.size(), hexs.c_str()); 
+	
+      }
+    }
+
+    op_num++; 
   } // eval loop
 
+
+  printf ("%s after loop (op no.%zu) -> stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
+
+
+  
   if (env.stack.empty ()) {
     printf ("return false:%i", __LINE__ + 1);
     return false; //  __LINE__;
@@ -287,7 +312,7 @@ bool bmx::EvalScript (script_env& env) {
     return false; //  __LINE__; 
     // empty string
   }
-  //printf ("Exit:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
+  printf ("Exit:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
   return true; 
 }
 

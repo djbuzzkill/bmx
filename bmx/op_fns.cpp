@@ -9,12 +9,16 @@
 #include "ffm/ffm.h"
 
 
+#define I_AM(x){printf("I AM %s!!!!11\n",(x)); assert(false);}
+
+
 using namespace ffm;
 using namespace af; 
 
 //
 using bmx::util::encode_num;
 using bmx::util::decode_num;
+
 
 //
 bool bmx::proc_OP_0 (script_env& env) {
@@ -25,6 +29,9 @@ bool bmx::proc_OP_0 (script_env& env) {
   env.stack.push_back (encode_num(tmp, F->New_si (0), F)); 
   return true;
 }
+
+
+
 
 // bool bmx::proc_OP_PUSH1 (script_env &env) {  printf ( "I AM  %s.\n" , __FUNCTION__); return false; } 
 // bool bmx::proc_OP_PUSH2 (script_env &env) {  printf ( "I AM  %s.\n" , __FUNCTION__); return false; } 
@@ -197,7 +204,7 @@ bool bmx::proc_OP_16 (script_env& env) {
 //
 //
 bool bmx::proc_OP_NOP (script_env& env) {
-  printf ( "I AM %s.\n" , __FUNCTION__); 
+  
   return true;
 }          
 
@@ -205,7 +212,7 @@ bool bmx::proc_OP_NOP (script_env& env) {
 //
 bool bmx::proc_OP_IF (script_env& env) {
   // https://en.bitcoin.it/wiki/Script
-  printf ( "I AM  %s.\n" , __FUNCTION__);
+  I_AM(__FUNCTION__);
   return false;
 
 }
@@ -213,7 +220,7 @@ bool bmx::proc_OP_IF (script_env& env) {
 //
 //
 bool bmx::proc_OP_NOTIF (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
+  I_AM(__FUNCTION__);
   return false;
 }
 
@@ -221,10 +228,11 @@ bool bmx::proc_OP_NOTIF (script_env& env) {
 //
 //
 bool bmx::proc_OP_VERIFY (script_env& env) {
-
-  printf ( "I AM  %s.\n" , __FUNCTION__); 
+  FN_SCOPE (); 
+  //printf ( "I AM  %s.\n" , __FUNCTION__); 
 
   if (env.stack.size () < 1) {
+    printf ("(env.stack.size () < 1) return false\n"); 
     return false; 
   }
 
@@ -235,6 +243,7 @@ bool bmx::proc_OP_VERIFY (script_env& env) {
   env.stack.pop_back();
   
   if (0 == F->Cmp_ui (decode_num (dr(F->New()), F, el), 0)) {
+    printf ("num == 0) return false\n"); 
     return false; 
   }
 
@@ -244,7 +253,7 @@ bool bmx::proc_OP_VERIFY (script_env& env) {
 //
 //
 bool bmx::proc_OP_RETURN (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__); return 0;
+  I_AM(__FUNCTION__);
   return false; 
 
 }
@@ -252,7 +261,6 @@ bool bmx::proc_OP_RETURN (script_env& env) {
 //
 //
 bool bmx::proc_OP_TOALTSTACK (script_env& env){
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   if (env.stack.empty()) {
     return false;
@@ -266,7 +274,6 @@ bool bmx::proc_OP_TOALTSTACK (script_env& env){
 //
 //
 bool bmx::proc_OP_FROMALTSTACK (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   if (env.alts.empty ())
     return false;
@@ -280,7 +287,6 @@ bool bmx::proc_OP_FROMALTSTACK (script_env& env) {
 //
 //
 bool bmx::proc_OP_2DROP (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   if (env.stack.size () < 2)
     return false;
@@ -294,7 +300,6 @@ bool bmx::proc_OP_2DROP (script_env& env) {
 //
 //
 bool bmx::proc_OP_2DUP (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   size_t stacksize = env.stack.size (); 
   if (stacksize < 2)
@@ -313,7 +318,6 @@ bool bmx::proc_OP_2DUP (script_env& env) {
 //
 //
 bool bmx::proc_OP_3DUP (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   size_t stacksize = env.stack.size (); 
   if (stacksize < 3)
@@ -333,14 +337,13 @@ bool bmx::proc_OP_3DUP (script_env& env) {
 }
 
 
-bool bmx::proc_OP_2OVER (script_env& env)       { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
-bool bmx::proc_OP_2ROT (script_env& env)        { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
-bool bmx::proc_OP_2SWAP (script_env& env)       { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
-bool bmx::proc_OP_IFDUP (script_env& env)       { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
+bool bmx::proc_OP_2OVER (script_env& env)       { I_AM(__FUNCTION__); return false; }
+bool bmx::proc_OP_2ROT (script_env& env)        { I_AM(__FUNCTION__); return false; }
+bool bmx::proc_OP_2SWAP (script_env& env)       { I_AM(__FUNCTION__); return false; }
+bool bmx::proc_OP_IFDUP (script_env& env)       { I_AM(__FUNCTION__); return false; }
 //
 //
 bool bmx::proc_OP_DEPTH (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   bytearray encnum; 
   FEConRef F = env.ffme.F;
@@ -356,7 +359,6 @@ bool bmx::proc_OP_DEPTH (script_env& env) {
 //
 //
 bool bmx::proc_OP_DROP (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
 
   if (env.stack.empty())
     return false; 
@@ -366,41 +368,69 @@ bool bmx::proc_OP_DROP (script_env& env) {
   return false;
 }
 
+
+template<typename SeqTy> 
+inline void pr_a(const SeqTy &a) {
+
+
+  printf ("%s -> ", __FUNCTION__); 
+  
+  for (auto e : a) {
+
+    printf ("%x", e); 
+
+  }
+  printf ("\n "); 
+  
+}
+
+
 //
 //
 bool bmx::proc_OP_DUP (script_env& env) {
-
-  printf ( "I AM  %s.\n" , __FUNCTION__);
- 
-  script_stack&       s    = env.stack; 
-  script_stack&       alt  = env.alts;
-  const command_list& cmds = env.cmds; 
+  FN_SCOPE(); 
+  //  printf ( "I AM  %s.\n" , __FUNCTION__);
+  // script_stack&       alt  = env.alts;
+  // const command_list& cmds = env.cmds; 
 
   if (env.stack.size () < 1)
     return false;
 
+
+  //printf ("b4:stack size:%zu\n", env.stack.size ()); 
   env.stack.push_back (env.stack.back());
+
+  //size_t stack_size =   env.stack.size () ;
+  // printf ("OP_DUP top 2\n"); 
+  // pr_a(env.stack[stack_size-1]);
+  // pr_a(env.stack[stack_size-2]);
+  // printf ("4f:stack size:%zu\n", env.stack.size ()); 
   
   return true;
 }
 
 //
-bool bmx::proc_OP_NIP          (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_OVER         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_PICK         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_ROLL         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_ROT          (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_SWAP         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_TUCK         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_SIZE         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
+bool bmx::proc_OP_NIP          (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_OVER         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_PICK         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_ROLL         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_ROT          (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_SWAP         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_TUCK         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_SIZE         (script_env& env) { I_AM(__FUNCTION__); return false; }      
 
 //
 //
 bool bmx::proc_OP_EQUAL (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
+  //FN_SCOPE (); 
+  FN_SCOPE ();
 
-  if (env.stack.size () < 2)
-    return false; 
+  printf ("%s --> stack size:%zu\n", __FUNCTION__, env.stack.size()); 
+  
+  if (env.stack.size () < 2)  {
+    printf ( "env.stack.size () < 2\n" , __FUNCTION__);
+    return false;
+    }
 
 
   bytearray element1 = env.stack.back();
@@ -409,31 +439,51 @@ bool bmx::proc_OP_EQUAL (script_env& env) {
   bytearray element2 = env.stack.back ();
   env.stack.pop_back (); 
 
+  // printf ("OP_EQUAL elements\n"); 
+  // pr_a (element1);
+  // pr_a (element2);
+  
   bytearray tmp; 
   FEConRef F = env.ffme.F; 
-  if (eql (element1, element2))
+  if (eql (element1, element2)) {
+    printf ("%s -> encode_num(1)\n", __FUNCTION__); 
     env.stack.push_back (encode_num(tmp, F->New_si(1), F)); 
-  else
+  }
+  else {
+    printf ("%s -> encode_num(0)\n",__FUNCTION__); 
     env.stack.push_back (encode_num(tmp, F->New_si(0), F)); 
-  
+  }
   return true;
 }
 
 //
-bool bmx::proc_OP_EQUALVERIFY  (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_1ADD         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_1SUB         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_NEGATE       (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_ABS          (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }      
-bool bmx::proc_OP_NOT          (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
-bool bmx::proc_OP_0NOTEQUAL    (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
+
+
+
+bool bmx::proc_OP_EQUALVERIFY  (script_env& env) {
+  FN_SCOPE ();
+
+  printf ("%s -> entering stack size:%zu\n", __FUNCTION__, env.stack.size ()); 
+
+  
+  
+  return proc_OP_EQUAL (env) && proc_OP_VERIFY(env); 
+
+}
+
+
+bool bmx::proc_OP_1ADD         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_1SUB         (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_NEGATE       (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_ABS          (script_env& env) { I_AM(__FUNCTION__); return false; }      
+bool bmx::proc_OP_NOT          (script_env& env) { I_AM(__FUNCTION__); return false; }  
+bool bmx::proc_OP_0NOTEQUAL    (script_env& env) { I_AM(__FUNCTION__); return false; }  
 
 //
 //
 bool bmx::proc_OP_ADD (script_env& env) {
+  FN_SCOPE ();
 
-  printf ( "I AM  %s.\n" , __FUNCTION__); 
-  
   if (env.stack.size () < 2)
     return false; 
 
@@ -459,8 +509,9 @@ bool bmx::proc_OP_ADD (script_env& env) {
 }
 
 
- bool bmx::proc_OP_SUB               (script_env& env) {
-   printf ( "I AM  %s.\n" , __FUNCTION__);
+ bool bmx::proc_OP_SUB (script_env& env) {
+  FN_SCOPE ();
+
 
   if (env.stack.size () < 2)
     return false; 
@@ -533,45 +584,58 @@ bool bmx::proc_OP_MUL (script_env& env) {
  }
 
 
- bool bmx::proc_OP_BOOLAND           (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_BOOLOR            (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_NUMEQUAL          (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_NUMEQUALVERIFY    (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_NUMNOTEQUAL       (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_LESSTHAN          (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_GREATERTHAN       (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_LESSTHANOREQUAL   (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_GREATERTHANOREQUAL(script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; } 
- bool bmx::proc_OP_MIN               (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_MAX               (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_WITHIN            (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_RIPEMD160         (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_SHA1              (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
- bool bmx::proc_OP_SHA256            (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }  
-
+ bool bmx::proc_OP_BOOLAND           (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_BOOLOR            (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_NUMEQUAL          (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_NUMEQUALVERIFY    (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_NUMNOTEQUAL       (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_LESSTHAN          (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_GREATERTHAN       (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_LESSTHANOREQUAL   (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_GREATERTHANOREQUAL(script_env& env) { I_AM(__FUNCTION__); return false; } 
+ bool bmx::proc_OP_MIN               (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_MAX               (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_WITHIN            (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_RIPEMD160         (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_SHA1              (script_env& env) { I_AM(__FUNCTION__); return false; }  
+ bool bmx::proc_OP_SHA256            (script_env& env) { I_AM(__FUNCTION__); return false; }  
 
 //
 //
 bool bmx::proc_OP_HASH160 (script_env& env) {
-  //printf ( "I AM  %s...restore plz\n" , __FUNCTION__); 
+  FN_SCOPE ();
+
+  //printf ( "%s -> entering stack size:%zu\n" , __FUNCTION__, env.stack.size());
+
   if (env.stack.empty ())
     return false; 
 
-  const af::bytearray top_el  = env.stack.back ();
+  af::bytearray top_el  = std::move (env.stack.back ());
+
   env.stack.pop_back ();
+  //pr_a(top_el);
+
+
+  //pr_a(top_el);
   
   af::digest20 dig20;
   af::hash160 (dig20, &top_el[0],  top_el.size ());
   
-  env.stack.push_back (af::bytearray  (dig20.begin(), dig20.end()) ); 
-  
+  env.stack.push_back (af::bytearray  (dig20.begin(), dig20.end()) );
+
+  //pr_a(dig20);
+
+  //printf ( "%s -> leaving stack size:%zu\n" , __FUNCTION__, env.stack.size());
+
   return true;
 }
 
 
 //
 bool bmx::proc_OP_HASH256 (script_env& env) {
-  printf ("I AM %s.\n", __FUNCTION__);
+  FN_SCOPE ();
+
+  //printf ("I AM %s.\n", __FUNCTION__);
 
   if (env.stack.empty ()) {
     return false;
@@ -585,7 +649,7 @@ bool bmx::proc_OP_HASH256 (script_env& env) {
   hash256 (dig32, &input[0], input.size ()); 
   env.stack.pop_back ();
 
-  env.stack.push_back (copy (out, dig32)); 
+  env.stack.push_back (copy_bytes (out, dig32)); 
   
   return true;
 } 
@@ -594,7 +658,8 @@ bool bmx::proc_OP_HASH256 (script_env& env) {
 //
 bool bmx::proc_OP_CHECKSIG (script_env& env) {
 
-  printf ( "I AM  %s.\n" , __FUNCTION__); 
+  FN_SCOPE ();
+  printf ( "I AM  %s. $%%%%%%%%%%%%%%%%%%%%%^%$$$$$$$$@#$$$@%#@%$#%#$$$$$$$$$$$$$$&&&&&&&&&\n" , __FUNCTION__); 
 
   script_stack&       alt  = env.alts;
   const command_list& cmds = env.cmds;
@@ -631,34 +696,31 @@ bool bmx::proc_OP_CHECKSIG (script_env& env) {
   FEConRef F (nullptr);
   Init_FE_context (F); 
   if ( SECP256k1_Verify (sig, pubkey, z)) {
-    //printf ( "sig good ..[%s]\n" , __FUNCTION__); 
+    printf ( "check sig good ..[%s]\n" , __FUNCTION__);
     env.stack.push_back (encode_num (tmp, F->New_si(1), F));
   }
   else {
-    printf ( "sig bad ..[%s]\n" , __FUNCTION__); 
+    printf ( "check sig bad ..[%s]\n" , __FUNCTION__); 
     env.stack.push_back(encode_num (tmp, F->New_si(0), F)); 
   }
 
   printf ( "Exiting..[%s]\n" , __FUNCTION__); 
   return true;
-
 }
-
 
 //
 //
 bool bmx::proc_OP_CHECKSIGVERIFY (script_env& env) {
-  printf ( "I AM  %s.\n" , __FUNCTION__);
+  FN_SCOPE ();
+
+  // printf ( "I AM  %s.\n" , __FUNCTION__);
   return proc_OP_CHECKSIG (env) && proc_OP_VERIFY (env);
 }
 
-
-bool bmx::proc_OP_CHECKMULTISIG       (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
-bool bmx::proc_OP_CHECKMULTISIGVERIFY (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
-
-// bool bmx::proc_OP_NOP                 (script_env& env) { return 0; }
-bool bmx::proc_OP_CHECKLOCKTIMEVERIFY (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
-bool bmx::proc_OP_CHECKSEQUENCEVERIFY (script_env& env) { printf ( "I AM  %s.\n" , __FUNCTION__); return false; }
+bool bmx::proc_OP_CHECKMULTISIG       (script_env& env) { I_AM(__FUNCTION__); return false; }
+bool bmx::proc_OP_CHECKMULTISIGVERIFY (script_env& env) { I_AM(__FUNCTION__); return false; }
+bool bmx::proc_OP_CHECKLOCKTIMEVERIFY (script_env& env) { I_AM(__FUNCTION__); return false; }
+bool bmx::proc_OP_CHECKSEQUENCEVERIFY (script_env& env) { I_AM(__FUNCTION__); return false; }
 
 
 

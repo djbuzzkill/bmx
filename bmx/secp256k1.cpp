@@ -4,6 +4,7 @@
 #include "secp256k1.h"
 #include <bitset>
 
+
 #include "aframe/hash.h"
 #include "aframe/utility.h"
 
@@ -21,6 +22,7 @@ using namespace af;
 
 namespace
 {
+  using namespace bmx;
   const std::string G = "G";
   const std::string n = "n";
 
@@ -31,6 +33,30 @@ namespace
     for (auto b : bytes) printf ("%02x ", b);
     printf ("\n"); 
   }
+
+  
+    // def deterministic_k(self, z):
+    //     k = b'\x00' * 32
+    //     v = b'\x01' * 32
+  
+
+    //     if z > N:
+    //         z -= N
+    //     z_bytes = z.to_bytes(32, 'big')
+    //     secret_bytes = self.secret.to_bytes(32, 'big')
+    //     s256 = hashlib.sha256
+    //     k = hmac.new(k, v + b'\x00' + secret_bytes + z_bytes, s256).digest()
+    //     v = hmac.new(k, v, s256).digest()
+    //     k = hmac.new(k, v + b'\x01' + secret_bytes + z_bytes, s256).digest()
+    //     v = hmac.new(k, v, s256).digest()
+    //     while True:
+    //         v = hmac.new(k, v, s256).digest()
+    //         candidate = int.from_bytes(v, 'big')
+    //         if candidate >= 1 and candidate < N:
+    //             return candidate
+    //         k = hmac.new(k, v + b'\x00', s256).digest()
+    //         v = hmac.new(k, v, s256).digest()
+
 }
 
 
@@ -181,9 +207,6 @@ size_t bmx::WritePoint (WriteStreamRef ws, const Point& p, bool compr) {
   size_t write_len = 0;
 
   // lest sig byte in y
-
-
-  
   const std::bitset<8> lobyte (std::to_integer<uint8>(p.y[31])); 
   
   if (compr) { // figure out if y is odd or even
@@ -226,7 +249,6 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   uint8 slen = sig.s.size () - semptydigs; 
   if (std::to_integer<uint8>(sig.s[0]) & 0x80) ++slen; 
 
-
   size_t begpos = ws->GetPos (); 
 
   size_t write_len = 0; 
@@ -237,12 +259,13 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   write_len += ws->Write (&startmarker, sizeof(startmarker)); 
 
   // size size
-  write_len += ws->Write (&sizesig, sizeof(sizesig)); 
-  
+  write_len += ws->Write (&sizesig, sizeof(sizesig));
+
+
   // marker
   write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
   // rlen
-  write_len += ws->Write (&rlen, rlen); 
+  write_len += ws->Write (&rlen, sizeof(rlen)); 
   // write r, leading '0' if needed
 
   if (std::to_integer<uint8>(sig.r[0]) & 0x80)
@@ -600,7 +623,7 @@ bool bmx::secp256k1::Verify (const Signature& sig, const PublicKey& pubk, const 
 
 // soon...
 bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest32& zbin) {
-  
+  FN_SCOPE (); 
   using namespace ffm;
   // eG = P
   FFM_Env env; 
@@ -641,9 +664,24 @@ bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest
   elems["n/2"] = n_div_2;
   
   // k = rand (n) <-- fix later
-  FE_t k = dr(F->New()); 
-  POUT("241")
-    F->Rand (k, elems[n]);
+  FE_t k = dr(F->New());
+
+
+  // >>>>>>> deterministricK
+  digest32  determK;
+  //bytearray determK;
+
+  Deterministic_K (determK, privk, zbin);
+
+  printf ("\n %s\n    -> [%s] \n", __PRETTY_FUNCTION__  , fmthex (determK).c_str()); 
+  
+  //digest32&  Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
+  // <<<<<<<<<< USING NEW Deterministic
+
+  
+  F->Rand (k, elems[n]);
+
+
   elems["k"] = k;
   
   // 1/k
@@ -665,7 +703,7 @@ bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest
   int cmpres = F->Cmp (stmp, elems["n/2"]);
   // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 = op2, or a negative value if op1 < op2.
   if (cmpres > 0) {
-    printf ("..(s > n/2)\n");
+    // printf ("..(s > n/2)\n");
     F->Sub (s , elems[n], stmp); 
   }
   else {
@@ -681,7 +719,7 @@ bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest
     F->Raw (sraw, s, false);
     ffm::copy_BE(sig.s, sraw); 
     
-    printf ("__SIGNATURE_GENERATED__\n");
+    printf ("\n__SIGNATURE_GENERATED__\n");
   }
   
   return true; 
@@ -987,5 +1025,121 @@ bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map
   return false; 
 
 }
+
+
+//
+//
+digest32&  bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
+  
+  FN_SCOPE (); 
+
+  printf ("%s INPUT<private key [%s]\n",  __FUNCTION__ , fmthex(priv).c_str());
+  printf ("%s INPUT<message hash [%s]\n",   __FUNCTION__ , fmthex(z).c_str());
+  std::vector<char> msgbuf (256, 0); 
+  
+  const byte byte0x0 = byte {0x0}; 
+  const byte byte0x1 = byte {0x1};
+  ok.fill (byte0x0); 
+  
+  FEConRef F (nullptr); 
+  Init_FE_context (F); 
+  ScopeDeleter dr (F);
+  
+  FE_t fe_z = dr(F->New_bin (&z[0], 32, false));
+  printf( "\n%s INPUT <fe_z [%s]\n", __FUNCTION__, F->fmt (&msgbuf[0], "%Zx", fe_z)) ; 
+
+  FE_t N    = dr(F->New (ksecp256k1_n_sz, 0));
+  printf( "%s INPUT <N [%s]\n", __FUNCTION__, F->fmt (&msgbuf[0], "%Zx", N)); 
+	  //	  inline  char*         fmt        (char* out, const char* fmt, FE_t x) { return Format (out, fmt, x); } 
+  
+  digest32 k; k.fill (byte{0x00}); 
+  digest32 v; v.fill (byte{0x01});
+  
+  // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 =
+  // op2, or a negative value if op1 < op2.
+  if (F->Cmp (fe_z, N) > 0) {
+    F->SSub (fe_z, fe_z, N);
+  }
+  
+  digest32 z1; {
+    bytearray tmp;
+    int z_sign = 0;
+    F->Raw(tmp, z_sign, fe_z, false);
+    copy_BE(z1, tmp);
+  }
+  
+  digest32 zbin ;
+  size_t max_txt_size = 512; 
+  bytearray input_txt (max_txt_size, byte{0}); 
+  WriteStreamRef wstxt = CreateWriteMemStream (&input_txt[0], max_txt_size);
+  
+  // k = hmac.new(k, v + b'\x00' + secret_bytes + z_bytes, s256).digest()
+  wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
+  wstxt->Write (&v[0], 32);
+  wstxt->Write (&byte0x0, 1);
+  wstxt->Write (&priv[0], 32);
+  wstxt->Write (&z1[0], 32); 
+  af::hmac_sha256 (k, k, &input_txt[0], wstxt->GetPos ());
+  
+  // v = hmac.new(k, v, s256).digest()
+  wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
+  wstxt->Write (&v[0], 32); 
+  af::hmac_sha256 (v, k, &input_txt[0], wstxt->GetPos ()); 
+  
+  // k = hmac.new(k, v + b'\x01' + secret_bytes + z_bytes, s256).digest()
+  wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
+  wstxt->Write (&v[0], 32);
+  wstxt->Write (&byte0x1, 1);
+  wstxt->Write (&priv[0], 32);
+  wstxt->Write (&z1[0], 32); 
+  af::hmac_sha256 (k, k, &input_txt[0], wstxt->GetPos ());
+  
+  // v = hmac.new(k, v, s256).digest()
+  wstxt->SetPos (0, byte_stream::SeekMode::Abs);
+  wstxt->Write (&v[0], 32); 
+  af::hmac_sha256 (v, k, &input_txt[0], wstxt->GetPos ());
+  
+  FE_t fe_candidate = dr (F->New()); 
+  digest32 candidate; 
+  while (true) {
+    
+    wstxt->SetPos(0, byte_stream::SeekMode::Abs);
+    wstxt->Write(&v[0], 32);
+    af::hmac_sha256 (v, k, &input_txt[0], wstxt->GetPos ());
+    
+    candidate = v;
+    F->Set_bin (fe_candidate, &candidate[0], 32, false); 
+    int cmp_0 = F->Cmp (fe_candidate, 0);
+    int cmp_N = F->Cmp (fe_candidate, N);
+    // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 =
+    // op2, or a negative value if op1 < op2.
+    if ( (cmp_0 > 0) &&  (cmp_N < 0)) {
+      ok = candidate;
+      return ok; 
+    }
+    
+    //k = hmac.new(k, v + b'\x00', s256).digest()
+    wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
+    wstxt->Write (&v[0], 32);
+    wstxt->Write (&byte0x0, 1);
+    af::hmac_sha256 (k, k, &input_txt[0], wstxt->GetPos ());
+    
+    //v = hmac.new(k, v, s256).digest()
+    wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
+    wstxt->Write (&v[0], 32);
+    af::hmac_sha256 (v, k, &input_txt[0], wstxt->GetPos ());
+    
+  }
+  
+  
+  return ok;
+}
+
+
+
+
+
+
+
 
 

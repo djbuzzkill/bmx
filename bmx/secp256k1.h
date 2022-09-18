@@ -9,9 +9,9 @@
 namespace bmx {
 
   //
-  typedef af::digest32 digest32;  
-  typedef af::fixnum32 fixnum32; 
-
+  typedef af::digest32  digest32;  
+  typedef af::fixnum32  fixnum32; 
+  typedef af::bytearray bytearray;
   //
   struct Point {
     fixnum32 x;
@@ -90,8 +90,9 @@ namespace bmx {
   bool        Init_FE_context    (ffm::FEConRef& ofecon); 
   bool        Init_secp256k1_Env (ffm::FEConRef& ofecon, ffm::ECConRef& oeccon, ffm::el::map& em, ffm::pt::map& pm);
   inline bool Init_secp256k1_Env (FFM_Env& env) { return Init_secp256k1_Env (env.F, env.EC, env.em, env.pm); }  
-  
 
+  digest32&  Deterministic_K (digest32& kout, const PrivateKey& priv, const digest32& z);
+  
 }
 
 #endif

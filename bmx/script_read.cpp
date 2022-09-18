@@ -7,20 +7,20 @@
 
 using namespace af;
 
-namespace privread {
+namespace bmx::privread {
 
-  using namespace bmx; 
+  //using namespace bmx; 
 
   //
   //
   script_command read_script_element (//script_command& cmd,
-				       ReadStreamRef   rs,
+				      ReadStreamRef   rs,
 				       unsigned char   len,
 				       size_t&         acc) {
-    FN_SCOPE ();
+    // FN_SCOPE ();
 
     
-   printf("%s|len:%u\n", __FUNCTION__, len);
+    //   printf("%s|len:%u\n", __FUNCTION__, len);
       
     
     script_command cmd; 
@@ -42,6 +42,7 @@ namespace privread {
 				 ReadStreamRef   rs,
 				 unsigned char   len,
 				 size_t&         acc) {
+    FN_SCOPE (); 
     script_command cmd; 
     
     unsigned char lendata = 0; 
@@ -63,6 +64,8 @@ namespace privread {
 				 ReadStreamRef   rs,
 				 unsigned char   len,
 				 size_t&         acc) {
+    FN_SCOPE(); 
+
     script_command cmd;
    
     std::uint16_t lendat16 = 0;
@@ -87,39 +90,43 @@ namespace privread {
 //
 //
 size_t bmx::ReadScript (command_list& out, ReadStreamRef rs) {
-  FN_SCOPE (); 
-  using namespace privread; 
+  //FN_SCOPE ();
+
+  using namespace privread;
+
   out.clear (); 
   //
-  // readlen : total lenghth of bytes read in this function
+  // readlen : total length of bytes read in this function
   size_t readlen = 0; 
   // scriptlen : the claimed length of the following object
   size_t scriptlen = 0;
 
-  readlen += util::read_varint (scriptlen, rs, 0);
-
-  printf ( "%s:size(varint) [%zu]\n", __FUNCTION__, readlen );
-  printf ( "%s:scriptlen [%zu]\n", __FUNCTION__, scriptlen );
+  readlen += util::read_varint (scriptlen, rs, nullptr);
+  //printf ( "%s:size(varint) [%zu]\n", __FUNCTION__, readlen );
+  //printf ( "%s:scriptlen [%zu]\n", __FUNCTION__, scriptlen );
   size_t accum = 0;
   while (accum < scriptlen) {
 
-    unsigned char leader = 0;
+    uint8 leader = 0;
     accum += rs->Read (&leader, 1); 
-    
+
+    //printf ("leader:%i\n", leader);
+    std::string strhex; 
     if (leader > 0 && leader < 76) {
-      //printf ( " -> element(%u) \n", leader); 
       out.push_back (read_script_element (rs, leader, accum));
-    }
+      hex::encode (strhex,  &arr(out.back())[0], arr(out.back()).size()); 
+      //printf ( "[-> element[%u] %s \n", leader, strhex.c_str()); 
+      }
     else if (leader == 76) {
-      //printf ( " -> read_OP_PUSH1 \n"); 
+      //printf ( "[-> read_OP_PUSH1 \n"); 
       out.push_back (read_OP_PUSH1 (rs, leader, accum));
     }
     else if (leader == 77) {
-      //printf ( " -> read_OP_PUSH2 \n"); 
+      //printf ( "[-> read_OP_PUSH2 \n"); 
       out.push_back (read_OP_PUSH2 (rs, leader, accum));
     }
     else {
-      //printf (" -> OP(%x) \n", leader); 
+      //printf ("[ -> OP(0x%x) \n", leader); 
       out.push_back (script_command (leader)); 
       //
     }

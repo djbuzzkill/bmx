@@ -26,8 +26,8 @@ namespace bmx {
     std::uint32_t      sequence;    // 
   }; 
 
-  TxIn&         ScriptPubKey (TxIn &inout, bool mainnet);
-  std::uint64_t Amount       (const TxIn& txin, bool mainnet); 
+  command_list&   ScriptPubKey (command_list& oscr, const TxIn &inout, bool mainnet);
+  std::uint64_t   Amount       (const TxIn& txin, bool mainnet); 
 
   typedef std::vector<TxIn> TxInputs;
 
