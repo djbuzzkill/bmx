@@ -6,6 +6,10 @@
 #include "common.h"
 #include <aframe/shared_types.h>
 
+
+#define FFM_DEFAULT_TEXT_BUFFER_SIZE 256
+
+
 namespace ffm
 {
   //

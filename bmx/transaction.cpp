@@ -4,15 +4,15 @@
 // -----------------------------------------------------------
 #include "transaction.h"
 #include "script.h"
-#include "curl/curl.h"
+#include "secp256k1.h"
+#include "utility.h"
+
 #include "aframe/binary_IO.h"
 #include "aframe/utility.h"
 #include "aframe/hash.h"
 #include "ffm/ffm.h"
-#include "secp256k1.h"
-#include "utility.h"
 
-
+#include "curl/curl.h"
 
 using namespace af;
 //
@@ -538,16 +538,11 @@ bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const 
   digest32 zhash;
   SignatureHash (zhash, otx, input_index, mainnet) ;
 
-  
-  pr_a (zhash); 
-  
-
-  printf ("\n%s INPUT<private key [%s]\n", __FUNCTION__, fmthex(p).c_str()); 
 
   Signature sig;
   if (SECP256k1_Sign (sig, p, zhash)) {
     printf ("\n%s + sig(r) [%s]\n", __FUNCTION__, fmthex(sig.r).c_str()); 
-    printf ("\n%s + sig(s) [%s]\n", __FUNCTION__, fmthex(sig.s).c_str()); 
+    printf ("%s + sig(s) [%s]\n", __FUNCTION__, fmthex(sig.s).c_str()); 
    
     bytearray memDER (8 * 1024, byte{0}) ;
   

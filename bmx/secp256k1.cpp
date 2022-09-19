@@ -673,7 +673,7 @@ bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest
 
   Deterministic_K (determK, privk, zbin);
 
-  printf ("\n %s\n    -> [%s] \n", __PRETTY_FUNCTION__  , fmthex (determK).c_str()); 
+  printf ("\n %s\n    Deterministic_K -> [%s] \n", __PRETTY_FUNCTION__  , fmthex (determK).c_str()); 
   
   //digest32&  Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
   // <<<<<<<<<< USING NEW Deterministic
@@ -1029,32 +1029,28 @@ bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map
 
 //
 //
-digest32&  bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
+digest32& bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
   
-  FN_SCOPE (); 
+  FN_SCOPE ();
 
-  printf ("%s INPUT<private key [%s]\n",  __FUNCTION__ , fmthex(priv).c_str());
-  printf ("%s INPUT<message hash [%s]\n",   __FUNCTION__ , fmthex(z).c_str());
-  std::vector<char> msgbuf (256, 0); 
-  
   const byte byte0x0 = byte {0x0}; 
   const byte byte0x1 = byte {0x1};
+
   ok.fill (byte0x0); 
   
   FEConRef F (nullptr); 
   Init_FE_context (F); 
   ScopeDeleter dr (F);
+  Formatter    fr (F); 
   
   FE_t fe_z = dr(F->New_bin (&z[0], 32, false));
-  printf( "\n%s INPUT <fe_z [%s]\n", __FUNCTION__, F->fmt (&msgbuf[0], "%Zx", fe_z)) ; 
-
+  //printf( "\n   INPUT <fe_z [ %s ]\n", fr.hx (fe_z)) ; 
   FE_t N    = dr(F->New (ksecp256k1_n_sz, 0));
-  printf( "%s INPUT <N [%s]\n", __FUNCTION__, F->fmt (&msgbuf[0], "%Zx", N)); 
-	  //	  inline  char*         fmt        (char* out, const char* fmt, FE_t x) { return Format (out, fmt, x); } 
+  //printf( "   INPUT <N [ %s ]\n", fr.hx (N)); 
   
-  digest32 k; k.fill (byte{0x00}); 
-  digest32 v; v.fill (byte{0x01});
-  
+  digest32 k; k.fill (byte{0x00}); // 00 00 00 00 ..
+  digest32 v; v.fill (byte{0x01}); // 01 01 01 01 ..
+
   // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 =
   // op2, or a negative value if op1 < op2.
   if (F->Cmp (fe_z, N) > 0) {
@@ -1080,27 +1076,25 @@ digest32&  bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const dig
   wstxt->Write (&priv[0], 32);
   wstxt->Write (&z1[0], 32); 
   af::hmac_sha256 (k, k, &input_txt[0], wstxt->GetPos ());
-  
   // v = hmac.new(k, v, s256).digest()
   wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
   wstxt->Write (&v[0], 32); 
   af::hmac_sha256 (v, k, &input_txt[0], wstxt->GetPos ()); 
-  
   // k = hmac.new(k, v + b'\x01' + secret_bytes + z_bytes, s256).digest()
   wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
   wstxt->Write (&v[0], 32);
   wstxt->Write (&byte0x1, 1);
   wstxt->Write (&priv[0], 32);
-  wstxt->Write (&z1[0], 32); 
+  wstxt->Write (&z1[0], 32);
   af::hmac_sha256 (k, k, &input_txt[0], wstxt->GetPos ());
-  
   // v = hmac.new(k, v, s256).digest()
   wstxt->SetPos (0, byte_stream::SeekMode::Abs);
   wstxt->Write (&v[0], 32); 
   af::hmac_sha256 (v, k, &input_txt[0], wstxt->GetPos ());
   
   FE_t fe_candidate = dr (F->New()); 
-  digest32 candidate; 
+  digest32 candidate;
+
   while (true) {
     
     wstxt->SetPos(0, byte_stream::SeekMode::Abs);
@@ -1134,12 +1128,6 @@ digest32&  bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const dig
   
   return ok;
 }
-
-
-
-
-
-
 
 
 

@@ -79,19 +79,13 @@ af::digest20& af::hash160 (digest20& out, const void* in, size_t lin) {
   return ripemd160 (out, &dig32[0], 32); 
 }
 
-
-
+//
+//
 af::digest32& af::hmac_sha256 (digest32& omac, const fixnum32& key, const void* txt, size_t lentxt) {
 
-  omac.fill(byte{0x0});
-
-  const size_t  expected_mac_len = 32; 
-  //GCRY_MAC_HMAC_SHA256;
+  const size_t  expected_mac_len = 32;
 
   gcry_error_t err; 
-  // Function:
-  // gcry_error_t
-  // gcry_mac_setkey (gcry_mac_hd_t h, const void *key, size_t keylen)
 
   gcry_ctx_t    ctx = nullptr;
   gcry_mac_hd_t hdl = nullptr;
@@ -102,7 +96,6 @@ af::digest32& af::hmac_sha256 (digest32& omac, const fixnum32& key, const void* 
     //printf("algo name %s\n", gcry_mac_algo_name (gcry_mac_get_algo(hdl) )); 
     err = gcry_mac_setkey(hdl, &key[0], key.size () );
     assert(err == GPG_ERR_NO_ERROR);
-
     //printf ("maclen:%i | keylen:%i \n", gcry_mac_get_algo_maclen (gcry_mac_get_algo(hdl)), gcry_mac_get_algo_keylen (gcry_mac_get_algo(hdl))); 
     err = gcry_mac_write  (hdl, txt, lentxt);
     assert(err == GPG_ERR_NO_ERROR);

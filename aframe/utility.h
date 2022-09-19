@@ -131,13 +131,10 @@ namespace af
 
 
 
-
-
-
   //
   //
   template<typename Seq>
-  inline std::string  fmthex(const Seq& seq) {
+  inline std::string fmthex(const Seq& seq) {
 
     uint8 stride = 3;
     
@@ -151,7 +148,6 @@ namespace af
       else
 	sprintf (&buf[counter], " %02x", e);
 
-
       if (firsttime) { 
 	counter += stride - 1;
 	firsttime = false;
@@ -159,8 +155,6 @@ namespace af
       else {
 	counter += stride;
       }
-	
-      
     }
 
     return std::string (&buf[0]); 

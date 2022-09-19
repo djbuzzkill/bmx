@@ -8,6 +8,9 @@
 
 namespace ffm
 {
+
+  
+
   typedef int FE_t;
   const FE_t fe_null  = 0;
 
@@ -132,6 +135,32 @@ namespace ffm
     //~ScopeDeleter () {while (size()) { printf("deleting[%i]\n", back()); F->Del(back()); pop_back (); }}
   };
 
+
+  // ----------------------------------------------------------------------------------------
+  //
+  // ----------------------------------------------------------------------------------------
+  struct Formatter {
+
+    Formatter (FEConRef F, uint32 buffsize = FFM_DEFAULT_TEXT_BUFFER_SIZE) :f (F), buf(buffsize, ' ') {
+    }
+
+    const char* fmt_hex (FE_t x) { return f->fmt (&buf[0], "%Zx", x) ; }
+    const char* fmt_dec (FE_t x) { return f->fmt (&buf[0], "%Zd", x) ; }
+
+    inline const char* hx (FE_t x) { return fmt_hex(x) ; }
+    inline const char* dc (FE_t x) { return fmt_dec(x) ; }
+
+    std::vector<char> buf; 
+    FEConRef f;
+
+  protected:
+
+    Formatter () : f(nullptr), buf (0, 0) {
+      }
+  }; 
+
+  
+  
 } // FM
 
 #endif
