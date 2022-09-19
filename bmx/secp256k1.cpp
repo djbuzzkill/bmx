@@ -665,23 +665,10 @@ bool bmx::secp256k1::Sign (Signature& sig, const PrivateKey& privk, const digest
   
   // k = rand (n) <-- fix later
   FE_t k = dr(F->New());
-
-
-  // >>>>>>> deterministricK
   digest32  determK;
-  //bytearray determK;
-
   Deterministic_K (determK, privk, zbin);
-
-  printf ("\n %s\n    Deterministic_K -> [%s] \n", __PRETTY_FUNCTION__  , fmthex (determK).c_str()); 
-  
-  //digest32&  Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
-  // <<<<<<<<<< USING NEW Deterministic
-
-  
-  F->Rand (k, elems[n]);
-
-
+  F->Set_bin (k, &determK[0], determK.size(), false); 
+  //printf ("\n %s\n    Deterministic_K -> [%s] \n", __PRETTY_FUNCTION__  , fmthex (determK).c_str()); 
   elems["k"] = k;
   
   // 1/k
@@ -1128,6 +1115,3 @@ digest32& bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const dige
   
   return ok;
 }
-
-
-

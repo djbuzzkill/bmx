@@ -541,8 +541,8 @@ bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const 
 
   Signature sig;
   if (SECP256k1_Sign (sig, p, zhash)) {
-    printf ("\n%s + sig(r) [%s]\n", __FUNCTION__, fmthex(sig.r).c_str()); 
-    printf ("%s + sig(s) [%s]\n", __FUNCTION__, fmthex(sig.s).c_str()); 
+    //printf ("\n%s + sig(r) [%s]\n", __FUNCTION__, fmthex(sig.r).c_str()); 
+    //printf ("%s + sig(s) [%s]\n", __FUNCTION__, fmthex(sig.s).c_str()); 
    
     bytearray memDER (8 * 1024, byte{0}) ;
   
