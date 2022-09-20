@@ -92,40 +92,31 @@ namespace bmx {
 //
 bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
 
-  pt::map pm;
-  el::map em;
-  // FEConRef F  = Create_FE_context (ksecp256k1_p_sz);
-  // ECConRef EC = Create_EC_context (F, em, pm, ksecp256k1_coeff_a_sz, ksecp256k1_coeff_b_sz, ksecp256k1_n_sz, 0);
-
   FFM_Env env; 
   Init_secp256k1_Env (env);
   FEConRef const& F  = env.F; 
-  ECConRef const& EC = env.EC; 
-  // checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
-  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0); 
+  ECConRef const& EC = env.EC;
+  pt::map&        pm = env.pm;
+  el::map&        em = env.em;
 
+  // checkres (G,  EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0));
+  //EC->MakePoint (G, ksecp256k1_G_x_sz, ksecp256k1_G_y_sz, 0); 
   bytearray wsbuf (256);  
   WriteStreamRef ws = CreateWriteMemStream (std::data(wsbuf), wsbuf.size()); 
   
-    
-  ScopeDeleter dr     (F);
-  bytearray    arrtmp (256, byte{0});
+  ScopeDeleter   dr     (F);
+  bytearray      arrtmp (256, byte{0});
     
   FE_t e = dr(F->New_bin (std::data(secr), secr.size(), false));
-  
-  const std::string v = "xzd8"; 
+
+  const std::string v = "xzd8"; // random name
   EC->MakePoint  (v, dr (F->New()), dr (F->New()));
   EC->Mul_scalar (v, e, G); 
-
+  // p.x
   F->Raw (arrtmp, pt::x(pm[v]), false);
-  printf ("[%zu]pt::x\n",  arrtmp.size ());
-  //assert (arrtmp.size() == 32);
   copy_BE (out.x, arrtmp); 
-  
+  // p.y
   F->Raw (arrtmp, pt::y(pm[v]), false);
-  printf ("[%zu]pt::y\n",  arrtmp.size ());
-  // assert (arrtmp.size() == 32);
-  
   copy_BE (out.y, arrtmp); 
 
   return out; 
@@ -236,7 +227,6 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   const byte zerobyte    { 0 }; 
   const byte markerbyte  { 0x02 }; 
 
-
   uint8  remptydigs = 0; 
   while (sig.r[remptydigs] == zerobyte && remptydigs < 32) ++remptydigs;
 
@@ -252,12 +242,10 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   size_t begpos = ws->GetPos (); 
 
   size_t write_len = 0; 
-
-  uint8 sizesig = slen + rlen + 6; 
+  uint8  sizesig   = slen + rlen + 4; 
   
   // startbyte
   write_len += ws->Write (&startmarker, sizeof(startmarker)); 
-
   // size size
   write_len += ws->Write (&sizesig, sizeof(sizesig));
 
@@ -283,110 +271,9 @@ size_t bmx::WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
   write_len += ws->Write (&sig.s[0], sig.s.size ()); 
 
   size_t final_size = begpos = ws->GetPos ();
-  //assert (final_size == write_len); 
-
-  printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
-  //printf ( "%s:expected_size[%zu]\n", __FUNCTION__, expected_size);
-  //printf ( "%s:final_size[%zu]\n",    __FUNCTION__, final_size);
-  // total write size 
-  //return (final_size == expected_size); 
 
   return write_len; 
  }
-
-
-    // def der(self):
-    //     rbin = self.r.to_bytes(32, byteorder='big')
-    //     # remove all null bytes at the beginning
-    //     rbin = rbin.lstrip(b'\x00')
-    //     # if rbin has a high bit, add a \x00
-    //     if rbin[0] & 0x80:
-    //         rbin = b'\x00' + rbin
-    //     result = bytes([2, len(rbin)]) + rbin  # <1>
-    //     sbin = self.s.to_bytes(32, byteorder='big')
-    //     # remove all null bytes at the beginning
-    //     sbin = sbin.lstrip(b'\x00')
-    //     # if sbin has a high bit, add a \x00
-    //     if sbin[0] & 0x80:
-    //         sbin = b'\x00' + sbin
-    //     result += bytes([2, len(sbin)]) + sbin
-    //     return bytes([0x30, len(result)]) + result
-
-
-
-
-
-
-//
-//
-#ifdef __OLD_WRITE_SIG_DER__
- 
- size_t WriteSignature_DER (WriteStreamRef ws, const Signature& sig) {
-
-  const uint8 startmarker = 0x30;
-  const uint8 zerobyte    = 0; 
-  const uint8 markerbyte  = 0x02; 
-
-  uint8  remptydigs = 0; 
-  while (sig.r[remptydigs] == 0 && remptydigs < 32) ++remptydigs;
-
-  uint8  semptydigs = 0; 
-  while (sig.s[semptydigs] == 0 && semptydigs < 32) ++semptydigs; 
-
-  uint8 rlen = sig.r.size () - remptydigs;
-  if (sig.r[0] & 0x80) ++rlen; 
-  
-  uint8 slen = sig.s.size () - semptydigs; 
-  if (sig.s[0] & 0x80) ++slen; 
-
-
-  size_t begpos = ws->GetPos (); 
-
-  size_t write_len = 0; 
-
-  uint8 sizesig = slen + rlen + 6; 
-  
-  // startbyte
-  write_len += ws->Write (&startmarker, sizeof(startmarker)); 
-
-  // size size
-  write_len += ws->Write (&sizesig, sizeof(sizesig)); 
-  
-  // marker
-  write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
-  // rlen
-  write_len += ws->Write (&rlen, rlen); 
-  // write r, leading '0' if needed
-
-  if (sig.r[0] & 0x80)
-    write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
-  write_len += ws->Write (&sig.r[0], sig.r.size()); 
-  //write_len += af::write_byte32 (ws, sig.r);
-  
-  // marker
-  write_len += ws->Write (&markerbyte, sizeof(markerbyte)); 
-
-  write_len += ws->Write (&slen, sizeof(slen)); 
-  // write s,...
-  if (sig.s[0] & 0x80)
-      write_len += ws->Write (&zerobyte, sizeof(zerobyte)); 
-  write_len += ws->Write (&sig.s[0], sig.s.size ()); 
-
-  size_t final_size = begpos = ws->GetPos ();
-  //assert (final_size == write_len); 
-
-  printf ( "%s:write_len[%zu]\n",     __FUNCTION__, write_len);
-  //printf ( "%s:expected_size[%zu]\n", __FUNCTION__, expected_size);
-  //printf ( "%s:final_size[%zu]\n",    __FUNCTION__, final_size);
-  // total write size 
-  //return (final_size == expected_size); 
-
-  return write_len; 
- }
-
- #endif
- 
-
 
  
 //
@@ -1017,9 +904,7 @@ bool bmx::Init_secp256k1_Env (FEConRef& oFE, ECConRef& oEC, el::map& em, pt::map
 //
 //
 digest32& bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z) {
-  
-  FN_SCOPE ();
-
+  //FN_SCOPE ();
   const byte byte0x0 = byte {0x0}; 
   const byte byte0x1 = byte {0x1};
 

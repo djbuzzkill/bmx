@@ -224,11 +224,7 @@ bool bmx::EvalScript (script_env& env) {
   
   //printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
   while (env.cmds.size ()) {
-
-    printf ("%s [op no.%zu]-> current stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
-
-    // printf ("loop: %zu commands left\n", env.cmds.size ());
-
+    //printf ("%s [op no.%zu]-> current stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
     script_command cmd = std::move (env.cmds.front ()); 
 
     env.cmds.pop_front ();
@@ -238,7 +234,7 @@ bool bmx::EvalScript (script_env& env) {
     // OPERATION
     // -------------------------------------------------------- 
     case command_type::SC_operation:
-      printf ("[[ operation(0x%x) ]] ", op(cmd)); 
+      //printf ("[[ operation(0x%x) ]] ", op(cmd)); 
       if (op_map.count (op(cmd))) {
 	//printf ("Op val : %x\n", op(cmd));
 	//printf ("operation :%s\n", op_name[op(cmd)].c_str());
@@ -248,7 +244,7 @@ bool bmx::EvalScript (script_env& env) {
 	  return false;
 	}
 	else {
-	  printf (" %s -> TRUE\n", op_name[op(cmd)].c_str ());
+	  //printf (" %s -> TRUE\n", op_name[op(cmd)].c_str ());
 	}
       }
       else {
@@ -262,8 +258,7 @@ bool bmx::EvalScript (script_env& env) {
     // ELEMENT
     // -------------------------------------------------------- 
     case command_type::SC_element:
-      //printf ("element: push [%zu] \n", arr(cmd).size());
-      printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
+      //printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
       env.stack.push_back (std::move (arr(cmd)));
       break;
 
@@ -279,7 +274,7 @@ bool bmx::EvalScript (script_env& env) {
     } // switch 
 
 
-    static bool print_stack = true; 
+    static bool print_stack = false; 
     if (print_stack) {
       printf ("stack[%zu]\n", env.stack.size ()); 
       for (size_t ist = 0; ist < env.stack.size (); ++ist) {
@@ -295,11 +290,6 @@ bool bmx::EvalScript (script_env& env) {
 
     op_num++; 
   } // eval loop
-
-
-  printf ("%s after loop (op no.%zu) -> stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
-
-
   
   if (env.stack.empty ()) {
     printf ("return false:%i", __LINE__ + 1);
@@ -312,7 +302,7 @@ bool bmx::EvalScript (script_env& env) {
     return false; //  __LINE__; 
     // empty string
   }
-  printf ("Exit:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
+
   return true; 
 }
 
@@ -349,4 +339,44 @@ int print_verify_mapping () {
 
 
   return 0; 
+}
+
+
+
+
+
+
+//
+//
+std::string bmx::format_script (const command_list& scrip) {
+
+  std::string ret; 
+  std::vector<char> buf (256, 0x0);
+
+  std::string hexs;
+  uint32 count = 0;
+  for (auto& e : scrip) {
+    std::string curs;
+
+    switch (ty(e)) {
+
+    case command_type::SC_element : {
+
+      hex::encode(hexs, &arr(e)[0], arr(e).size()); 
+      sprintf (&buf[count], "elem[%zu|0x%s] ", arr(e).size(), hexs.c_str());  
+      curs = &buf[0]; 
+    } break;
+
+    case command_type::SC_operation : {
+      sprintf (&buf[0], "<op(0x%02x)> ", op(e)); 
+      curs = &buf[0]; 
+    } break;
+
+    default: { } break;
+    }
+
+    ret += curs; 
+    
+  }
+  return ret;
 }

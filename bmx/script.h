@@ -22,6 +22,9 @@ namespace bmx {
   //bool EvalScript (const command_list& commands, const af::digest32& z);
 
 
+  std::string format_script (const command_list& scrip); 
+
+
   
   
 }

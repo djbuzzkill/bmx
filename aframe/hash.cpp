@@ -85,11 +85,10 @@ af::digest32& af::hmac_sha256 (digest32& omac, const fixnum32& key, const void* 
 
   const size_t  expected_mac_len = 32;
 
-  gcry_error_t err; 
-
-  gcry_ctx_t    ctx = nullptr;
-  gcry_mac_hd_t hdl = nullptr;
-  uint32 flags = 0; 
+  gcry_error_t  err; 
+  gcry_ctx_t    ctx   = nullptr;
+  gcry_mac_hd_t hdl   = nullptr;
+  uint32        flags = 0; 
   if (GPG_ERR_NO_ERROR == gcry_mac_open (&hdl, GCRY_MAC_HMAC_SHA256, flags, ctx)) {
 
     assert (expected_mac_len  == gcry_mac_get_algo_maclen (gcry_mac_get_algo(hdl))); 

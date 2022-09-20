@@ -387,41 +387,29 @@ int test_sign_input (std::vector<std::string>& args) {
 
   // CL-USER> #xed5f84 -> 15556484 (24 bits, #xED5F84)
   // CL-USER> #x845fed -> 8675309  (24 bits, #x845FED)
-
-
-  
   bytearray privatekeybin;  
   env.F->Raw (privatekeybin, prksign, privkey, false);
-
   //printf ("privatekeybin.prksign -> {%i | %zu]\n", prksign, privatekeybin.size () ); 
-  
   PrivateKey privatekey;
   copy_BE (privatekey, privatekeybin);
 
 
   int num_O_lines = 20; 
-  for  (int i = 0; i < num_O_lines; ++i) {
-    printf ("|-------------------o(O)o----------------------->\n"); 
-  }
+  // for  (int i = 0; i < num_O_lines; ++i) {
+  //   printf ("|-------------------o(O)o----------------------->\n"); 
+  // }
 
-  printf ("\n\n");
+  // printf ("\n\n");
 
-  for (auto e : privatekeybin) { printf ("0x%x " , e); }
-
-
-  printf ("\n\n"); 
+  // for (auto e : privatekeybin) { printf ("0x%x " , e); }
 
 
-  for  (auto e : privatekey)  { printf ("0x%x " , e); }
+  // printf ("\n\n"); 
 
-  printf ("\n\n"); 
 
-  for (int i = 0; i < num_O_lines; ++i) {
-    printf ("|-------------------o(O)o----------------------->\n"); 
-  }
-  
+  // for  (auto e : privatekey)  { printf ("0x%x " , e); }
 
-  
+  // printf ("\n\n"); 
   const bool on_mainnet = false;
 
 
@@ -431,10 +419,6 @@ int test_sign_input (std::vector<std::string>& args) {
   hex::decode (txbin, tx_hex); 
   Transaction tx;
   size_t readtxlen = ReadTransaction (tx, CreateReadMemStream (&txbin[0], txbin.size ()));
-  printf ("READING TRANSACTION END\n");
-  printf ("READING TRANSACTION END\n");
-  printf ("READING TRANSACTION END\n");
-  printf ("READING TRANSACTION END\n");
   printf ("READING TRANSACTION END\n");
 
   //stream = BytesIO(bytes.fromhex('010000000199a24308080ab26e6fb65c4eccfadf76749bb5bfa8cb08f291320b3c21e56f0d0d00000000ffffffff02408af701000000001976a914d52ad7ca9b3d096a38e752c2018e6fbc40cdf26f88ac80969800000000001976a914507b27411ccf7f16f10297de6cef3f291623eddf88ac00000000'))
