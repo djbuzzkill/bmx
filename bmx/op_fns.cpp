@@ -682,13 +682,86 @@ bool bmx::proc_OP_CHECKSIGVERIFY (script_env& env) {
   return proc_OP_CHECKSIG (env) && proc_OP_VERIFY (env);
 }
 
-bool bmx::proc_OP_CHECKMULTISIG       (script_env& env) { I_AM(__FUNCTION__); return false; }
+
+
+
+
+
+//
+//
+bool bmx::proc_OP_CHECKMULTISIG(script_env &env) {
+  FN_SCOPE ();
+
+  if (env.stack.empty ()) {
+    return false;
+  }
+
+  
+  FEConRef     F = env.ffme.F;
+  ScopeDeleter dr (F);
+  bytearray    buf (1024, byte(0)); 
+  //
+  uint64 n_pubs = 0 ;
+  util::decode_num (n_pubs, F, env.stack.back () );
+  assert (n_pubs <= 8);  // safe n sane
+  env.stack.pop_back (); 
+
+  if (env.stack.size() < (n_pubs+1)) {
+    // not enough things n stack
+    return false;
+  }
+
+  std::vector<Point> pubkeys (n_pubs); 
+  for (auto x = 0; x < n_pubs; ++x) {
+
+    const bytearray& top = env.stack.back ();
+    auto readlen = ReadPoint(pubkeys[x], CreateReadMemStream (&top[0], top.size())); 
+    env.stack.pop_back (); 
+  }
+  
+  uint64 n_DERs = 0;
+  util::decode_num (n_DERs, F, env.stack.back () );
+  assert (n_DERs <= 8); 
+  if (env.stack.size () < (n_DERs + 1)) {
+    // not enough things n stack
+    return false; 
+  }
+  
+  std::vector<Signature> DERs (n_DERs);
+  for (auto x = 0; x < n_DERs; ++x) {
+    const bytearray& top = env.stack.back ();
+    auto readlen = ReadSignature_DER (DERs[x], top.size()-1, CreateReadMemStream (&top[0], top.size() - 1));
+    env.stack.pop_back () ;
+  }    
+
+  //
+  // why is it done this way
+  auto pkind = 0;
+  for (auto x = 0; x < n_pubs; ++x) {
+
+    if( pkind == n_DERs)
+      return false;
+
+    while (pkind < n_pubs) {
+      // ensure always postfix pkind++
+      if (SECP256k1_Verify (DERs[x], pubkeys[pkind++], env.z)) {
+	break;
+      }
+    }
+  }
+
+
+  // we made it
+  bytearray enc;
+  env.stack.push_back (util::encode_num (enc, F->New_ui(1), F)); 
+  return true;
+}
+
+
+
 bool bmx::proc_OP_CHECKMULTISIGVERIFY (script_env& env) { I_AM(__FUNCTION__); return false; }
 bool bmx::proc_OP_CHECKLOCKTIMEVERIFY (script_env& env) { I_AM(__FUNCTION__); return false; }
 bool bmx::proc_OP_CHECKSEQUENCEVERIFY (script_env& env) { I_AM(__FUNCTION__); return false; }
-
-
-
 
 
 

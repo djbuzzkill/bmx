@@ -120,11 +120,61 @@ int test_hmac_sha256 (const std::vector<std::string> &args) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+  
+//
+//
+int test_inspect_tx(const std::vector<std::string> &args) {
+  FN_SCOPE ();
+  
+  using namespace af;
+  using namespace bmx;
+
+  TxFetcher txf;
+  
+  // TxID
+  bool              on_mainnet  = false;
+  const std::string TxID_hex    = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8";
+
+  Transaction tx; 
+  txf.Fetch (tx, TxID_hex, on_mainnet);
+
+  PR_CHECK ("verify 1", Tx::Verify (tx, on_mainnet)); 
+  //size_t txlen = ReadTransaction (tx, CreateReadMemStream (&tx_bin[0],  tx_bin.size()));
+
+
+  printf ("    inputs(%zu)\n", tx.inputs.size ());
+  printf ("    outputs(%zu)\n", tx.outputs.size ());
+
+
+  for (auto i = 0; i < tx.outputs.size (); ++i)
+    printf ( "    output[%zu] %s \n", i, format_script (tx.outputs[i].script_pubkey).c_str());
+
+
+
+  
+  //PR_CHECK ("txlen == txbin.size", txlen == tx_bin.size ()); 
+
+
+  return 0;
+}
+
+
 // -----------------------------------------
 int main (int argv, char** argc) {
   std::vector<std::string> args (argc, argc + argv);
 
-  int res =  test_hmac_sha256 (args); 
+  //int res =  test_hmac_sha256 (args); 
+  int res =  test_inspect_tx (args); 
 
   //return int_2_hexes  (args);
   //int watres = Wat (args);
@@ -178,4 +228,7 @@ int flatbuffers_test (const std::vector<std::string>& args) {
   
   return 0; 
 }
+
+
+
 

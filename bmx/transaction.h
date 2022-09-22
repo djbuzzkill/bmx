@@ -22,7 +22,7 @@ namespace bmx {
   struct TxIn { 
     af::byte32         prev_txid;   // 32b LE
     std::uint32_t      prev_index;  // int LE
-    bmx::command_list  script_sig;  // af::bytearray script_sig; mebe bytes?
+    bmx::command_list  script_sig;  // 
     std::uint32_t      sequence;    // 
   }; 
 
@@ -31,6 +31,7 @@ namespace bmx {
 
   typedef std::vector<TxIn> TxInputs;
 
+  //
 
   // -----------------------------------------------------------------
   // 
@@ -42,6 +43,9 @@ namespace bmx {
   }; 
 
   typedef std::vector<TxOut>  TxOutputs;
+
+  //
+
   // -----------------------------------------------------------------
   //  
   // -----------------------------------------------------------------

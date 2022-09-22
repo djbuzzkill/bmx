@@ -55,7 +55,7 @@ namespace {
 // 
 // --------------------------------------------------------------
 bool bmx::FetchTx (std::string& out, bool mainnet, const std::string& txid_hex, TxMap& cache) {
-  FN_SCOPE ()
+  //FN_SCOPE ()
   if (!cache.count (txid_hex)) {
     
     const size_t   buffsize = 128 * 1024; 
@@ -110,7 +110,7 @@ bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool 
   std::string   strhex;
   size_t txbinlen = 0;
   if (Fetch (strhex, txid_hex, mainnet)) {
-    printf ("    --> recv: [%zu] bytes \n", strhex.size ()); // , strhex.c_str());
+    // printf ("    --> recv: [%zu] bytes \n", strhex.size ()); // , strhex.c_str());
     //    printf ("\n--> %s:strhex:%s\n", __FUNCTION__, strhex.c_str());
     af::hex::decode (txbin, strhex);
 
@@ -202,9 +202,10 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   readlen += rs->Read (&tx.version, sizeof(tx.version));
 
   // only ver1 for now
+  
   if (tx.version != 0x0001) {
-    printf ("%s:unsupported version.%u | ln:%i \n", __FUNCTION__, tx.version, __LINE__);
-    return readlen; 
+    printf (" Tx [version.%u]\n \n", tx.version);
+    //return readlen; 
   }
 
   // inputs
@@ -494,7 +495,6 @@ bool bmx::Tx::Verify (const Transaction& tx, bool mainnet) {
 //
 bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const bmx::PrivateKey& p, bool mainnet) {
   //FN_SCOPE ();
-
   digest32 zhash;
   SignatureHash (zhash, otx, input_index, mainnet) ;
 
@@ -526,17 +526,7 @@ bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const 
     //
     return VerifyInput (otx, input_index, mainnet);
   }
-  
 
-    // def sign_input(self, input_index, private_key):
-  //     z = self.sig_hash(input_index)
-  //     der = private_key.sign(z).der()
-  //     sig = der + SIGHASH_ALL.to_bytes(1, 'big')
-  //     sec = private_key.point.sec()
-  //     self.tx_ins[input_index].script_sig = Script([sig, sec])
-  //     return self.verify_input(input_index)
-
-  printf ("%s :return false", __FUNCTION__); 
   return false; 
 }
 

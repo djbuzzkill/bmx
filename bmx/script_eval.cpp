@@ -1,5 +1,6 @@
 
 
+#include "opcode.h"
 #include "script.h"
 #include "op_fns.h"
 #include "script_types.h"
@@ -260,6 +261,36 @@ bool bmx::EvalScript (script_env& env) {
     case command_type::SC_element:
       //printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
       env.stack.push_back (std::move (arr(cmd)));
+
+      // BIP0016
+      if(env.cmds.size () == 3) {
+	command_list::const_iterator it = env.cmds.begin ();
+	if (ty(*it) != command_type::SC_operation || op(*it) != OP_HASH160)
+	  continue; 
+
+	it++; 
+        if (ty(*it) != command_type::SC_element || arr(*it).size () != 20)
+	  continue; 
+
+	it++; 
+	if (ty(*it) != command_type::SC_operation || op(*it) != OP_EQUAL)
+	  continue;
+        //
+	// WOOOO!!!
+        env.cmds.pop_front ();  // OP_HASH160
+	if ( !op_map[OP_HASH160] (env) ) 
+	  return false;
+	
+        env.stack.push_back ( std::move(arr(env.cmds.front())) ); // hash160
+	env.cmds.pop_front (); 
+	
+	env.cmds.pop_front (); // OP_EQUAL 
+	if ( !op_map[OP_EQUAL] (env) )
+	  return false;
+
+	if ( !op_map[OP_VERIFY] (env) )
+	  return false; 
+      }
       break;
 
     default:
