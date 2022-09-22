@@ -6,6 +6,7 @@ project (bmx)
 
 set (BMX_SOURCES
   op_fns.cpp
+  script_util.cpp
   script_write.cpp
   script_read.cpp
   script_eval.cpp

@@ -289,7 +289,23 @@ bool bmx::EvalScript (script_env& env) {
 	  return false;
 
 	if ( !op_map[OP_VERIFY] (env) )
-	  return false; 
+	  return false;
+
+
+	int32 script_buf_size  = env.stack.back().size () + 10;
+        bytearray redeembytes (script_buf_size, byte(0));
+	WriteStreamRef ws = CreateWriteMemStream (&redeembytes[0], script_buf_size);
+
+	
+	
+	auto writelen = 0;
+	writelen += util::write_varint (ws, env.stack.back().size ());
+	writelen += ws->Write (&env.stack.back()[0], env.stack.back().size());
+
+        command_list redeem_script; 
+	ReadScript (redeem_script, CreateReadMemStream (&redeembytes[0], writelen )); 
+
+	
       }
       break;
 

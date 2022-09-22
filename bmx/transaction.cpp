@@ -3,6 +3,7 @@
 // 
 // -----------------------------------------------------------
 #include "transaction.h"
+#include "script_types.h"
 #include "script.h"
 #include "secp256k1.h"
 #include "utility.h"
@@ -337,7 +338,7 @@ void bmx::print_txo (const TxOut& txo, size_t indent) {
 
 //
 //
-digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet) {
+digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet, const command_list* redeemscript) {
   //FN_SCOPE(); 
   using namespace ffm;
 
@@ -360,8 +361,12 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
   for (size_t i = 0;  i < htx.inputs.size (); ++i)  {
 
     if (i == txind) {
-
-      htx.inputs[i].script_sig = ScriptPubKey (script_pubkey, htx.inputs[i], on_mainnet);
+      if (redeemscript)  {
+	htx.inputs[i].script_sig = *redeemscript; 
+      }
+      else { 
+	htx.inputs[i].script_sig = ScriptPubKey (script_pubkey, htx.inputs[i], on_mainnet);
+      }
     }
     else {
       htx.inputs[i].script_sig.clear ();
@@ -456,14 +461,30 @@ bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainn
   //FN_SCOPE ();
 
   script_env env;
-  Init_secp256k1_Env (env.ffme); 
+  Init_secp256k1_Env (env.ffme);
 
   // make a copy 
   command_list script_pubkey; // txin.script_sig; // is sigpubkey now
-  //printf ("<%s -> BEGIN ScriptPubKey  \n", __FUNCTION__); 
+  //printf ("<%s -> BEGIN ScriptPubKey  \n", __FUNCTION__);
   ScriptPubKey (script_pubkey, tx.inputs[input_index], mainnet);
 
-  SignatureHash (env.z , tx, input_index, mainnet);
+  command_list redeem_script;
+  if (util::is_p2sh_script_pubkey (script_pubkey)) {
+
+    const bmx::script_command& cmd = tx.inputs[input_index].script_sig.back ();
+
+    auto buf_size = arr(cmd).size () + 10;
+    bytearray scriptbytes (buf_size, byte(0));
+
+    auto writelen = 0; 
+    WriteStreamRef ws = CreateWriteMemStream (&scriptbytes[0], buf_size); 
+    writelen += util::write_varint (ws, arr(cmd).size ());
+    writelen += ws->Write (&arr(cmd)[0], arr(cmd).size ()); 
+    
+    auto readlen = ReadScript (redeem_script, CreateReadMemStream (&scriptbytes[0], writelen)); 
+  }
+
+  SignatureHash (env.z , tx, input_index, mainnet, redeem_script.size () ? &redeem_script : nullptr);
 
   append (append (env.cmds, tx.inputs[input_index].script_sig), script_pubkey);
   return EvalScript (env);

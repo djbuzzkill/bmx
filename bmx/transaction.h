@@ -63,7 +63,7 @@ namespace bmx {
       //
     };
   
-    digest32&    SignatureHash   (digest32& ohash, const Struc& tx, size_t indx, bool mainnet); 
+    digest32&    SignatureHash   (digest32& ohash, const Struc& tx,  size_t indx, bool mainnet, const command_list* redeemscript = nullptr); 
     bool         VerifyInput     (const Struc& tx, size_t input_index, bool mainnet); 
     std::int64_t Fee             (const Struc& tx, bool mainnet); 
     

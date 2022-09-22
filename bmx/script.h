@@ -24,7 +24,13 @@ namespace bmx {
 
   std::string format_script (const command_list& scrip); 
 
+  namespace util {
 
+    bool is_p2pkh_script_pubkey (const command_list& cmds); 
+    bool is_p2sh_script_pubkey  (const command_list& cmds); 
+
+
+  }
   
   
 }

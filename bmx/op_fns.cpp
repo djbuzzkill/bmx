@@ -241,7 +241,6 @@ bool bmx::proc_OP_VERIFY (script_env& env) {
 
   const bytearray el = std::move (env.stack.back ()); 
   env.stack.pop_back();
-  
   if (0 == F->Cmp_ui (decode_num (dr(F->New()), F, el), 0)) {
     printf ("num == 0) return false\n"); 
     return false; 
