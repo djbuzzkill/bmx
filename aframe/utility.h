@@ -11,7 +11,7 @@
 #define PR(s) printf("%s", (s));
 
 #define PR_CHECK(m,c) if((c)){printf("SUCCEEDED >> %s\n", m);}else{printf("!! %s << FAILED\n", m);}
-#define FN_SCOPE() fnscope ____FNSCOPE(__FUNCTION__); 
+#define FN_SCOPE() fnscope ____FNSCOPE(__FUNCTION__,__FILE_NAME__); 
 
 namespace af
 {
@@ -164,15 +164,16 @@ namespace af
   // print scope 
   class fnscope {
 
-    const char*        f;
+    const char* f;
+    const char* fl;
     
   public: 
-    fnscope (const char* fn) :f(fn) {
-      printf (" <ENTER:%s> \n" , f ); 
+    fnscope (const char* fn, const char* f) :f(fn), fl(f) {
+      printf (" <ENTER:%s|%s> \n" , f , fl); 
     }
     
     ~fnscope () {
-      printf (" <EXIT:%s>\n" , f ); 
+      printf (" <EXIT:%s|%s>\n" , f , fl ); 
     } 
     
   };
