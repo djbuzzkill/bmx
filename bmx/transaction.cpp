@@ -468,6 +468,7 @@ bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainn
   //printf ("<%s -> BEGIN ScriptPubKey  \n", __FUNCTION__);
   ScriptPubKey (script_pubkey, tx.inputs[input_index], mainnet);
 
+  // BIP0016
   command_list redeem_script;
   if (util::is_p2sh_script_pubkey (script_pubkey)) {
 

@@ -221,13 +221,12 @@ bool bmx::EvalScript (script_env& env) {
 
   //std::copy (z.begin(), z.end(),  env.z.begin());
   //std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
-  size_t op_num  = 1;
+  auto pass_counter  = 0; // this is for display
   
   //printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
   while (env.cmds.size ()) {
     //printf ("%s [op no.%zu]-> current stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
     script_command cmd = std::move (env.cmds.front ()); 
-
     env.cmds.pop_front ();
 
     switch (ty (cmd)) {
@@ -291,21 +290,17 @@ bool bmx::EvalScript (script_env& env) {
 	if ( !op_map[OP_VERIFY] (env) )
 	  return false;
 
+	auto          script_buf_size = env.stack.back().size () + 10; // lil xtra 4 varint
+        bytearray      redeembytes     (script_buf_size, byte(0));
+	WriteStreamRef ws              = CreateWriteMemStream (&redeembytes[0], script_buf_size);
 
-	int32 script_buf_size  = env.stack.back().size () + 10;
-        bytearray redeembytes (script_buf_size, byte(0));
-	WriteStreamRef ws = CreateWriteMemStream (&redeembytes[0], script_buf_size);
-
-	
-	
 	auto writelen = 0;
 	writelen += util::write_varint (ws, env.stack.back().size ());
 	writelen += ws->Write (&env.stack.back()[0], env.stack.back().size());
 
         command_list redeem_script; 
 	ReadScript (redeem_script, CreateReadMemStream (&redeembytes[0], writelen )); 
-
-	
+	append (env.cmds, redeem_script); 
       }
       break;
 
@@ -313,7 +308,6 @@ bool bmx::EvalScript (script_env& env) {
       // how
       // wtf
       printf ("return false from default :%i", __LINE__ + 1);
-
 
       return false; ////  __LINE__;
       break;
@@ -325,7 +319,7 @@ bool bmx::EvalScript (script_env& env) {
     if (print_stack) {
       printf ("stack[%zu]\n", env.stack.size ()); 
       for (size_t ist = 0; ist < env.stack.size (); ++ist) {
-	size_t stack_ind = env.stack.size () - 1 - ist;
+	auto stack_ind = env.stack.size () - 1 - ist;
 	bytearray& cur_el = env.stack[stack_ind];
 	
 	std::string hexs;
@@ -335,7 +329,7 @@ bool bmx::EvalScript (script_env& env) {
       }
     }
 
-    op_num++; 
+    pass_counter++; 
   } // eval loop
   
   if (env.stack.empty ()) {
