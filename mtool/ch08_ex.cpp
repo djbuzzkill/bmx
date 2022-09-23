@@ -52,6 +52,7 @@ int CH8_Ex (std::vector<std::string>& args) {
 
   FN_SCOPE();
 
+  test_op_hash160  (args); 
   test_op_multisig (args); 
   test_p2pkh_addr  (args); 
   test_p2sh_addr   (args); 

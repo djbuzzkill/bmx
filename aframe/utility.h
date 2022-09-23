@@ -25,7 +25,6 @@ namespace af
  
   }
 
-
   //
   //
   template<typename Seq> 
@@ -36,7 +35,6 @@ namespace af
 
     printf ("\n "); 
   }
-
 
   //
   size_t SizeOf_file (const std::string& fq);
@@ -119,7 +117,6 @@ namespace af
     return true;
   }
 
-
   //
   //
   template<typename Seq>
@@ -127,9 +124,6 @@ namespace af
     for (auto e : seq)   
       printf ("%x ", e);  
   }
-
-
-
 
   //
   //
@@ -164,16 +158,16 @@ namespace af
   // print scope 
   class fnscope {
 
-    const char* f;
+    const char* fn;
     const char* fl;
     
   public: 
-    fnscope (const char* fn, const char* f) :f(fn), fl(f) {
-      printf (" <ENTER:%s|%s> \n" , f , fl); 
+    fnscope (const char* fn, const char* fl) :fn(fn), fl(fl) {
+      printf (" <ENTER:%s|%s> \n" , fn , fl); 
     }
     
     ~fnscope () {
-      printf (" <EXIT:%s|%s>\n" , f , fl ); 
+      printf (" <EXIT:%s|%s>\n" , fn , fl ); 
     } 
     
   };
@@ -187,34 +181,22 @@ namespace af
     //
     // uc -> hex 
     std::string from_uc (unsigned char c);
-
-    //
     // byte -> string
     std::string  from_byte (byte b); 
-
-    //
     // hex -> uc
     unsigned char to_uc (const std::string& chars);
 
-
     inline
     uint8 to_u8 (const std::string& chars) { return to_uc(chars);}
-
-    //
     // string -> byte
     byte  to_byte (const std::string& hexv); 
-
-
-    // 
+    //
     inline unsigned char octet (const std::string& str) {
       return to_uc(str);
     }
 
     //
-    //
     std::string& encode (std::string& out, const void*, size_t len);
-
-    //
     //
     bytearray&   decode (bytearray& out_bin, const std::string& str);
 

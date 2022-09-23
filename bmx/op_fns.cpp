@@ -2,6 +2,7 @@
 //
 //
 #include "op_fns.h"
+#include "script.h"
 #include "utility.h"
 #include "secp256k1.h"
 
@@ -851,25 +852,31 @@ int test_op_multisig  (std::vector<std::string>& args) {
 
   using namespace bmx;
   
-  FFM_Env env;
-  bmx::Init_secp256k1_Env (env);
-  ScopeDeleter dr (env.F);
-  FEConRef& F = env.F;
+  // FFM_Env env;
+  //bmx::Init_secp256k1_Env (env);
+  // ScopeDeleter dr (env.F);
+  // FEConRef& F = env.F;
 
-  std::string zhex = "0xe71bfa115715d6fd33796948126f40a8cdd39f187e4afb03896795189fe1423c"; 
+  bytearray hashbytes; 
+  
+//std::string zhex = "0xe71bfa115715d6fd33796948126f40a8cdd39f187e4afb03896795189fe1423c";
+  std::string zhex = "e71bfa115715d6fd33796948126f40a8cdd39f187e4afb03896795189fe1423c";
 
+  bytearray sig1, sig2, sec1, sec2, empty, n (1, byte(0x02)), m (1, byte(0x2)); 
+  hex::decode (sig1, "3045022100dc92655fe37036f47756db8102e0d7d5e28b3beb83a8fef4f5dc0559bddfb94e02205a36d4e4e6c7fcd16658c50783e00c341609977aed3ad00937bf4ee942a8993701");
+  hex::decode (sig2, "3045022100da6bee3c93766232079a01639d07fa869598749729ae323eab8eef53577d611b02207bef15429dcadce2121ea07f233115c6f09034c0be68db99980b9a6c5e75402201");
+  hex::decode (sec1, "022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb70");
+  hex::decode (sec2, "03b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb71");
   
+  command_list cmds = {
+    empty, sig1, n, sig2, m, sec1, sec2 }; 
+
+  bmx::script_env env;
+  bmx::Init_secp256k1_Env (env.ffme);
+  copy_BE (env.z, hex::decode (hashbytes, zhex)); 
+  append  (env.cmds, cmds); 
   
-  // def test_op_checkmultisig(self):
-  //     z = 0xe71bfa115715d6fd33796948126f40a8cdd39f187e4afb03896795189fe1423c
-  //     sig1 = bytes.fromhex('3045022100dc92655fe37036f47756db8102e0d7d5e28b3beb83a8fef4f5dc0559bddfb94e02205a36d4e4e6c7fcd16658c50783e00c341609977aed3ad00937bf4ee942a8993701')
-  //     sig2 = bytes.fromhex('3045022100da6bee3c93766232079a01639d07fa869598749729ae323eab8eef53577d611b02207bef15429dcadce2121ea07f233115c6f09034c0be68db99980b9a6c5e75402201')
-  //     sec1 = bytes.fromhex('022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb70')
-  //     sec2 = bytes.fromhex('03b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb71')
-  //     stack = [b'', sig1, sig2, b'\x02', sec1, sec2, b'\x02']
-  //     self.assertTrue(op_checkmultisig(stack, z))
-  //     self.assertEqual(decode_num(stack[0]), 1)
-  
+  PR_CHECK("MULTISIG TEST" ,  bmx::EvalScript (env)); 
   return 0 ;  
 }
 
@@ -878,10 +885,27 @@ int test_op_hash160(std::vector<std::string> &args){
 
   FN_SCOPE();
 
-  // def test_op_hash160(self) :
-  //   stack = [b 'hello world']
-  //   self.assertTrue(op_hash160(stack))
-  //   self.assertEqual(stack[0].hex(), 'd7d5ee7824ff93f94c3055af9382c86c68b5ca92')
+  using namespace bmx;
+  using namespace af;
+
+  script_env env;
+  Init_secp256k1_Env (env.ffme);
+  
+  std::string msg = "hello world"; 
+  bytearray   el  (msg.size(), byte(0));
+  WriteStreamRef ws = CreateWriteMemStream (&el[0], msg.size());
+  ws->Write (&msg[0], msg.size()); 
+
+  env.stack.push_back (el);
+  proc_OP_HASH160 (env); 
+  
+  // def test_op_ha
+  std::string el_hex; 
+  hex::encode  (el_hex, &env.stack.back()[0], env.stack.back().size()); 
+  printf ("   el_hex: %s\n" , el_hex.c_str()); 
+  std::string want = "d7d5ee7824ff93f94c3055af9382c86c68b5ca92";
+  
+  PR_CHECK ("TEST HASH160", el_hex == want); 
 
   return 0; 
 }
