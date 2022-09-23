@@ -9,34 +9,40 @@ bmx::uint64 bmx::Block::Read(bmx::Block::Struc &oblk, af::ReadStreamRef rs) {
 
   uint64 readlen = 0;
 
-// def parse(cls, s):
-//     version = little_endian_to_int(s.read(4))
-//     prev_block = s.read(32)[::-1]
-//     merkle_root = s.read(32)[::-1]
-//     timestamp = little_endian_to_int(s.read(4))
-//     bits = s.read(4)
-//     nonce = s.read(4)
-//     return cls(version, prev_block, merkle_root, timestamp, bits, nonce)
+  size_t sizeOf_prev_block = sizeof(oblk.prev_block);
+  printf ("    sizeOf_prev_block:%zu\n", sizeOf_prev_block);
 
+  readlen += rs->Read (&oblk.version  , sizeof(oblk.version));
+  readlen += rs->Read (&oblk.prev_block, 32);
+  readlen += rs->Read (&oblk.merkleroot, 32); 
+  readlen += rs->Read (&oblk.timestamp , sizeof(oblk.timestamp));
+  readlen += rs->Read (&oblk.bits      , sizeof(oblk.bits));
+  readlen += rs->Read (&oblk.nonce     , sizeof(oblk.nonce)); 
+
+  std::reverse (oblk.prev_block.begin(), oblk.prev_block.end()); 
+  std::reverse (oblk.merkleroot.begin(), oblk.merkleroot.end()); 
+   
   return readlen; 
-
-  
 }
+
+
 
 //
 //
 bmx::uint64 bmx::Block::Write(af::WriteStreamRef ws, const Struc &oblk) {
 
   uint64 writelen = 0;
+  //platform_endian (
 
-// def serialize(self):
-//     result = int_to_little_endian(self.version, 4)
-//     result += self.prev_block[::-1]
-//     result += self.merkle_root[::-1]
-//     result += int_to_little_endian(self.timestamp, 4)
-//     result += self.bits
-//     result += self.nonce
-//     return result
+  bytearray rprev_block (oblk.prev_block.rbegin(), oblk.prev_block.rend ()); 
+  bytearray rmerkleroot (oblk.merkleroot.rbegin(), oblk.merkleroot.rend ()); 
+
+  writelen += ws->Write (&oblk.version  , sizeof(oblk.version));
+  writelen += ws->Write (&rprev_block, 32);
+  writelen += ws->Write (&rmerkleroot, 32); 
+  writelen += ws->Write (&oblk.timestamp , sizeof(oblk.timestamp));
+  writelen += ws->Write (&oblk.bits      , sizeof(oblk.bits));
+  writelen += ws->Write (&oblk.nonce     , sizeof(oblk.nonce)); 
 
   return writelen; 
 

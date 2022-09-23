@@ -27,9 +27,9 @@ namespace bmx {
     uint64 Read  (Struc &oblk, af::ReadStreamRef rs); 
     uint64 Write (af::WriteStreamRef ws, const Struc &oblk);
 
-  } 
+  }
 
-
+  typedef Block::Struc block; 
   
 }
 
