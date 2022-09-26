@@ -155,46 +155,27 @@ fixnum32& Block::Target (fixnum32& targ, const Struc &oblk) {
 // 
 fixnum32& Block::Difficulty (fixnum32& odiff, const Struc& blk) {
   FN_SCOPE (); 
-// def difficulty(self):
-//     lowest = 0xffff * 256**(0x1d - 3)
-//     return lowest / self.target()
 
-  //fixnum32  lowest = 0xffff * pow (256, 0x1d - 3);
-
-
-  fixnum32 lowest; 
-  fixnum32 target; 
-  
   using namespace ffm; 
   FEConRef F (nullptr);
   Init_FE_context (F);
   ScopeDeleter dr (F); 
   ScopeDeleter fmt (F); 
 
-  uint32 exponent = (blk.bits >> 24) & 0xff;
+  FE_t fe_lowest  = dr (F->New ()); 
+  FE_t fe_base    = dr (F->New_ui(256)); 
+  F->SPow_ui (fe_base, fe_base, 0x1d - 3);
+  F->SMul_ui (fe_lowest, fe_base, 0xffff); 
 
-  FE_t fe_base = dr (F->New_ui (256));
-  FE_t fe_tmp  = dr (F->New_ui (0)); 
-  F->SPow_ui (fe_tmp,  fe_base, exponent - 3);
-
-  uint32 coeff = blk.bits & 0x00ffffff;
-  printf ("    coeff {%u}\n" ,coeff);
-  
-  FE_t fe_coeff = dr (F->New_ui (blk.bits & 0x00ffffff));
-
-  FE_t fe_lowest = dr (F->New());
-  F->SMul(fe_lowest, fe_coeff, fe_tmp); 
-  
-  FE_t fe_target = dr (F->New_bin (&Block::Target (target, blk), 32, false)); 
-  FE_t fe_res    = dr (F->New_ui(0));
-
-
-  F->SDiv (fe_res, fe_lowest, fe_target);
+  fixnum32 target; 
+  Block::Target (target, blk);
+  FE_t fe_target = dr (F->New_bin (&target, 32, false));
+  FE_t fe_res = dr (F->New ()); 
+  F->SDiv (fe_res, fe_lowest, fe_target); 
 
   bytearray resbin;
-  int res_sign = 0;
-  F->Raw ( resbin, res_sign, fe_res, false ); 
-
+  int res_sign = 0; 
+  F->Raw (resbin, res_sign, fe_res, false); 
   return copy_BE (odiff, resbin); 
 }
 
@@ -489,8 +470,6 @@ int test_block_target (std::vector<std::string> &args) {
   PR_CHECK ( "want difficulty  == test difficulty", 0 == F->Cmp (fe_wantdiff, fe_testdiff))
 
 
-    
-    
   // block_raw = bytes.fromhex('020000208ec39428b17323fa0ddec8e887b4a7c53b8c0a0a220cfd0000000000000000005b0750fce0a889502d40508d39576821155e9c9e3f5c3157f961db38fd8b25be1e77a759e93c0118a4ffd71d')
   //  stream = BytesIO(block_raw)
   //  block = Block.parse(stream)
