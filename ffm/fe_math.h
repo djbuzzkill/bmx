@@ -98,6 +98,7 @@ namespace ffm
     virtual void         SMul        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
     virtual void         SSub        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
     virtual void         SDiv        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
+    virtual void         SFDiv_ui    (FE_t out, FE_t lhs, uint64 rhs) = 0; 
     
     virtual void         SAdd_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0;
     virtual void         SMul_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0; 

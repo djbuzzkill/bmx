@@ -67,6 +67,7 @@ public:
     void SMul (FE_t out, FE_t lhs, FE_t rhs); 
     void SSub (FE_t out, FE_t lhs, FE_t rhs);
     void SDiv (FE_t out, FE_t lhs, FE_t rhs);
+    void SFDiv_ui (FE_t out, FE_t lhs, uint64 rhs); 
 
     void SAdd_ui   (FE_t out, FE_t lhs, unsigned long int rhs);
     void SMul_ui   (FE_t out, FE_t lhs, unsigned long int rhs); 
@@ -357,6 +358,11 @@ public:
   void FE_ctx_impl:: SDiv (FE_t out, FE_t lhs, FE_t rhs) {
     mpz_div (el(out), el(lhs), el(rhs) );
   }
+
+  void FE_ctx_impl:: SFDiv_ui (FE_t out, FE_t lhs, uint64 rhs) {
+    mpz_fdiv_q_ui (el(out), el(lhs), rhs );
+  }
+
   
   void FE_ctx_impl::SAdd_ui   (FE_t out, FE_t lhs, unsigned long int rhs) {
 
