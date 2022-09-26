@@ -65,7 +65,8 @@ public:
 
     void SAdd (FE_t out, FE_t lhs, FE_t rhs);
     void SMul (FE_t out, FE_t lhs, FE_t rhs); 
-    void SSub (FE_t out, FE_t lhs, FE_t rhs); 
+    void SSub (FE_t out, FE_t lhs, FE_t rhs);
+    void SDiv (FE_t out, FE_t lhs, FE_t rhs);
 
     void SAdd_ui   (FE_t out, FE_t lhs, unsigned long int rhs);
     void SMul_ui   (FE_t out, FE_t lhs, unsigned long int rhs); 
@@ -73,7 +74,9 @@ public:
   
     void SNeg      (FE_t out, FE_t num); 
     void SAbs      (FE_t out, FE_t num); 
-
+    void SPow_ui   (FE_t out, FE_t b, uint64 xp); 
+    
+    
     void Pow       (FE_t out, FE_t b, FE_t exp); 
     void Pow_ui    (FE_t out, FE_t b, size_t exp); 
     void Pow_si    (FE_t out, FE_t base, long int exp);
@@ -351,6 +354,9 @@ public:
     mpz_sub (el(out), el(lhs), el(rhs)); 
   }
 
+  void FE_ctx_impl:: SDiv (FE_t out, FE_t lhs, FE_t rhs) {
+    mpz_div (el(out), el(lhs), el(rhs) );
+  }
   
   void FE_ctx_impl::SAdd_ui   (FE_t out, FE_t lhs, unsigned long int rhs) {
 
@@ -453,6 +459,12 @@ public:
 
   // }
 
+
+  void FE_ctx_impl::SPow_ui (FE_t out, FE_t b, uint64 expn) {
+    mpz_pow_ui (el(out), el(b), expn); 
+  }
+
+  
   void FE_ctx_impl::Pow (FE_t out, FE_t b, FE_t exp) {
     mpz_powm (el(out), el(b), el(exp), el(Fp)); 
   }
@@ -630,7 +642,6 @@ public:
     _bytes[1] = tmp[2];
     _bytes[2] = tmp[1];
     _bytes[3] = tmp[0];
-    
     
     sgn = numbytes; 
 

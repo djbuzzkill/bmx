@@ -47,10 +47,17 @@ namespace ffm
   }
 
   //
-  template<typename InSeq>
-  inline af::bytearray& copy_bytes (af::bytearray& out, InSeq& obj) {
+  // template<typename InSeq>
+  // inline bytearray& copy_bytes (bytearray& out, const InSeq& obj) {
+  //   out.resize (obj.size());
+  //   std::copy (obj.begin(), obj.end(), out.begin());
+  //   return out;
+  // }
+
+  template<typename OutSeq, typename InSeq>
+  inline OutSeq& copy_bytes (OutSeq& out, const InSeq& obj) {
     out.resize (obj.size());
-    std::copy (obj.begin(), obj.end(), obj.begin());
+    std::copy (obj.begin(), obj.end(), out.begin());
     return out;
   }
     
@@ -59,13 +66,11 @@ namespace ffm
   inline Ty* swap_endian (Ty* x) {
     unsigned char* p = reinterpret_cast<unsigned char*> (x); 
 
-    for (int i = 0; i < sizeof(Ty); ++i)
-      printf ("b4[%i]:0x%x\n",i, p[i] ); 
-
+    // for (int i = 0; i < sizeof(Ty); ++i)
+    //   printf ("b4[%i]:0x%x\n",i, p[i] ); 
     std::reverse (p, p + sizeof (Ty));
-
-    for (int i = 0; i < sizeof(Ty); ++i)
-      printf ("4f[%i]:0x%x\n",i, p[i] ); 
+    // for (int i = 0; i < sizeof(Ty); ++i)
+    //   printf ("4f[%i]:0x%x\n",i, p[i] ); 
 
     return x;
   }  

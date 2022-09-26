@@ -610,15 +610,14 @@ bool bmx::proc_OP_HASH256 (script_env& env) {
     return false;
   }
 
-  bytearray out; 
-  digest32  dig32; 
-
   const bytearray input = env.stack.back ();
 
+  digest32  dig32; 
   hash256 (dig32, &input[0], input.size ()); 
   env.stack.pop_back ();
 
-  env.stack.push_back (copy_bytes (out, dig32)); 
+  bytearray outel; 
+  env.stack.push_back (copy_bytes (outel, dig32)); 
   
   return true;
 } 

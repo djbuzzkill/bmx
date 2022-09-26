@@ -12,7 +12,7 @@
 
 
 namespace bmx {
-
+  //
   namespace Block {
 
     struct Struc {
@@ -24,14 +24,29 @@ namespace bmx {
       uint32   nonce; 
     };
 
-    uint64 Read  (Struc &oblk, af::ReadStreamRef rs); 
-    uint64 Write (af::WriteStreamRef ws, const Struc &oblk);
+    uint64    Read        (Struc &oblk, af::ReadStreamRef rs); 
+    uint64    Write       (af::WriteStreamRef ws, const Struc &oblk);
+    digest32& Hash        (digest32& out, const Struc &oblk);
+    fixnum32& Target      (fixnum32&, const Struc &oblk);
+    fixnum32& Difficulty  (fixnum32&, const Struc &oblk); 
+
+    uint32 CalculateNewBits (uint32 prevbits, uint32 timediff); 
+
+    // test capability of block
+    namespace Cap {
+
+      bool bip9   (const Struc& blk); 
+      bool bip91  (const Struc& blk); 
+      bool bip141 (const Struc& blk); 
+    }
+
 
   }
 
+  //
   typedef Block::Struc block; 
-  
 }
 
+static_assert (sizeof(bmx::block) == 80, "size of block"); 
 
 #endif

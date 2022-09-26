@@ -77,16 +77,7 @@ namespace ffm
     virtual void         Div         (FE_t out, FE_t lhs, FE_t rhs) = 0;
     virtual void         Div_ui      (FE_t, FE_t, size_t) = 0; 
 				     
-    virtual void         SAdd        (FE_t out, FE_t lhs, FE_t rhs) = 0;
-    virtual void         SMul        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
-    virtual void         SSub        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
-		         	    
-    virtual void         SAdd_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0;
-    virtual void         SMul_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0; 
-    virtual void         SSub_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0; 
-    			  
-    virtual void         SNeg        (FE_t out, FE_t num) = 0; 
-    virtual void         SAbs        (FE_t out, FE_t num) = 0; 
+
     virtual void         Pow         (FE_t out, FE_t b, FE_t exp) = 0; 
     virtual void         Pow_ui      (FE_t out, FE_t base, size_t exp) = 0; 
     virtual void         Pow_si      (FE_t out, FE_t base, long int exp) = 0; 
@@ -100,7 +91,26 @@ namespace ffm
     virtual void         FDiv_ui     (FE_t out, FE_t num, size_t den) = 0; 
 				      
     virtual void         Sqrt        (FE_t out, FE_t n) = 0; 
-  
+
+
+    // Simple versions
+    virtual void         SAdd        (FE_t out, FE_t lhs, FE_t rhs) = 0;
+    virtual void         SMul        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
+    virtual void         SSub        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
+    virtual void         SDiv        (FE_t out, FE_t lhs, FE_t rhs) = 0; 
+    
+    virtual void         SAdd_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0;
+    virtual void         SMul_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0; 
+    virtual void         SSub_ui     (FE_t out, FE_t lhs, unsigned long int rhs) = 0; 
+    			  
+    virtual void         SNeg        (FE_t out, FE_t num) = 0; 
+    virtual void         SAbs        (FE_t out, FE_t num) = 0; 
+    virtual void         SPow_ui     (FE_t out, FE_t b, uint64 exp) = 0;
+
+
+
+
+    
     
   protected:
 
