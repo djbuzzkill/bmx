@@ -17,8 +17,9 @@ namespace bmx {
     const uint32 kMAINNET_MAGIC = 0xf9beb4d9;
     const uint32 kTESTNET_MAGIC = 0x0b110907;
 
-    const char kMAINNET_MAGIC_sz[] = "f9beb4d9";
-    const char kTESTNET_MAGIC_sz[] = "0b110907";
+    /* const char kMAINNET_MAGIC_sz[] = "f9beb4d9"; */
+    /* const char kTESTNET_MAGIC_sz[] = "0b110907"; */
+
     // ---------------------------------------------------------
     //
     // ---------------------------------------------------------
