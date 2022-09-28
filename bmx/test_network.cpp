@@ -42,7 +42,6 @@ int test_read_network_envelope (const std::vector<std::string>& args) {
 
 int test_write_network_envelope (const std::vector<std::string>& args) {
   
-
     // def test_serialize(self):
     //     msg = bytes.fromhex('f9beb4d976657261636b000000000000000000005df6e0e2')
     //     stream = BytesIO(msg)
