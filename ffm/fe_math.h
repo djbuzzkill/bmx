@@ -3,17 +3,12 @@
 
 
 #include "common.h"
+#include "shared_types.h"
 #include "utility.h"
 #include "aframe/utility.h"
 
 namespace ffm
 {
-
-  
-
-  typedef int FE_t;
-  const FE_t fe_null  = 0;
-
   struct FE_context;
   typedef std::shared_ptr<FE_context> FEConRef;  
   //typedef FEConRef FEConPtr;  
@@ -24,7 +19,7 @@ namespace ffm
 
   //
   // if an element is infinity we flip the sign of the element index
-  inline bool FE_INF (FE_t x) { return (x < 0 ? true : false); }
+  //inline bool FE_INF (FE_t x) { return (x < 0 ? true : false); }
 
   //
   struct FE_context : public ffm::Destructor {

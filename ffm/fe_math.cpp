@@ -129,9 +129,8 @@ public:
     
  };
 
-
-
-  
+  //
+  //
   FE_ctx_impl::FE_ctx_impl (const char* strv, size_t base) : elems () {
     char strb[256];
     // printf ("%s(strv:%s, base:%zu)\n", __FUNCTION__, strv, base);  
@@ -551,7 +550,9 @@ public:
 
     mpz_and (el(O), el(lhs), el(rhs));  
   }
-  
+
+
+  // this function is a lie
   void FE_ctx_impl::LogiShiftR (FE_t x, size_t shift) {
     if (!check(x))
       return; 
@@ -565,7 +566,8 @@ public:
     mpz_fdiv_q (el(x), el(x), el(den)); 
    
   }
-  
+
+  // so are u
   void FE_ctx_impl::LogiShiftL (FE_t x, size_t shift) {
     if (!check(x))
       return;
@@ -585,8 +587,8 @@ public:
     return (mpz_tstbit (el(x), pos) ? true : false);
   }
 
-  bool FE_ctx_impl::TestBit (FE_t x, size_t pos)
-  {
+  //
+  bool FE_ctx_impl::TestBit (FE_t x, size_t pos) {
 
     if (!check(x))
       {
@@ -594,10 +596,8 @@ public:
 	
 	return false;
       }
-
     
     return mpz_tstbit (el(x), pos) == 1 ? true : false; 
-    
   }
 
   //
