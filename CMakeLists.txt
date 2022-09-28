@@ -28,7 +28,7 @@ add_subdirectory (bmx)
 # progs
 add_subdirectory (mtool)
 add_subdirectory (rum)
-add_subdirectory (theabyss)
+add_subdirectory (notmine)
 
 
 

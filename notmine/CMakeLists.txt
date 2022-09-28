@@ -1,7 +1,7 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
-project (theabyss)
+project (notmine)
 
 
 
@@ -11,24 +11,24 @@ add_compile_options (-g -O0 )
 #set ("CMAKE_C_FLAGS=-g -O0")
 
   
-set (THE_ABYSS_HEADERS
-  theabyss.h
+set (THE_NOTMINE_HEADERS
+  notmine.h
  )
 	
-set (THE_ABYSS_SOURCES
-  theabyss.cpp
+set (THE_NOTMINE_SOURCES
+  notmine.cpp
   )
 
-add_executable (theabyss
+add_executable (notmine
 
-  ${THE_ABYSS_HEADERS}
-  ${THE_ABYSS_SOURCES}
+  ${THE_NOTMINE_HEADERS}
+  ${THE_NOTMINE_SOURCES}
 
 )
 
 #
 #
-target_link_libraries (theabyss
+target_link_libraries (notmine
 
   gmp
 #  gmpxx		      
