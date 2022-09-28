@@ -97,26 +97,44 @@ namespace af
   //
   //
   inline bool eql (const bytearray& lhs, const bytearray& rhs) {
-
-    printf ("%s -> lhs(%zu), rhs(%zu) \n", __FUNCTION__, lhs.size(), rhs.size());
-
-    if (lhs.size () != rhs.size()) {
+    //printf ("%s -> lhs(%zu), rhs(%zu) \n", __FUNCTION__, lhs.size(), rhs.size());
+    if (lhs.size () != rhs.size()) 
       return false;
-    }
-
-
-    for (auto i = 0; i < lhs.size(); ++i) {
-
-      if (lhs[i] != rhs[i]) {
-	printf ("%s -> lhs[%zu]:%x, rhs[%zu]:%x\n", __FUNCTION__, i, lhs[i], i , rhs[i]); 	
+    //printf ("%s -> lhs[%zu]:%x, rhs[%zu]:%x\n", __FUNCTION__, i, lhs[i], i , rhs[i]); 	
+    for (auto i = 0; i < lhs.size(); ++i) 
+      if (lhs[i] != rhs[i]) 
 	return false;
-      }
-
-    }
 
     return true;
   }
 
+  //
+  template<typename Ty>
+  inline bytearray& to_bytes (bytearray& obytes, const Ty& seq) {
+
+    // seq contains octet size 
+    static_assert (sizeof(typename Ty::value_type) == 1); 
+    
+    for ( auto e : seq )
+      obytes.push_back ( byte (e)); 
+    
+    return obytes; 
+  }
+
+  //
+  template<typename Ty>
+  inline bytearray to_bytes (const Ty& seq) {
+
+    // seq contains octet size 
+    static_assert (sizeof(typename Ty::value_type) == 1); 
+
+    bytearray bytes;
+
+    return to_bytes (bytes, seq); 
+  }
+  
+
+  
   //
   //
   template<typename Seq>
