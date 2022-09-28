@@ -43,7 +43,11 @@ static void local_init_gcry() {
 
 //
 af::digest32& af::sha256 (digest32& out, const void* in, size_t lin) {
- 
+  //FN_SCOPE (); 
+
+  // uint32 reqlen = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
+  // printf ("    required length [%u]\n", reqlen); 
+    
   //Function: void gcry_md_hash_buffer (int algo, void *digest, const void *buffer, size_t length);
   //gcry_md_hash_buffer is a shortcut function to calculate a message digest of a buffer. This function does not require a context and immediately returns the message digest of the length bytes at buffer. digest must be allocated by the caller, large enough to hold the message digest yielded by the specified algorithm algo. This required size may be obtained by using the function gcry_md_get_algo_dlen.
   
@@ -53,7 +57,7 @@ af::digest32& af::sha256 (digest32& out, const void* in, size_t lin) {
   //SHA256Init (&sha_con);
   //gcry_md_hd_t crycon; 
   //auto hnd = gcry_md_open (&crycon, GCRY_MD_SHA256 , 0); 
-  gcry_md_hash_buffer (GCRY_MD_SHA256, std::data(out), in, lin);
+  gcry_md_hash_buffer (GCRY_MD_SHA256, &out, in, lin);
   
   return out;  
 }

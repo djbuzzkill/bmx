@@ -20,15 +20,18 @@ set (FFM_SOURCES
   utility.cpp
   fe_math.cpp
   ec_math.cpp
-  
+
+  fe_context.cpp
   )
 
 set (FFM_HEADERS
   common.h
   utility.h
-
+  shared_types.h
   fe_math.h
   ec_math.h
+
+  fe_context.h
   )
 
 

@@ -40,8 +40,6 @@ namespace bmx {
       bool bip91  (const Struc& blk); 
       bool bip141 (const Struc& blk); 
     }
-
-
   }
 
   //

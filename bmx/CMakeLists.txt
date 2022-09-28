@@ -3,8 +3,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION  3.1)
 
 project (bmx)
 
-
 set (BMX_SOURCES
+
+  common.cpp
+  utility.cpp
+  secp256k1.cpp
+  transaction.cpp
   op_fns.cpp
   script_util.cpp
   script_write.cpp
@@ -12,22 +16,20 @@ set (BMX_SOURCES
   script_eval.cpp
   script_types.cpp
   block.cpp
-  secp256k1.cpp
-  transaction.cpp
-  utility.cpp
-  common.cpp
+  network.cpp
   )
 
 set (BMX_HEADERS
+  common.h
+  script_types.h
+  utility.h
+  secp256k1.h
+  transaction.h
   opcode.h
   op_fns.h
   script.h
   block.h
-  script_types.h
-  secp256k1.h
-  transaction.h
-  utility.h
-  common.h
+  network.h
   )
 
 add_library (bmx

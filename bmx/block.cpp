@@ -221,25 +221,29 @@ uint32 Block::CalculateNewBits(uint32 prevbits, uint32 timediff) {
 
 //
 //
-bool Block::CheckPoW (const block& blk) { 
-  FN_SCOPE (); 
+bool Block::CheckPoW (const block& blk) {
+
+  FEConRef F (nullptr);
+  Init_FE_context (F);
+  ScopeDeleter  dr (F); 
+  //Formatter fmt (F);
+  
   digest32 dig_hash; 
   Block::Hash (dig_hash, blk);
 
   fixnum32 target; 
   Block::Target (target, blk); 
 
-  FEConRef F (nullptr);
-  Init_FE_context (F);
-  ScopeDeleter  dr (F); 
-  //Formatter fmt (F);
-  FE_t fe_hash = dr (F->New_bin (&dig_hash, 32, false));
-  FE_t fe_targ = dr (F->New_bin (&target, 32, false));
+  FE_t fe_proof = dr (F->New_bin (&dig_hash, 32, false));
+  FE_t fe_targ  = dr (F->New_bin (&target, 32, false));
   // printf ("    proof[%s]\n", fmt.hx(fe_hash)); 
-  // printf ("    targ [%s]\n", fmt.hx(fe_targ)); 
-  return (F->Cmp (fe_hash, fe_targ) < 0); 
+  // printf ("    targ [%s]\n", fmt.hx(fe_targ));
+  // Compare op1 and op2. Return a positive value if op1 > op2, zero if op1 =
+  // op2, or a negative value if op1 < op2.
+  return (F->Cmp (fe_proof, fe_targ) < 0); 
 }
 
 
-
+//#ifdef __SOMETHING__
 #include "test_block.cpp"
+//#endif
