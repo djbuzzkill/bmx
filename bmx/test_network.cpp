@@ -57,19 +57,34 @@ int test_write_network_envelope (const std::vector<std::string>& args) {
   bytearray writebin (readlen, byte(0)); 
   Network::Envelope::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), netenv, mainnet);
 
-
   PR_CHECK ("testbin == writebin", eql(testbin, writebin)); 
-    // def test_serialize(self):
-    //     msg = bytes.fromhex('f9beb4d976657261636b000000000000000000005df6e0e2')
-    //     stream = BytesIO(msg)
-    //     envelope = NetworkEnvelope.parse(stream)
-    //     self.assertEqual(envelope.serialize(), msg)
-
-
-  //     msg = bytes.fromhex('f9beb4d976657273696f6e0000000000650000005f1a69d2721101000100000000000000bc8f5e5400000000010000000000000000000000000000000000ffffc61b6409208d010000000000000000000000000000000000ffffcb0071c0208d128035cbc97953f80f2f5361746f7368693a302e392e332fcf05050001')
-    //     stream = BytesIO(msg)
-    //     envelope = NetworkEnvelope.parse(stream)
-    //     self.assertEqual(envelope.serialize(), msg)
-
   return 0; 
 }
+
+
+//
+//
+int test_version_message (const std::vector<std::string>& args) {
+  FN_SCOPE (); 
+//         self.assertEqual(v.serialize().hex(), '
+
+  std::string testhex =  "7f11010000000000000000000000000000000000000000000000000000000000000000000000ffff00000000208d000000000000000000000000000000000000ffff00000000208d0000000000000000182f70726f6772616d6d696e67626974636f696e3a302e312f0000000000";
+
+  bytearray testbin ;
+  hex::decode (testbin , testhex);
+
+  printf ("    testbin[%zu] \n ", testbin.size()); 
+  
+  bmx::message_version msgver;
+  bytearray writebin (testbin.size(), byte{0});
+  bmx::Network::Message::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), bmx::Network::Message::Default (msgver)); 
+
+  PR_CHECK ( "message ver's match" , eql (testbin, writebin)); 
+  
+
+  return 0;
+  
+}
+
+
+

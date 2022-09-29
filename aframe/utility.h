@@ -97,13 +97,16 @@ namespace af
   //
   //
   inline bool eql (const bytearray& lhs, const bytearray& rhs) {
-    //printf ("%s -> lhs(%zu), rhs(%zu) \n", __FUNCTION__, lhs.size(), rhs.size());
+    // printf ("%s -> lhs(%zu), rhs(%zu) \n", __FUNCTION__, lhs.size(), rhs.size());
     if (lhs.size () != rhs.size()) 
       return false;
     //printf ("%s -> lhs[%zu]:%x, rhs[%zu]:%x\n", __FUNCTION__, i, lhs[i], i , rhs[i]); 	
-    for (auto i = 0; i < lhs.size(); ++i) 
-      if (lhs[i] != rhs[i]) 
-	return false;
+    for (size_t i = 0; i < lhs.size(); ++i) 
+      if (lhs[i] != rhs[i]) {
+	printf ("   fn[%s] -> i<%zu> lhs != rhs\n", __FUNCTION__, i); 
+        return false;
+      }
+	
 
     return true;
   }
@@ -111,12 +114,13 @@ namespace af
   //
   template<typename Ty>
   inline bytearray& to_bytes (bytearray& obytes, const Ty& seq) {
-
+    
     // seq contains octet size 
     static_assert (sizeof(typename Ty::value_type) == 1); 
     
-    for ( auto e : seq )
-      obytes.push_back ( byte (e)); 
+    for ( auto e : seq ) {
+      obytes.push_back ( byte (e));
+   }
     
     return obytes; 
   }
@@ -133,7 +137,7 @@ namespace af
     return to_bytes (bytes, seq); 
   }
   
-
+  
   
   //
   //
@@ -190,7 +194,10 @@ namespace af
     
   };
 
-  
+  //
+  inline uint8 num (byte b) {
+    return std::to_integer<uint8>(b);
+  } 
   //
   // hexadecimal --------------------------- 
   namespace hex

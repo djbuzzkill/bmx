@@ -36,11 +36,14 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
 }
         //
 size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
-    
+  FN_SCOPE ();
+  printf ("   num to write[%zu]\n", v); 
+
   size_t writelen = 0; 
     
   if (v < 253) {
-    writelen +=  ws->Write (&v, 1);
+    uint8 number  = v; 
+    writelen +=  ws->Write (&number, 1);
   }
   else if (v < 0x10000) { // one_with_four_zeros_following
     const unsigned char leader = 0xfd;
@@ -59,6 +62,7 @@ size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
     assert (false); 
     
   }
+  
   return writelen; 
   
 }

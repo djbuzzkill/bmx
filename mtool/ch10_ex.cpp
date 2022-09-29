@@ -2,6 +2,7 @@
 
 int test_read_network_envelope (const std::vector<std::string>& args);
 int test_write_network_envelope (const std::vector<std::string>& args); 
+int test_version_message (const std::vector<std::string>& args); 
 
 
 //
@@ -13,6 +14,7 @@ int CH10_Ex (const std::vector<std::string>& args) {
 
   test_read_network_envelope (args);
   test_write_network_envelope (args); 
+  test_version_message (args); 
   
 
 

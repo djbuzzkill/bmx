@@ -16,7 +16,7 @@ namespace ffm
   //
   // copy a binary number to out , fail if size(bytes) > 32
   template<typename SeqTy> 
-  inline SeqTy& copy_BE (SeqTy& out, af::bytearray &bytes) {
+  inline SeqTy& copy_BE (SeqTy& out, const af::bytearray &bytes) {
 
     if (bytes.size() <  out.max_size()) {
       printf ("<%s> bytes[%zu] < outseq[%zu]\n" , __FUNCTION__, bytes.size(), out.max_size());
