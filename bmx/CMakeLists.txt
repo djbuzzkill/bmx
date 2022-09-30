@@ -17,6 +17,8 @@ set (BMX_SOURCES
   script_types.cpp
   block.cpp
   network.cpp
+  network_message.cpp
+  network_node.cpp
   )
 
 set (BMX_HEADERS

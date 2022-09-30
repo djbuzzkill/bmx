@@ -1,5 +1,20 @@
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int test_read_network_envelope (const std::vector<std::string>& args) {
   FN_SCOPE ();
   using namespace af; 
@@ -86,5 +101,16 @@ int test_version_message (const std::vector<std::string>& args) {
   
 }
 
+//
+//
+int test_handshake  (const std::vector<std::string>& args) {
 
+// class SimpleNodeTest(TestCase):
 
+//     def test_handshake(self):
+//         node = SimpleNode('testnet.programmingbitcoin.com', testnet=True)
+//         node.handshake()
+
+  return 0; 
+
+}
