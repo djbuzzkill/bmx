@@ -1,6 +1,7 @@
 #ifndef AFRAME_COMMON_H
 #define AFRAME_COMMON_H
 
+#include <ctime>
 #include <cstdio>
 #include <cstddef>
 #include <cstdint>

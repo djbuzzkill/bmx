@@ -1,20 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int test_read_network_envelope (const std::vector<std::string>& args) {
   FN_SCOPE ();
   using namespace af; 

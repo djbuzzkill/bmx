@@ -1,6 +1,7 @@
 #ifndef BMX_COMMON_H
 #define BMX_COMMON_H
 
+#include <ctime>
 #include <cstdio>
 #include <cstddef>
 #include <cstdint>

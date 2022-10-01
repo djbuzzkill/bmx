@@ -54,10 +54,10 @@ namespace af
   // ---------------------------------------------------
   struct destructor {
     
-    virtual ~destructor () {}
+    virtual ~destructor () = default;
 
   protected:
-    destructor () {}
+    destructor () = default;
   }; 
   
 }

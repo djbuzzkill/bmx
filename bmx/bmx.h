@@ -12,6 +12,8 @@
 #include "opcode.h"
 #include "op_fns.h"
 #include "script.h"
+#include "block.h"
+#include "network.h"
 
 
 //

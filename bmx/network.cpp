@@ -6,8 +6,6 @@
 using namespace af;
 using namespace ffm; 
 
-
-
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
@@ -23,15 +21,10 @@ bool bmx::Network::Handshake (const bmx::Network::Message::Version& ver, bmx::Ne
     //     version = VersionMessage()
     //     self.send(version)
     //     self.wait_for(VerAckMessage)
-
-
   return false;
 }
 
 
-
-
-
-#include "test_network.cpp"
+#include "test/test_network.cpp"
 
 

@@ -18,6 +18,7 @@ set (BMX_SOURCES
   block.cpp
   network.cpp
   network_message.cpp
+  network_envelope.cpp
   network_node.cpp
   )
 

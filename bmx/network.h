@@ -26,8 +26,12 @@ namespace bmx {
     // ---------------------------------------------------------
     namespace Message {
       // VerAck Message 
-      struct VerAck {};
+      struct VerAck {
+      };
       //
+      VerAck& Default (VerAck& msg); 
+      uint64   Read    (VerAck& msg, af::ReadStreamRef rs, bool mainnet);
+      uint64   Write   (af::WriteStreamRef ws, const VerAck& msg, bool mainnet);
 
       // Version Message 
       struct Version {
@@ -91,12 +95,10 @@ namespace bmx {
 
       };
 
-      uint64 Read  (Struc& env, af::ReadStreamRef rs, bool mainnet);
-
-      uint64 Write (af::WriteStreamRef ws, const Struc& nv, bool mainnet); 
-      
+      Struc& Default (Struc& out, bool mainnet); 
+      uint64 Read    (Struc& env, af::ReadStreamRef rs, bool mainnet);
+      uint64 Write   (af::WriteStreamRef ws, const Struc& nv, bool mainnet); 
     }
-
     
     // ---------------------------------------------------------
     //
@@ -105,7 +107,9 @@ namespace bmx {
 
       virtual void Response (Message::VerAck& msg, bool mainnet) = 0; 
       virtual void Response (Message::Pong& msg  , bool mainnet) = 0; 
-      
+
+    protected: 
+      MessageCB () = default;
     };
     
     
@@ -141,7 +145,10 @@ namespace bmx {
       // ?? struct Full : public Base  {};
     }
 
+    typedef std::shared_ptr<Node::Simple> SimpleNodeRef;
 
+    SimpleNodeRef  CreateSimpleNode (); 
+    
     // ---------------------------------------------------------
     //
     // ---------------------------------------------------------

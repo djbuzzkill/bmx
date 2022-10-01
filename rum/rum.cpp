@@ -1,6 +1,8 @@
 #include "rum.h"
-#include "bmx/script.h"
+#include "bmx/bmx.h"
 #include "rum_msg_generated.h"
+
+#include <ctime>
 
 
 using namespace af;
@@ -45,7 +47,8 @@ int main (int argv, char** argc) {
 
   //return int_2_hexes  (args);
   //int watres = Wat (args);
-  int testres = test_zmq (args); 
+  //int testres = test_zmq (args);
+  test_node_talk (args); 
   //  return testres;
 }
 

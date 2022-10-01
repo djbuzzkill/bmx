@@ -40,9 +40,9 @@ int test_zmq (const std::vector<std::string> &args) {
 int test_node_talk  (const std::vector<std::string> &args) {
   FN_SCOPE ();
 
-  using namespace bmx::Network; 
+  using namespace bmx; 
 
-  const bool mainnet = true; 
+  const bool mainnet = false; 
   const std::string transport = "tcp://"; 
   const std::string sURL      = "testnet.programmingbitcoin.com"; 
   const std::string port_num  = mainnet ? ":8333" : ":18333";
@@ -50,36 +50,71 @@ int test_node_talk  (const std::vector<std::string> &args) {
   std::string address = transport + sURL + port_num;
   printf ( "   conntecting to.. %s\n", address.c_str());
 
-  //
-
   void* zmqcon = zmq_ctx_new ();
   void* sock   = zmq_socket (zmqcon, ZMQ_STREAM);
   //int rc       = zmq_bind (sock, address);
   int conn_res = zmq_connect (sock, address.c_str());
 
-  Message::Version msg_vers;
+  network_envelope netwenv_w;
+  Network::Envelope::Default (netwenv_w, mainnet);
 
+  Network::Message::Version msg_vers;
+  bytearray sendbuf (1024, byte(0)); 
+  uint64 vers_writelen = Network::Message::Write (CreateWriteMemStream (&sendbuf[0], sendbuf.size()), Network::Message::Default (msg_vers));
+
+
+  netwenv_w.payload.assign (&sendbuf[0], &sendbuf[vers_writelen]);
   
   
+  int sendflags = 0; 
+  puts ( "   ..sending Version message \n");
+  zmq_send (sock, &sendbuf[0], vers_writelen , sendflags);
+
+  puts ( "   .. waiting for VerAck  message \n");
+
+  int recvflags = 0; 
+  bytearray readbuf (1024, byte(0)); 
+  int recvlen = zmq_recv (sock, &readbuf[0], readbuf.size(), recvflags);
+  printf ( "   .. received bytes[%i]  \n", recvlen);
+
+  network_envelope netwenv_r;
+  Network::Envelope::Read (netwenv_r, CreateReadMemStream (&readbuf[0], recvlen), mainnet);
+
+
+  netwenv_r.command;  
+  
+  Network::Message::VerAck msg_verack; 
+  uint64 readlen_verack = Network::Message::Read (msg_verack, CreateReadMemStream (&netwenv_r.payload[0] , netwenv_r.payload.size ()), mainnet);
+
+  // Defined in header <ctime>
+  std::time_t arg = 0; 
+  std::time (&arg);
+
   //         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-//         self.socket.connect((host, port))
-//         self.stream = self.socket.makefile('rb', None)
+  //         self.socket.connect((host, port))
+  //         self.stream = self.socket.makefile('rb', None)
 
+  //     def handshake(self):
+  //         '''Do a handshake with the other node.
+  //         Handshake is sending a version message and getting a verack
+  //         back.''' # create a version message # send the command # wait for a
+  //         verack message version = VersionMessage() self.send(version)
+  //         self.wait_for(VerAckMessage)
 
+  //   struct msghandler : public Network::MessageCB {
+  //     virtual void Response (Network::Message::VerAck& msg, bool mainnet) {
+  //     }
 
+  //     virtual void Response (Network::Message::Pong& msg  , bool mainnet) {
+  //     }
 
+  //   };
 
-//     def handshake(self):
-//         '''Do a handshake with the other node.
-//         Handshake is sending a version message and getting a verack back.'''
-//         # create a version message
-//         # send the command
-//         # wait for a verack message
-//         version = VersionMessage()
-//         self.send(version)
-//         self.wait_for(VerAckMessage)
+  //   msghandler                handler;
+  //   Network::Message::Version msg_verts;
 
-
+  //   Network::Handshake (Network::Message::Default (msg_verts) , &handler);
+  //
 
 
 
