@@ -245,5 +245,5 @@ bool Block::CheckPoW (const block& blk) {
 
 
 //#ifdef __SOMETHING__
-#include "test_block.cpp"
+#include "test/test_block.cpp"
 //#endif
