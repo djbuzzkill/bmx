@@ -17,6 +17,9 @@ bmx::Network::Message::VerAck& Default (bmx::Network::Message::VerAck& msg) {
 
 uint64 bmx::Network::Message::Read (bmx::Network::Message::VerAck &msg, af::ReadStreamRef rs, bool mainnet) {
 
+  FN_SCOPE (); 
+
+  assert (false); 
   return 0;
 }
 
@@ -27,16 +30,44 @@ uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const bmx::Network::
 
 // ---------------------------------------------------------------------
 //
+//
 // ---------------------------------------------------------------------
+
+uint64 bmx::Network::Message::SizeOf (const bmx::Network::Message::Version& vers) {
+
+  const uint64 sizeOf_prefix_bytes = 12; // 00000000000000000000ffff
+
+  uint64 sizeOf_MessageVersion = sizeof(uint32)                // version;
+                               + sizeof(uint64)                // services;
+                               + sizeof(uint64)                // timestamp;
+                               + sizeof(uint64)                // receiver_services;
+                               + sizeOf_prefix_bytes + sizeof(std::array<byte, 4>)   // receiver_IP;
+                               + sizeof(uint16)                // receiver_port;
+                               + sizeof(uint64)                // sender_services; 
+                               + sizeOf_prefix_bytes + sizeof(std::array<byte, 4>)   // sender_IP;
+                               + sizeof(uint16)                // sender_port; 
+                               + sizeof(uint64)                // nonce;
+                               + util::SizeOf_varint(vers.user_agent.size())
+                               + vers.user_agent.size()        // user_agent
+                               + sizeof(uint32)                //latest_block;
+                               + sizeof(byte);                 //relay;
+
+  return sizeOf_MessageVersion;     
+}
+
+//
 bmx::Network::Message::Version& bmx::Network::Message::Default (bmx::Network::Message::Version& msg) {
   FN_SCOPE (); 
   msg.version = 70015;
   msg.services = 0;
 
   
-  std::time_t time_res = std::time (nullptr); 
+  std::time_t time_res = 0;
+  std::time (&time_res); 
   msg.timestamp = time_res; 
 
+  printf ("   timestamp generated:%zu\n", msg.timestamp); 
+  
   const std::array<uint8, 4> default_ip   = { 0x00, 0x00, 0x00, 0x00 }; 
   const uint16 default_port = 8333 ; 
   
@@ -47,8 +78,21 @@ bmx::Network::Message::Version& bmx::Network::Message::Default (bmx::Network::Me
   msg.sender_services = 0;
   copy_BE (msg.sender_IP,   to_bytes (default_ip )); 
   msg.sender_port = default_port;
-  msg.nonce = 0 ;
 
+  std::random_device rd;
+  std::uniform_int_distribution<uint64> dist(5000111713);
+
+  uint64 rand_nonce = 0; {
+    std::random_device rd;
+    auto rnum = msg.timestamp & 0xff;
+    std::uniform_int_distribution<uint64> dist(rnum * 9560111713); 
+    // auto  rnum = msg.timestamp & 0xff;
+
+    // for (auto i = 0; i < rnum; ++i)
+    rand_nonce = dist(rd);
+  }
+  msg.nonce = rand_nonce;
+  printf ("    nonce generated:%zu\n", msg.nonce); 
 
   
   const std::string useragent = "/programmingbitcoin:0.1/";
@@ -67,6 +111,7 @@ uint64 bmx::Network::Message::Read (bmx::Network::Message::Version& ver, af::Rea
 
   uint64 readlen = 0; 
 
+  assert (false); 
   // if !timestamp:
   // timestamp int (time.time())
 

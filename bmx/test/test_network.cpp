@@ -55,7 +55,7 @@ int test_write_network_envelope (const std::vector<std::string>& args) {
   auto readlen = Network::Envelope::Read (netenv, CreateReadMemStream (&testbin[0], testbin.size()), mainnet); 
 
   bytearray writebin (readlen, byte(0)); 
-  Network::Envelope::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), netenv, mainnet);
+  Network::Envelope::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), netenv);
 
   PR_CHECK ("testbin == writebin", eql(testbin, writebin)); 
   return 0; 
@@ -77,10 +77,13 @@ int test_version_message (const std::vector<std::string>& args) {
   
   bmx::message_version msgver;
   bytearray writebin (testbin.size(), byte{0});
-  bmx::Network::Message::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), bmx::Network::Message::Default (msgver)); 
+  bmx::Network::Message::Default (msgver);
+  msgver.timestamp = 0; // to match  
+  msgver.nonce = 0;     // testbin
+
+  bmx::Network::Message::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), msgver); 
 
   PR_CHECK ( "message ver's match" , eql (testbin, writebin)); 
-  
 
   return 0;
   

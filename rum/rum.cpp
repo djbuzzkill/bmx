@@ -2,6 +2,9 @@
 #include "bmx/bmx.h"
 #include "rum_msg_generated.h"
 
+#include <chrono>
+#include <thread>
+
 #include <ctime>
 
 
@@ -48,6 +51,8 @@ int main (int argv, char** argc) {
   //return int_2_hexes  (args);
   //int watres = Wat (args);
   //int testres = test_zmq (args);
+
+  //test_message_version_defaults (args); 
   test_node_talk (args); 
   //  return testres;
 }

@@ -5,6 +5,33 @@
 
 using namespace af; 
 using namespace ffm;
+
+
+
+
+uint64 bmx::util::SizeOf_varint(bmx::uint64 x) {
+
+  static_assert (sizeof(size_t) == sizeof(uint64), "size_t == uint64"); 
+
+  if (x < 253) {
+    return 1; 
+    }
+  else if (x < 0x10000) { // one_with_four_zeros_following
+    return 3; 
+      // 2 bytes
+  }
+  else if (x < 0x100000000) { // one_with_eight_zeros_following
+    return 5; 
+    }
+  else {
+    return 9;
+  }
+  
+}
+
+
+
+
 //
 // 
 size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {

@@ -50,7 +50,8 @@ namespace bmx {
   
   namespace util {
 
-    // 
+    //
+    uint64         SizeOf_varint (uint64  x); 
     size_t         read_varint  (size_t& out, af::ReadStreamRef rs, const char* trace = 0); 
     size_t         write_varint (af::WriteStreamRef ws, size_t v) ;
 

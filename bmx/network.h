@@ -27,6 +27,8 @@ namespace bmx {
     namespace Message {
       // VerAck Message 
       struct VerAck {
+	int dumb; 
+
       };
       //
       VerAck& Default (VerAck& msg); 
@@ -56,26 +58,30 @@ namespace bmx {
       Version& Default (Version& msg); 
       uint64   Read    (Version& msg, af::ReadStreamRef rs, bool mainnet);
       uint64   Write   (af::WriteStreamRef ws, const Version& msg);
+      uint64   SizeOf  (const bmx::Network::Message::Version& vers); 
       //
       
       // Ping Message 
-      struct Ping {};
+      struct Ping { int dumb; };
+      uint64 Read  (Ping& msg, af::ReadStreamRef rs, bool mainnet);
+      uint64 Write (af::WriteStreamRef ws, const Ping& msg, bool mainnet);
+      //
       //
 
       // Pong Message
-      struct Pong {};
+      struct Pong { int dumb; };
       uint64 Read  (Pong& msg, af::ReadStreamRef rs, bool mainnet);
       uint64 Write (af::WriteStreamRef ws, const Pong& msg, bool mainnet);
       //
 
       // Get Headers Message 
-      struct GetHeaders {};
+      struct GetHeaders { int dumb; };
       uint64 Read  (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet);
       uint64 Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet);
       //
 
       // Headers Message 
-      struct Headers {}; 
+      struct Headers { int dumb;  }; 
       uint64 Read  (Headers& msg, af::ReadStreamRef rs, bool mainnet);
       uint64 Write (af::WriteStreamRef ws, const Headers& msg, bool mainnet); 
       // 
@@ -92,12 +98,22 @@ namespace bmx {
 
 	bytearray command;
 	bytearray payload;
-
+	uint32    magic; 
       };
 
-      Struc& Default (Struc& out, bool mainnet); 
+      Struc& Payload (Struc& oenve, const Message::Version& vers, bool mainnet);
+      Struc& Payload (Struc& oenve, const Message::VerAck& msg, bool mainnet);
+      Struc& Payload (Struc& oenve, const Message::GetHeaders& msg, bool mainnet);
+      Struc& Payload (Struc& oenve, const Message::Headers& msg, bool mainnet);
+      Struc& Payload (Struc& oenve, const Message::Ping& msg, bool mainnet);
+      Struc& Payload (Struc& oenve, const Message::Pong& msg, bool mainnet);
+      
       uint64 Read    (Struc& env, af::ReadStreamRef rs, bool mainnet);
-      uint64 Write   (af::WriteStreamRef ws, const Struc& nv, bool mainnet); 
+      uint64 Write   (af::WriteStreamRef ws, const Struc& nv);
+
+
+      std::string& Format   (std::string&  str, const Struc& enve);
+
     }
     
     // ---------------------------------------------------------
