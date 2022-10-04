@@ -1,5 +1,5 @@
 
-#include <zmq.h>
+
 int test_node_talk (const std::vector<std::string> &args); 
 int test_zmq      (const std::vector<std::string> &args); 
 int test_message_version_defaults (const std::vector<std::string>& args); 
@@ -60,9 +60,81 @@ int test_message_version_defaults (const std::vector<std::string>& args) {
 }
 
 
+
 //
 //
-int test_node_talk (const std::vector<std::string> &args) {
+int test_node_connection (const std::vector<std::string> &args) {
+  FN_SCOPE ();
+
+  using namespace bmx; 
+
+  const bool mainnet = false; 
+  const std::string transport = "tcp://"; 
+  const std::string sURL      = "testnet.programmingbitcoin.com"; 
+  const std::string port_num  = mainnet ? ":8333" : ":18333";
+
+  int create_flags = 0; 
+  std::string address = transport + sURL + port_num;
+  af::conn_ref conn = af::Create_TCP_Connection (address, create_flags);
+
+
+
+  
+  Network::Message::Version  msg_vers;
+  network_envelope           netwenv_w;
+  Network::Envelope::Payload (netwenv_w, Network::Message::Default (msg_vers), mainnet);
+
+  bytearray sendbuf (1024, byte(0));
+  uint64    writelen_send = 0;
+
+  WriteStreamRef ws_send = CreateWriteMemStream (&sendbuf[0], 1024); 
+  // sendres = zmq_send (sock, &routingID, routinglen, sendflags);
+  // printf ("   ..sendres [%i] \n", sendres);
+
+  writelen_send += Network::Envelope::Write (ws_send, netwenv_w); 
+  printf ("    write env len [%zu] \n", writelen_send); 
+
+  puts   ("   ..sending Version message \n");
+  int sendflags = 0;
+  int sendlen = conn->Send (&sendbuf[0], writelen_send, sendflags);
+  printf ("    315 sendlen [%i] \n",  sendlen); 
+  // std::string env_enc_hex; 
+  // hex::encode (env_enc_hex, &sendbuf[0], writelen_send); 
+  // printf ("  --> [%zu] Envelope(hex) [%s]\n", writelen_send, env_enc_hex.c_str());
+
+  int recvflags = 0; connection::RF_dont_wait; 
+  int offs = 0; 
+  bytearray recvbuf (1024, byte(0)); 
+  int recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    320 recv len [%i] \n", recvlen);
+  offs += recvlen; 
+
+  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    324 recv len_ [%i] \n", recvlen);
+  offs += recvlen;
+
+  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    328 recv len_ [%i] \n", recvlen);
+  offs += recvlen;
+
+  // recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  // printf ("    333 recv len_ [%i] \n", recvlen);
+  // offs += recvlen;
+  
+  network_envelope ne_r;
+  size_t readlen_r = Network::Envelope::Read (ne_r, CreateReadMemStream (&recvbuf[0], offs), mainnet);
+
+  network_envelope ne_r_;
+  size_t readlen_r_ = Network::Envelope::Read (ne_r_, CreateReadMemStream (&recvbuf[readlen_r], offs - readlen_r), mainnet);
+  
+  printf ("   offs[%i], readlen_r[%zu], readlen_r_[%zu]\n", offs, readlen_r, readlen_r_); 
+
+  return 0; 
+  
+}
+
+
+ int test_node_talk (const std::vector<std::string> &args) {
   FN_SCOPE ();
 
   using namespace bmx; 
@@ -73,7 +145,7 @@ int test_node_talk (const std::vector<std::string> &args) {
   const std::string port_num  = mainnet ? ":8333" : ":18333";
 
   std::string address = transport + sURL + port_num;
-  printf ( "   conntecting to.. %s\n", address.c_str());
+  printf ( "   connecting to.. %s\n", address.c_str());
 
   void* zmqcon = zmq_ctx_new ();
   void* sock   = zmq_socket (zmqcon, ZMQ_STREAM);
@@ -84,6 +156,7 @@ int test_node_talk (const std::vector<std::string> &args) {
   printf ("    conn res [%i] \n", conn_res); 
 
   {
+    // this should be routing ID
     zmq_msg_t msg_recv_ID;
     zmq_msg_init(&msg_recv_ID);
     int msg_recv_size = zmq_msg_recv(&msg_recv_ID, sock, 0);
@@ -94,7 +167,7 @@ int test_node_talk (const std::vector<std::string> &args) {
     hex::encode (msg_ID_hex, zmq_msg_data (&msg_recv_ID), msg_recv_size);
     printf ("msg_ID_hex [%s] \n", msg_ID_hex.c_str()); 
     auto close_res = zmq_msg_close(&msg_recv_ID);
-
+    // this should be 0 length
     zmq_msg_t msg_recv_;
     zmq_msg_init(&msg_recv_);
     int recv_b_len = zmq_msg_recv(&msg_recv_, sock, 0);
@@ -179,7 +252,23 @@ int test_node_talk (const std::vector<std::string> &args) {
 
 #endif  
 
+// 76 65 72 61 63 6b
 
+
+// 76 65 72 73 69 6f 6e
+    
+  // {
+  //   std::string verack_str = "verack";
+  //   bytearray verackbin;
+
+  //   to_bytes(verackbin, verack_str); 
+  //   std::string chars;
+
+  //   hex::encode (chars, &verackbin[0], verackbin.size()); 
+  //   printf("   verack[%s]\n", chars.c_str());
+  // }
+
+  
 
 #define ENABLE_SEND_ENVELOPE 
 #ifdef ENABLE_SEND_ENVELOPE
@@ -188,12 +277,13 @@ int test_node_talk (const std::vector<std::string> &args) {
   puts   ("   ..sending Version message \n");
   int sendres = -1;
 
-
+  // send routing ID separately
   zmq_msg_t msg_routingID; 
   zmq_msg_init_size (&msg_routingID, routinglen); 
   memcpy(zmq_msg_data(&msg_routingID), &routingID, routinglen);
   auto msg_send_routingID_len = zmq_msg_send(&msg_routingID, sock, ZMQ_SNDMORE); 
 
+  // send the actual msg
   zmq_msg_t msg_enve; 
   zmq_msg_init_size (&msg_enve, writelen_send); 
   memcpy(zmq_msg_data(&msg_enve), &sendbuf[0], writelen_send);
@@ -203,6 +293,7 @@ int test_node_talk (const std::vector<std::string> &args) {
   bytearray recvbuf (2048, byte(0)); 
   puts   ( "   .. waiting for \'verack\'  message \n");
 
+  {
   zmq_msg_t msg_recv_a;
   zmq_msg_init(&msg_recv_a); 
   int  msg_recv_size = zmq_msg_recv(&msg_recv_a, sock, 0);
@@ -210,8 +301,13 @@ int test_node_talk (const std::vector<std::string> &args) {
   size_t msg_size = zmq_msg_size (&msg_recv_a); 
   printf (" --> msg_size [%zu]\n", msg_size);
   auto   close_res  = zmq_msg_close(&msg_recv_a);
+  }
 
-
+  // An application that processes multi-part messages must use the
+  // ZMQ_RCVMORE zmq_getsockopt(3) option after calling zmq_msg_recv()
+  // to determine if there are further parts to receive.
+  
+  {
   zmq_msg_t msg_recv_b;
   zmq_msg_init(&msg_recv_b);
   int recv_b_len = zmq_msg_recv (&msg_recv_b, sock, 0);
@@ -219,8 +315,47 @@ int test_node_talk (const std::vector<std::string> &args) {
   
   size_t data_b_size = zmq_msg_size (&msg_recv_b);
   printf (" --> data_b_size  [%zu]\n", data_b_size);
-  auto   close_res_b  = zmq_msg_close(&msg_recv_b);
 
+  std::string recv_hex; 
+  hex::encode (recv_hex, zmq_msg_data (&msg_recv_b), recv_b_len);
+
+  printf ("    recv_hex[%s]\n ", recv_hex.c_str()); 
+  
+  // network_envelope  netwenv_r; 
+  // Network::Envelope::Read (netwenv_r, CreateReadMemStream (zmq_msg_data (&msg_recv_b), recv_b_len), mainnet);
+
+  auto   close_res_b  = zmq_msg_close(&msg_recv_b);
+  }
+
+  
+  {
+  zmq_msg_t msg_recv_c;
+  zmq_msg_init(&msg_recv_c); 
+  int  msg_recv_size = zmq_msg_recv(&msg_recv_c, sock, 0);
+  printf (" --> recv c : msg_recv_size [%i]\n", msg_recv_size);
+  size_t msg_size = zmq_msg_size (&msg_recv_c); 
+  printf (" --> c size [%zu]\n", msg_size);
+  auto   close_res  = zmq_msg_close(&msg_recv_c);
+  }
+    
+  {
+  zmq_msg_t msg_recv_c;
+  zmq_msg_init(&msg_recv_c); 
+  int  msg_recv_size = zmq_msg_recv(&msg_recv_c, sock, 0);
+  printf (" --> recv d : msg_recv_size [%i]\n", msg_recv_size);
+  size_t msg_size = zmq_msg_size (&msg_recv_c); 
+  printf (" --> d size [%zu]\n", msg_size);
+
+  std::string recv_hex; 
+  hex::encode (recv_hex, zmq_msg_data (&msg_recv_c), msg_recv_size);
+  printf ("    recv_hex[%s]\n ", recv_hex.c_str()); 
+
+  network_envelope ne; 
+  size_t read_ne_len = Network::Envelope::Read (ne, CreateReadMemStream (zmq_msg_data (&msg_recv_c), msg_size), mainnet);
+
+  auto   close_res  = zmq_msg_close(&msg_recv_c);
+  }
+  
   #endif 
 
 

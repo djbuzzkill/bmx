@@ -53,8 +53,9 @@ int main (int argv, char** argc) {
   //int testres = test_zmq (args);
 
   //test_message_version_defaults (args); 
-  test_node_talk (args); 
-  //  return testres;
+  // test_node_talk (args); 
+  test_node_connection (args); 
+		      //  return testres;
 }
 
 

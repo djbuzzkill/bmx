@@ -16,20 +16,30 @@ uint64 bmx::Network::Envelope::Read (Struc& envel, ReadStreamRef rs, bool mainne
 
   uint32 readmagic = 0;
   readlen += rs->Read (&readmagic, sizeof(uint32));
-  swap_endian<uint32> (&readmagic);
 
+  // std::string b4str, aftstr;
+  swap_endian<uint32> (&readmagic);
+  
   if (mainnet) { 
     assert (readmagic == Network::kMAINNET_MAGIC);
   }
   else {
-    
     assert (readmagic == Network::kTESTNET_MAGIC); 
   }
+
   envel.magic = readmagic; 
   
   envel.command.resize (12, byte(0));  
   readlen += rs->Read (&envel.command[0], 12); 
-  while (envel.command.back () == byte{0x0}) envel.command.pop_back (); 
+  while (envel.command.back () == byte{0x0}) envel.command.pop_back ();
+
+  {
+    std::string chars;
+    for (auto e : envel.command)
+      chars += std::to_integer<uint8>(e);
+    printf("   command size(%zu) [%s]\n", envel.command.size (), chars.c_str());
+  }
+
   //printf ( "    enve command size[%zu]\n",   envel.command.size ()); 
   
   uint32 payloadlen = 0;

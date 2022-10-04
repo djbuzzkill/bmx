@@ -8,6 +8,7 @@ set (AF_SOURCES
   common.cpp
   utility.cpp
   binary_IO.cpp
+  connection.cpp
   hash.cpp
   task.cpp
   system.cpp
@@ -19,6 +20,7 @@ set (AF_HEADERS
   utility.h
   shared_types.h
   binary_IO.h
+  connection.h
   hash.h
   task.h
   system.h
