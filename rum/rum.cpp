@@ -54,8 +54,10 @@ int main (int argv, char** argc) {
 
   //test_message_version_defaults (args); 
   // test_node_talk (args); 
-  test_node_connection (args); 
-		      //  return testres;
+  // test_node_connection (args); 
+  test_node_obj (args); 
+
+  //  return testres;
 }
 
 

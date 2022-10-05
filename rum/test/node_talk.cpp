@@ -59,82 +59,8 @@ int test_message_version_defaults (const std::vector<std::string>& args) {
 
 }
 
-
-
 //
-//
-int test_node_connection (const std::vector<std::string> &args) {
-  FN_SCOPE ();
-
-  using namespace bmx; 
-
-  const bool mainnet = false; 
-  const std::string transport = "tcp://"; 
-  const std::string sURL      = "testnet.programmingbitcoin.com"; 
-  const std::string port_num  = mainnet ? ":8333" : ":18333";
-
-  int create_flags = 0; 
-  std::string address = transport + sURL + port_num;
-  af::conn_ref conn = af::Create_TCP_Connection (address, create_flags);
-
-
-
-  
-  Network::Message::Version  msg_vers;
-  network_envelope           netwenv_w;
-  Network::Envelope::Payload (netwenv_w, Network::Message::Default (msg_vers), mainnet);
-
-  bytearray sendbuf (1024, byte(0));
-  uint64    writelen_send = 0;
-
-  WriteStreamRef ws_send = CreateWriteMemStream (&sendbuf[0], 1024); 
-  // sendres = zmq_send (sock, &routingID, routinglen, sendflags);
-  // printf ("   ..sendres [%i] \n", sendres);
-
-  writelen_send += Network::Envelope::Write (ws_send, netwenv_w); 
-  printf ("    write env len [%zu] \n", writelen_send); 
-
-  puts   ("   ..sending Version message \n");
-  int sendflags = 0;
-  int sendlen = conn->Send (&sendbuf[0], writelen_send, sendflags);
-  printf ("    315 sendlen [%i] \n",  sendlen); 
-  // std::string env_enc_hex; 
-  // hex::encode (env_enc_hex, &sendbuf[0], writelen_send); 
-  // printf ("  --> [%zu] Envelope(hex) [%s]\n", writelen_send, env_enc_hex.c_str());
-
-  int recvflags = 0; connection::RF_dont_wait; 
-  int offs = 0; 
-  bytearray recvbuf (1024, byte(0)); 
-  int recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
-  printf ("    320 recv len [%i] \n", recvlen);
-  offs += recvlen; 
-
-  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
-  printf ("    324 recv len_ [%i] \n", recvlen);
-  offs += recvlen;
-
-  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
-  printf ("    328 recv len_ [%i] \n", recvlen);
-  offs += recvlen;
-
-  // recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
-  // printf ("    333 recv len_ [%i] \n", recvlen);
-  // offs += recvlen;
-  
-  network_envelope ne_r;
-  size_t readlen_r = Network::Envelope::Read (ne_r, CreateReadMemStream (&recvbuf[0], offs), mainnet);
-
-  network_envelope ne_r_;
-  size_t readlen_r_ = Network::Envelope::Read (ne_r_, CreateReadMemStream (&recvbuf[readlen_r], offs - readlen_r), mainnet);
-  
-  printf ("   offs[%i], readlen_r[%zu], readlen_r_[%zu]\n", offs, readlen_r, readlen_r_); 
-
-  return 0; 
-  
-}
-
-
- int test_node_talk (const std::vector<std::string> &args) {
+int test_node_talk (const std::vector<std::string> &args) {
   FN_SCOPE ();
 
   using namespace bmx; 
@@ -426,6 +352,216 @@ int test_node_connection (const std::vector<std::string> &args) {
 
 
 
+
+
+//
+//
+int test_node_connection (const std::vector<std::string> &args) {
+  FN_SCOPE ();
+
+  using namespace bmx; 
+
+  const bool mainnet = false; 
+  const std::string transport = "tcp://"; 
+  const std::string sURL      = "testnet.programmingbitcoin.com"; 
+  const std::string port_num  = mainnet ? ":8333" : ":18333";
+
+  int create_flags = 0; 
+  std::string address = transport + sURL + port_num;
+  af::conn_ref conn = af::Create_TCP_Connection (address, create_flags);
+
+
+  Network::Message::Version  msg_vers;
+  network_envelope           netwenv_w;
+  Network::Envelope::Payload (netwenv_w, Network::Message::Default (msg_vers), mainnet);
+
+  bytearray sendbuf (1024, byte(0));
+  uint64    writelen_send = 0;
+
+  WriteStreamRef ws_send = CreateWriteMemStream (&sendbuf[0], 1024); 
+  // sendres = zmq_send (sock, &routingID, routinglen, sendflags);
+  // printf ("   ..sendres [%i] \n", sendres);
+
+  writelen_send += Network::Envelope::Write (ws_send, netwenv_w); 
+  printf ("    write env len [%zu] \n", writelen_send); 
+
+  puts   ("   ..sending Version message \n");
+  int sendflags = 0;
+  int sendlen = conn->Send (&sendbuf[0], writelen_send, sendflags);
+  printf ("    315 sendlen [%i] \n",  sendlen); 
+  // std::string env_enc_hex; 
+  // hex::encode (env_enc_hex, &sendbuf[0], writelen_send); 
+  // printf ("  --> [%zu] Envelope(hex) [%s]\n", writelen_send, env_enc_hex.c_str());
+
+  int recvflags = 0; connection::RF_dont_wait; 
+  int offs = 0; 
+  bytearray recvbuf (1024, byte(0)); 
+  int recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    320 recv len [%i] \n", recvlen);
+  offs += recvlen; 
+
+  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    324 recv len_ [%i] \n", recvlen);
+  offs += recvlen;
+
+  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    328 recv len_ [%i] \n", recvlen);
+  offs += recvlen;
+
+  // recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  // printf ("    333 recv len_ [%i] \n", recvlen);
+  // offs += recvlen;
+  
+  network_envelope ne_r;
+  size_t readlen_r = Network::Envelope::Read (ne_r, CreateReadMemStream (&recvbuf[0], offs), mainnet);
+
+  network_envelope ne_r_;
+  size_t readlen_r_ = Network::Envelope::Read (ne_r_, CreateReadMemStream (&recvbuf[readlen_r], offs - readlen_r), mainnet);
+  
+  printf ("   offs[%i], readlen_r[%zu], readlen_r_[%zu]\n", offs, readlen_r, readlen_r_); 
+
+  return 0; 
+  
+}
+
+
+
+
+
+
+//
+// 
+struct Simple : public bmx::Network::MessageCB, public af::destructor {
+
+  
+  Simple (const std::string& addr, bool mainnet, bool logging) {
+	
+        /* def __init__(self, host, port=None, testnet=False, logging=False): */
+        /*     if port is None: */
+        /*         if testnet: */
+        /*             port = 18333 */
+        /*         else: */
+        /*             port = 8333 */
+        /*     self.testnet = testnet */
+        /*     self.logging = logging */
+        /*     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         */
+        /*     self.socket.connect((host, port)) */
+        /*     self.stream = self.socket.makefile('rb', None) */
+        /* # end::source4[] */
+
+  }
+
+  virtual ~Simple () {
+  }
+
+  virtual void Do (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+
+  }
+
+  
+  virtual void Do (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+
+  }
+
+  
+  virtual void Do (const bmx::Network::Message::Pong&   msg, const bmx::Network::Envelope::Struc& ne, bool mainnet)  {
+  }
+
+protected:
+  
+  Simple () = default;
+
+};
+
+
+typedef std::shared_ptr<Simple> SimpleRef;
+
+
+SimpleRef CreateSimpleNode (const std::string& addr, bool mainnet, bool logging) {
+
+  return std::make_shared<Simple> (addr, mainnet, logging);
+
+}
+
+
+//
+//
+int test_node_obj (const std::vector<std::string> &args) {
+  FN_SCOPE ();
+
+  using namespace bmx; 
+
+  const bool mainnet = false; 
+  const std::string transport = "tcp://"; 
+  const std::string sURL      = "testnet.programmingbitcoin.com"; 
+  const std::string port_num  = mainnet ? ":8333" : ":18333";
+
+  int create_flags = 0; 
+  std::string address = transport + sURL + port_num;
+  af::conn_ref conn = af::Create_TCP_Connection (address, create_flags);
+
+
+  // wtf is this for 
+  SimpleRef simple =  CreateSimpleNode (address, mainnet, false);
+  
+  Network::Envelope::Send;
+  Network::Envelope::Recv;
+    
+
+  Network::Message::Version  msg_vers;
+  network_envelope           ne_w;
+  Network::Envelope::Payload (ne_w, Network::Message::Default (msg_vers), mainnet);
+  // bytearray sendbuf (1024, byte(0));
+  // uint64    writelen_send = 0;
+  // WriteStreamRef ws_send = CreateWriteMemStream (&sendbuf[0], 1024); 
+  // // sendres = zmq_send (sock, &routingID, routinglen, sendflags);
+  // printf ("   ..sendres [%i] \n", sendres);
+  // writelen_send += Network::Envelope::Write (ws_send, netwenv_w);
+  // printf ("    write env len [%zu] \n", writelen_send); 
+  // puts   ("   ..sending Version message \n");
+  int sendflags = 0;
+  // int sendlen = conn->Send (&sendbuf[0], writelen_send, sendflags);
+  // printf ("    315 sendlen [%i] \n",  sendlen);
+  int sendlen = Network::Envelope::Send (conn, ne_w, sendflags);  
+
+
+  
+  
+  // std::string env_enc_hex; 
+  // hex::encode (env_enc_hex, &sendbuf[0], writelen_send); 
+  // printf ("  --> [%zu] Envelope(hex) [%s]\n", writelen_send, env_enc_hex.c_str());
+
+  int recvflags = 0; connection::RF_dont_wait; 
+  int offs = 0; 
+  bytearray recvbuf (1024, byte(0)); 
+  int recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    320 recv len [%i] \n", recvlen);
+  offs += recvlen; 
+
+  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    324 recv len_ [%i] \n", recvlen);
+  offs += recvlen;
+
+  recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  printf ("    328 recv len_ [%i] \n", recvlen);
+  offs += recvlen;
+
+  // recvlen = conn->Recv (&recvbuf[offs], 1024 - offs, recvflags);
+  // printf ("    333 recv len_ [%i] \n", recvlen);
+  // offs += recvlen;
+  
+  network_envelope ne_r;
+  size_t readlen_r = Network::Envelope::Read (ne_r, CreateReadMemStream (&recvbuf[0], offs), mainnet);
+
+  network_envelope ne_r_;
+  size_t readlen_r_ = Network::Envelope::Read (ne_r_, CreateReadMemStream (&recvbuf[readlen_r], offs - readlen_r), mainnet);
+  
+  printf ("   offs[%i], readlen_r[%zu], readlen_r_[%zu]\n", offs, readlen_r, readlen_r_); 
+
+  return 0; 
+  
+}
 
 
 

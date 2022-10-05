@@ -9,24 +9,24 @@ using namespace ffm;
 //
 // ---------------------------------------------------------------------
 
-bmx::Network::Message::VerAck& Default (bmx::Network::Message::VerAck& msg) {
+// bmx::Network::Message::VerAck& Default (bmx::Network::Message::VerAck& msg) {
 
-  return msg; 
+//   return msg; 
   
-}
+// }
 
-uint64 bmx::Network::Message::Read (bmx::Network::Message::VerAck &msg, af::ReadStreamRef rs, bool mainnet) {
+// uint64 bmx::Network::Message::Read (bmx::Network::Message::VerAck &msg, af::ReadStreamRef rs, bool mainnet) {
 
-  FN_SCOPE (); 
+//   FN_SCOPE (); 
 
-  assert (false); 
-  return 0;
-}
+//   assert (false); 
+//   return 0;
+// }
 
 
-uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const bmx::Network::Message::VerAck& msg, bool mainnet) {
-  return 0;
-}
+// uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const bmx::Network::Message::VerAck& msg, bool mainnet) {
+//   return 0;
+// }
 
 // ---------------------------------------------------------------------
 //

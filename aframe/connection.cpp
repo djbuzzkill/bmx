@@ -119,7 +119,18 @@ int _zmq_tcp_conn_00::Send (const void *dat, int sendsize, int sflags) {
 
 //
 int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
-  FN_SCOPE (); 
+  FN_SCOPE ();
+
+  // int optval = -1; 
+  // size_t optsize = sizeof(optval); 
+  // zmq_getsockopt(sock, ZMQ_EVENTS, &optval, &optsize);
+
+  //printf ( "    ZMQ_POLLIN
+
+  //  if (optval & ZMQ_POLLIN) { 
+  //printf ( "ZMQ_POLLIN optval[%i] \n", optval);
+   //}
+
   int recv_msg_len = 0; 
   // the only flag for now
   int flags = (RF_dont_wait == rflags) ? ZMQ_DONTWAIT : 0; 
@@ -130,7 +141,7 @@ int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
   zmq_msg_t msg0;
   zmq_msg_init (&msg0); 
   int recv0len = zmq_msg_recv(&msg0, sock, flags);
-  printf ("     msg 0 len [%i] \n", recv0len);
+  //printf ("     msg 0 len [%i] \n", recv0len);
 
   bool is_sz_eq = (recv0len == routingID.size ()); 
   bytearray dat0 (recv0len, byte(0));
@@ -142,15 +153,14 @@ int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
     while (true) {
       
       zmq_msg_t msg; 
-      zmq_msg_init (&msg);
+      zmq_msg_init_size (&msg, 1024);
       int recvlen = zmq_msg_recv (&msg, sock, flags);
       //printf ("    243 recvlen [%i] \n", recvlen);
       // this looks weird but ws->Write is correct 
       recv_msg_len += ws->Write (zmq_msg_data (&msg), recvlen);
-      int more =zmq_msg_more (&msg);
+
       zmq_msg_close (&msg);
       
-      //int more =zmq_msg_more (&msg);
       if (zmq_msg_more (&msg) ) {
 	puts ("    (loooop)" ); 
 	continue;
@@ -168,8 +178,8 @@ int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
 }
 
 //
-//
-af::ConnectionRef af::Create_TCP_Connection(const std::string &addr, int flags){
+//const std::string www
+af::ConnectionRef af::Create_TCP_Connection (const std::string& addr, int flags) {
 
   return std::make_shared<_zmq_tcp_conn_00> (addr.c_str(), flags);
 

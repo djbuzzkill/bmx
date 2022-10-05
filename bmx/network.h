@@ -27,13 +27,14 @@ namespace bmx {
     namespace Message {
       // VerAck Message 
       struct VerAck {
-	int dumb; 
-
+	VerAck () : dumb (0) {
+	}
+        uint8  dumb; 
       };
       //
-      VerAck& Default (VerAck& msg); 
-      uint64   Read    (VerAck& msg, af::ReadStreamRef rs, bool mainnet);
-      uint64   Write   (af::WriteStreamRef ws, const VerAck& msg, bool mainnet);
+      /* VerAck& Default (VerAck& msg);  */
+      /* uint64   Read    (VerAck& msg, af::ReadStreamRef rs, bool mainnet); */
+      /* uint64   Write   (af::WriteStreamRef ws, const VerAck& msg, bool mainnet); */
 
       // Version Message 
       struct Version {
@@ -87,6 +88,10 @@ namespace bmx {
       // 
     }
 
+    // ---------------------------------------------------------
+    //
+    // ---------------------------------------------------------
+    struct MessageCB; 
     
     // ---------------------------------------------------------
     //
@@ -111,9 +116,11 @@ namespace bmx {
       uint64 Read    (Struc& env, af::ReadStreamRef rs, bool mainnet);
       uint64 Write   (af::WriteStreamRef ws, const Struc& nv);
 
-
+      int    Send    (af::conn_ref conn, const Struc& ne, int flags) ;
+      int    Recv    (MessageCB* const cb, af::conn_ref conn, bool mainnet, int flags);
+      
       std::string& Format   (std::string&  str, const Struc& enve);
-
+     
     }
     
     // ---------------------------------------------------------
@@ -121,55 +128,34 @@ namespace bmx {
     // ---------------------------------------------------------
     struct MessageCB {
 
-      virtual void Response (Message::VerAck& msg, bool mainnet) = 0; 
-      virtual void Response (Message::Pong& msg  , bool mainnet) = 0; 
+      virtual void Do (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) = 0; 
+      virtual void Do (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) = 0; 
+      virtual void Do (const Message::Pong&    msg, const Envelope::Struc& ne, bool mainnet) = 0; 
 
     protected: 
       MessageCB () = default;
     };
-    
     
     // ---------------------------------------------------------
     //
     // ---------------------------------------------------------
     namespace Node {
 
-      // 
-      struct Simple : public MessageCB, public af::destructor {
+      struct Base {
+	virtual int Send () = 0; 
+	virtual int Recv () = 0; 
+	virtual int WaitFor () = 0;
 
-	virtual ~Simple (); 
-	virtual void Response (const Message::VerAck& msg, bool mainnet); 
-	virtual void Response (const Message::Pong& msg  , bool mainnet); 
-	
-        /* def __init__(self, host, port=None, testnet=False, logging=False): */
-        /*     if port is None: */
-        /*         if testnet: */
-        /*             port = 18333 */
-        /*         else: */
-        /*             port = 8333 */
-        /*     self.testnet = testnet */
-        /*     self.logging = logging */
-        /*     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         */
-        /*     self.socket.connect((host, port)) */
-        /*     self.stream = self.socket.makefile('rb', None) */
-        /* # end::source4[] */
       protected:
-	Simple () {}
+	Base () = default; 
       };
-
-      // ?? struct Full : public Base  {};
     }
 
-    typedef std::shared_ptr<Node::Simple> SimpleNodeRef;
-
-    SimpleNodeRef  CreateSimpleNode (); 
-    
     // ---------------------------------------------------------
     //
     // ---------------------------------------------------------
     bool Handshake (const Message::Version& ver, MessageCB* cb);
-  
+
 
   } // Network 
 
@@ -177,7 +163,7 @@ namespace bmx {
   //
   // ---------------------------------------------------------
   typedef Network::Envelope::Struc  network_envelope;
-  typedef Network::Node::Simple     simple_node; 
+  //  typedef Network::Node::Simple     simple_node; 
   typedef Network::Message::Version message_version; 
   
 }
