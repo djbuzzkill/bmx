@@ -64,7 +64,7 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
         //
 size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
   FN_SCOPE ();
-  printf ("   num to write[%zu]\n", v); 
+  // printf ("   num to write[%zu]\n", v); 
 
   size_t writelen = 0; 
     

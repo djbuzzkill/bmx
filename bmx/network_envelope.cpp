@@ -64,6 +64,7 @@ uint64 bmx::Network::Envelope::Read (Struc& envel, ReadStreamRef rs, bool mainne
   if (rdchecksum != checksum)  {
     printf ("    [%s] CHECKSUM DOES NOT MATCH !!  \n", __FUNCTION__); 
     }
+  
   assert (rdchecksum == checksum);
 
   return readlen; 
@@ -118,10 +119,192 @@ int bmx::Network::Envelope::Send (af::conn_ref conn, const bmx::Network::Envelop
 
   return conn->Send (&sendbuf, writelen_send, flags);  
   }
+
+
 // ---------------------------------------------------------------------
+
+
+  // substate = read_env_prim
+  // state    = recv_bytes
+    
+  // state
+  //   {
+  // recv_bytes:
+  //   recv ()
+  //   state = substate
+  //   state = read_env_prim:
+	
+  // parse_env_prim:
+  // 	if (need more bytes) 	
+  //    state = recv_bytes
+  //    substate = read_env_end
+
+  // parse_env_final
+  //   parse
+  //   checksum
+  //   msg handlers
+
+  //   if (bytes unread)       
+  //     state = parse_env_prim
+  //   else
+  //     something else	
+
 //
 // ---------------------------------------------------------------------
 int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool mainnet, int flags) {
+
+  enum recv_state {
+    rs_recv_bytes,
+    rs_read_env_prim,
+    rs_read_env_final,
+    rs_more_bytes,
+    rs_limbo
+  };
+
+  network_envelope ne;
+  //
+  uint64 ne_offset           = 0;
+  int    accum_recv_len      = 0;
+  uint64 accum_read_env_len  = 0;
+
+  uint32 payloadlen          = 0;
+  uint32 rdchecksum          = 0; 
+  
+  const int32 bufsize = 1024;
+  bytearray buf(bufsize, byte(0));
+  ReadStreamRef rs = CreateReadMemStream(&buf[0], bufsize);
+
+  recv_state cur_state = rs_recv_bytes;
+  recv_state next_state = rs_read_env_prim;
+
+  while (true) {
+    // switch {
+    switch (cur_state)
+      {
+	// -------------------------------------
+	//
+	// -------------------------------------
+    case rs_recv_bytes:  {
+      
+      int r = conn->Recv (&buf[accum_recv_len], bufsize - accum_recv_len , flags);
+      printf ("    rs_recv_bytes[%i]\n" , r);
+      accum_recv_len += r; 
+
+      cur_state = next_state;
+      next_state = rs_limbo; 
+      
+    } break;
+
+      // -------------------------------------
+      //
+      // -------------------------------------
+    case rs_read_env_prim: {
+
+      uint32 readmagic = 0;
+      accum_read_env_len = rs->Read(&readmagic, sizeof(uint32));
+
+      swap_endian<uint32>(&readmagic);
+      if (mainnet) {
+        assert(readmagic == Network::kMAINNET_MAGIC);
+      } else {
+        assert(readmagic == Network::kTESTNET_MAGIC);
+      }
+
+      ne.magic = readmagic;
+
+      ne.command.resize(12, byte(0));
+      accum_read_env_len += rs->Read(&ne.command[0], 12);
+      while (ne.command.back() == byte{0x0})
+        ne.command.pop_back();
+
+      {
+        std::string chars;
+        for (auto e : ne.command)
+          chars += std::to_integer<uint8>(e);
+        printf("   command size(%zu) [%s]\n", ne.command.size(), chars.c_str());
+      }
+
+      payloadlen = 0;
+      accum_read_env_len += rs->Read(&payloadlen, sizeof(uint32));
+      printf("    payload length [%u] \n", payloadlen);
+
+      rdchecksum = 0;
+      accum_read_env_len += rs->Read(&rdchecksum, sizeof(uint32));
+
+      uint64 total_msg_length = accum_read_env_len + payloadlen + ne_offset;
+
+      if (accum_recv_len < total_msg_length) {
+	cur_state  = rs_recv_bytes; 
+	next_state = rs_read_env_final; 
+        }
+      else 
+	{
+	  cur_state = rs_read_env_final;
+	  next_state = rs_limbo;
+	}
+	
+      
+    } break;
+
+      // -------------------------------------
+      //
+      // -------------------------------------
+   case rs_read_env_final: {
+
+     ne.payload.resize (payloadlen, byte{0});
+
+     accum_read_env_len  += rs->Read(&ne.payload[0], payloadlen);
+
+     union {
+       uint32 checksum;
+       byte bytes_cs_[4];
+     };
+
+     digest32 dig;
+     af::hash256(dig, &ne.payload[0], payloadlen);
+     std::copy(dig.begin(), dig.begin() + 4, bytes_cs_);
+
+     if (rdchecksum != checksum) {
+       printf("    [%s] CHECKSUM DOES NOT MATCH !!  \n", __FUNCTION__);
+     }
+     assert(rdchecksum == checksum);
+
+     ne_offset += accum_read_env_len;
+     
+     if (ne_offset  < accum_recv_len) {
+
+       cur_state = rs_more_bytes;
+       next_state = rs_read_env_prim; 
+     }
+     else {
+       //??
+     } 
+     
+   } break;
+
+      // -------------------------------------
+      //
+      // -------------------------------------
+   case rs_more_bytes: {
+
+     cur_state = rs_more_bytes;
+
+     
+   } break; 
+      } // switch 
+  }
+    
+
+  return accum_recv_len; 
+  
+  }
+
+// ---------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------
+#ifdef OLD_NET_ENV_RECV_00
+
+int NET_ENV_RECV_00 (bmx::Network::MessageCB* const cb, af::conn_ref conn, bool mainnet, int flags) {
   FN_SCOPE (); 
   
   const int32 bufsize = 1024; 
@@ -172,8 +355,10 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
 
   //
   int32 total_msg_length = readlen + payloadlen; 
-  while (recvlen < total_msg_length) { 
-    recvlen += conn->Recv (&buf[recvlen], bufsize - recvlen, flags);
+  while (recvlen < total_msg_length) {
+    int cur_recv_len =  conn->Recv (&buf[recvlen], bufsize - recvlen, flags);
+    recvlen + = cur_recv_len;
+    
   }
 
   ne.payload.resize (payloadlen, byte{0});
@@ -195,7 +380,7 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
 
   //
   if (payloadlen && cb) {
-
+    printf ("    (( payloadlen && cb ))\n"); 
     std::string cmd_s;
     for (auto e : ne.command)
       cmd_s += std::to_integer<uint8>(e);
@@ -217,9 +402,15 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
        
   }
 
+  
   return recvlen; 
 }
-  
+#endif
+
+
+
+
+
 
 // ---------------------------------------------------------------------
 //

@@ -39,6 +39,7 @@ namespace rum {
 
 
 #include "test/misc.cpp"
+
 #include "test/node_talk.cpp"
 
 // -----------------------------------------
