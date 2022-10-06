@@ -121,16 +121,6 @@ int _zmq_tcp_conn_00::Send (const void *dat, int sendsize, int sflags) {
 int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
   // FN_SCOPE ();
 
-  // int optval = -1; 
-  // size_t optsize = sizeof(optval); 
-  // zmq_getsockopt(sock, ZMQ_EVENTS, &optval, &optsize);
-
-  //printf ( "    ZMQ_POLLIN
-
-  //  if (optval & ZMQ_POLLIN) { 
-  //printf ( "ZMQ_POLLIN optval[%i] \n", optval);
-   //}
-
   int recv_msg_len = 0; 
   // the only flag for now
   int flags = (RF_dont_wait == rflags) ? ZMQ_DONTWAIT : 0; 

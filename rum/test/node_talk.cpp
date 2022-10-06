@@ -431,7 +431,7 @@ int test_node_connection (const std::vector<std::string> &args) {
 
 //
 // 
-struct Simple : public bmx::Network::MessageCB, public af::destructor {
+struct Simple : public bmx::netmessage_cb, public af::destructor {
 
   
   Simple (const std::string& addr, bool mainnet, bool logging)
@@ -458,14 +458,14 @@ struct Simple : public bmx::Network::MessageCB, public af::destructor {
   virtual ~Simple () {
   }
 
-  virtual void Do (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void Rcvd (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     FN_SCOPE (); 
     got_verack = true; 
     printf ("    >> Received VerAck message\n"); 
   }
 
   
-  virtual void Do (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void Rcvd (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     FN_SCOPE ();
     got_vers = true; 
     printf ("    >> Received Version message\n"); 

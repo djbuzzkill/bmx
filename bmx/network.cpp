@@ -10,7 +10,7 @@ using namespace ffm;
 //
 // ---------------------------------------------------------------------
 
-bool bmx::Network::Handshake (const bmx::Network::Message::Version& ver, bmx::Network::MessageCB* cb) {
+bool bmx::Network::Milkshake (const bmx::Network::Message::Version& ver, bmx::netmessage_cb* cb) {
 
     // def handshake(self):
     //     '''Do a handshake with the other node.

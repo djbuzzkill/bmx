@@ -94,7 +94,7 @@ int test_version_message (const std::vector<std::string>& args) {
 
 //
 // 
-struct Simple : public bmx::Network::MessageCB, public af::destructor {
+struct Simple : public bmx::netmessage_cb, public af::destructor {
   
   Simple (const std::string& addr, bool mainnet, bool logging)
     : got_vers(false)
@@ -105,12 +105,12 @@ struct Simple : public bmx::Network::MessageCB, public af::destructor {
   }
 
   // change name?? OnReceive ??
-  virtual void Do (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void Rcvd (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_verack = true; 
     printf ("    --> Simple Received VerAck message\n"); 
   }
 
-  virtual void Do (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void Rcvd (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_vers = true;
     printf ("    --> Simple Received Version message, mebe shud respd \n"); 
 
@@ -131,7 +131,7 @@ protected:
 
 //
 //
-int test_handshake  (const std::vector<std::string>& args) {
+int test_handshake (const std::vector<std::string>& args) {
 
   using namespace bmx; 
 

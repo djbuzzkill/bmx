@@ -91,7 +91,7 @@ namespace bmx {
     // ---------------------------------------------------------
     //
     // ---------------------------------------------------------
-    struct MessageCB; 
+    struct MessageReceiver; 
     
     // ---------------------------------------------------------
     //
@@ -117,23 +117,23 @@ namespace bmx {
       uint64 Write   (af::WriteStreamRef ws, const Struc& nv);
 
       int    Send    (af::conn_ref conn, const Struc& ne, int flags) ;
-      int    Recv    (MessageCB* const cb, af::conn_ref conn, bool mainnet, int flags);
+      int    Recv    (MessageReceiver* const cb, af::conn_ref conn, bool mainnet, int flags);
       
       std::string& Format   (std::string&  str, const Struc& enve);
      
     }
     
     // ---------------------------------------------------------
-    // 4 if u want 2 rcv messages, mebe rename Receiver?
+    // 4 if u want 2 rcv messages
     // ---------------------------------------------------------
-    struct MessageCB { 
+    struct MessageReceiver { 
       // change name?? OnReceive ??
-      virtual void Do (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) {} 
-      virtual void Do (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) {} 
-      virtual void Do (const Message::Pong&    msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void Rcvd (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void Rcvd (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void Rcvd (const Message::Pong&    msg, const Envelope::Struc& ne, bool mainnet) {} 
 
     protected: 
-      MessageCB () = default;
+      MessageReceiver () = default;
     };
     
     // ---------------------------------------------------------
@@ -154,7 +154,7 @@ namespace bmx {
     // ---------------------------------------------------------
     //
     // ---------------------------------------------------------
-    bool Handshake (const Message::Version& ver, MessageCB* cb);
+    bool Milkshake (const Message::Version& ver, MessageReceiver* cb);
 
 
   } // Network 
@@ -165,7 +165,9 @@ namespace bmx {
   typedef Network::Envelope::Struc  network_envelope;
   //  typedef Network::Node::Simple     simple_node; 
   typedef Network::Message::Version message_version; 
+
+  typedef Network::MessageReceiver  netmessage_cb;
   
-}
+  }
 
 #endif 

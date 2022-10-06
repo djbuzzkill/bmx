@@ -118,7 +118,7 @@ int bmx::Network::Envelope::Send (af::conn_ref conn, const bmx::Network::Envelop
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool mainnet, int flags) {
+int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref conn, bool mainnet, int flags) {
 
   enum recv_state {
     rs_recv_bytes,
@@ -150,7 +150,7 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
     case rs_recv_bytes:  {
       
       int r = conn->Recv (&buf[accum_recv_len], bufsize - accum_recv_len , flags);
-      printf ("    rs_recv_bytes[%i]\n" , r);
+      //printf ("    rs_recv_bytes[%i]\n" , r);
       accum_recv_len += r; 
 
       cur_state = next_state;
@@ -170,21 +170,14 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
       } else {
         assert(readmagic == Network::kTESTNET_MAGIC);
       }
-
       ne.magic = readmagic;
 
       ne.command.resize(12, byte(0));
       accum_read_env_len += rs->Read (&ne.command[0], 12);
       while (ne.command.back() == byte{0x0})
         ne.command.pop_back();
-
-      {
-        std::string chars;
-        for (auto e : ne.command)
-          chars += std::to_integer<uint8>(e);
-        printf("   command (%zu) [%s]\n", ne.command.size(), chars.c_str());
-      }
-
+      //printf("   command (%zu) [%s]\n", ne.command.size(), af::to_string(ne.command).c_str());
+ 
       payloadlen = 0;
       accum_read_env_len += rs->Read(&payloadlen, sizeof(uint32));
       //printf("    payload length [%u] \n", payloadlen);
@@ -192,15 +185,15 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
       rdchecksum = 0;
       accum_read_env_len += rs->Read(&rdchecksum, sizeof(uint32));
 
-      uint64 total_msg_length = accum_read_env_len + payloadlen + ne_offset;
-
-      //printf ( "    accum_recv_len[%i], total_msg_length[%zu]\n", accum_recv_len, total_msg_length); 
-      if (accum_recv_len < total_msg_length) {
+      // expected total network envelope length, more of an offset
+      uint64 total_ne_length = accum_read_env_len + payloadlen + ne_offset;
+      //printf ( "    accum_recv_len[%i], total_msg_length[%zu]\n", accum_recv_len, total_ne_length); 
+      if (accum_recv_len < total_ne_length) {
 	// we need more bytes
 	cur_state  = rs_recv_bytes; 
 	next_state = rs_read_env_final; 
       }
-      else if (accum_recv_len == total_msg_length){
+      else if (accum_recv_len == total_ne_length){
 	// carry on 
 	cur_state = rs_read_env_final;
 	next_state = rs_limbo;
@@ -225,36 +218,38 @@ int bmx::Network::Envelope::Recv (MessageCB* const cb, af::conn_ref conn, bool m
      af::hash256(dig, &ne.payload[0], payloadlen);
      std::copy(dig.begin(), dig.begin() + 4, bytes_cs_);
 
+     bool good_checksum = rdchecksum == checksum;
      if (rdchecksum != checksum) {
        printf("    [%s] CHECKSUM DOES NOT MATCH !!  \n", __FUNCTION__);
      }
-     assert(rdchecksum == checksum);
 
-     if (cb) {
+     //
+     // dispatch_message
+     if (cb) { // && good_checksum ??
 
-       std::string cmd_s = af::to_string (ne.command);
+       const std::string cmd_s = af::to_string (ne.command);
        //printf("   command (%zu) [%s]\n", cmd_s.size(), cmd_s.c_str());
 
-       ReadStreamRef rspayload = CreateReadMemStream(&ne.payload[0], payloadlen);
+       int           payload_readlen = 0; 
+       ReadStreamRef payload_rs      = CreateReadMemStream(&ne.payload[0], payloadlen);
 
        if (cmd_s == "version") {
          Network::Message::Version vers;
-         int readlen = Network::Message::Read(vers, rspayload, mainnet);
-         cb->Do(vers, ne, mainnet);
+         payload_readlen = Network::Message::Read(vers, payload_rs, mainnet);
+         cb->Rcvd(vers, ne, mainnet);
        } else if (cmd_s == "verack") {
          // Network::Message::VerAck verack;
-         cb->Do(Network::Message::VerAck(), ne, mainnet);
+         cb->Rcvd(Network::Message::VerAck(), ne, mainnet);
        }
        // else if (ne.command == "blah" ) {
        //   cb-> blah blah  ();
        // }
-       
      } // cb
 
+     //
      ne_offset += accum_read_env_len;
      assert (ne_offset <= accum_recv_len);
-
-     printf ("     ne_offset[%zu],  accum_recv_len[%i]\n", ne_offset, accum_recv_len );
+     //printf ("     ne_offset[%zu],  accum_recv_len[%i]\n", ne_offset, accum_recv_len);
      if (ne_offset < accum_recv_len) {
        // more bytes to process 
        cur_state = rs_read_env_prim;
