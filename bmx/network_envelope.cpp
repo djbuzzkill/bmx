@@ -107,13 +107,10 @@ int bmx::Network::Envelope::Send (af::conn_ref conn, const bmx::Network::Envelop
   //FN_SCOPE (); 
   const int32 bufsize = 1024; 
   std::array<byte, bufsize> sendbuf;
-
   uint64    writelen_send = 0;
-
   //WriteStreamRef ws_ne = CreateWriteMemStream (&sendbuf[0], 1024); 
   writelen_send += Network::Envelope::Write (CreateWriteMemStream (&sendbuf, bufsize), ne);
-  printf ("    serialized ne len [%zu] \n", writelen_send); 
-
+  printf ("    serialized outgoing network envelope (%zu)\n", writelen_send); 
   return conn->Send (&sendbuf, writelen_send, flags);  
   }
 

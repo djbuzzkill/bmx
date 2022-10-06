@@ -124,10 +124,9 @@ namespace bmx {
     }
     
     // ---------------------------------------------------------
-    // MessageCB, mebe name Receiver?
+    // 4 if u want 2 rcv messages, mebe rename Receiver?
     // ---------------------------------------------------------
     struct MessageCB { 
-
       // change name?? OnReceive ??
       virtual void Do (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) {} 
       virtual void Do (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) {} 
@@ -138,15 +137,15 @@ namespace bmx {
     };
     
     // ---------------------------------------------------------
-    //
+    // not quite anything here yet
     // ---------------------------------------------------------
-    namespace Node {
-
+    namespace Node { 
+      // 
       struct Base {
 	virtual int Send () = 0; 
 	virtual int Recv () = 0; 
 	virtual int WaitFor () = 0;
-
+	
       protected:
 	Base () = default; 
       };

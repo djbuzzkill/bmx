@@ -165,8 +165,6 @@ int test_handshake  (const std::vector<std::string>& args) {
     recvd_messages++; 
   }
 
-
-
   
   printf ("   received messages [%i]\n", recvd_messages); 
   return 0; 
@@ -176,3 +174,16 @@ int test_handshake  (const std::vector<std::string>& args) {
 //         node.handshake()
 
 }
+
+
+int test_serialize  (const std::vector<std::string>& args) {
+  FN_SCOPE (); 
+
+    // def test_serialize(self):
+    //     block_hex = '0000000000000000001237f46acddf58578a37e213d2a6edc4884a2fcad05ba3'
+    //     gh = GetHeadersMessage(start_block=bytes.fromhex(block_hex))
+    //     self.assertEqual(gh.serialize().hex(), '7f11010001a35bd0ca2f4a88c4eda6d213e2378a5758dfcd6af437120000000000000000000000000000000000000000000000000000000000000000000000000000000000')
+
+  return 0;
+}
+

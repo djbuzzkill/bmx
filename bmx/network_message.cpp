@@ -58,7 +58,7 @@ uint64 bmx::Network::Message::SizeOf (const bmx::Network::Message::Version& vers
 
 //
 bmx::Network::Message::Version& bmx::Network::Message::Default (bmx::Network::Message::Version& msg) {
-  FN_SCOPE (); 
+  // FN_SCOPE (); 
   msg.version = 70015;
   msg.services = 0;
 
