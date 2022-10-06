@@ -124,13 +124,14 @@ namespace bmx {
     }
     
     // ---------------------------------------------------------
-    //
+    // MessageCB, mebe name Receiver?
     // ---------------------------------------------------------
-    struct MessageCB {
+    struct MessageCB { 
 
-      virtual void Do (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) = 0; 
-      virtual void Do (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) = 0; 
-      virtual void Do (const Message::Pong&    msg, const Envelope::Struc& ne, bool mainnet) = 0; 
+      // change name?? OnReceive ??
+      virtual void Do (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void Do (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void Do (const Message::Pong&    msg, const Envelope::Struc& ne, bool mainnet) {} 
 
     protected: 
       MessageCB () = default;

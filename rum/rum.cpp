@@ -39,8 +39,11 @@ namespace rum {
 
 
 #include "test/misc.cpp"
+//#include "test/node_talk.cpp"
+//
 
-#include "test/node_talk.cpp"
+// bmx/test/test_network
+int test_handshake  (const std::vector<std::string>& args); 
 
 // -----------------------------------------
 int main (int argv, char** argc) {
@@ -56,8 +59,8 @@ int main (int argv, char** argc) {
   //test_message_version_defaults (args); 
   // test_node_talk (args); 
   // test_node_connection (args); 
-  test_node_obj (args); 
-
+  //test_node_obj (args); 
+  test_handshake (args); 
   //  return testres;
 }
 

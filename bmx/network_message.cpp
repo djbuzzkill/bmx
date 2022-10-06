@@ -1,6 +1,7 @@
 
 #include "network.h"
 #include "aframe/hash.h"
+#include "utility.h"
 
 
 using namespace af;
@@ -111,11 +112,40 @@ uint64 bmx::Network::Message::Read (bmx::Network::Message::Version& ver, af::Rea
 
   uint64 readlen = 0; 
 
-  assert (false); 
-  // if !timestamp:
-  // timestamp int (time.time())
+  std::array<byte, 256> buf ; 
+  
+  readlen += rs->Read (&ver.version, sizeof(uint32)); 
+  readlen += rs->Read (&ver.services, 8); 
+  readlen += rs->Read (&ver.timestamp, 8);
 
-  return 0; 
+  readlen += rs->Read (&ver.receiver_services, 8); 
+  // 00000000000000000000ffff 
+  readlen += rs->Read (&buf, 10 + 2);
+  readlen += rs->Read (&ver.receiver_IP,  4);
+  readlen += rs->Read (&ver.receiver_port, 2);
+  swap_endian <uint16>(&ver.receiver_port);
+
+  readlen += rs->Read (&ver.sender_services, 8); 
+  // 00000000000000000000ffff 
+  readlen += rs->Read (&buf, 10 + 2); 
+  readlen += rs->Read (&ver.sender_IP,  4);
+  readlen += rs->Read (&ver.sender_port, 2); 
+  swap_endian <uint16>(&ver.sender_port); 
+
+  
+  readlen += rs->Read (&ver.nonce, sizeof (uint64)); 
+
+  uint64 user_agent_len = 0;
+  util::read_varint (user_agent_len, rs);
+
+  ver.user_agent.resize (user_agent_len); 
+  readlen += rs->Read (&ver.user_agent[0], user_agent_len);
+  printf ( "    user_agent[%s] \n", af::to_string (ver.user_agent).c_str ()); 
+
+  readlen += rs->Read (&ver.latest_block, sizeof(uint32));
+  readlen += rs->Read (&ver.relay, sizeof sizeof(uint8)); 
+
+  return readlen; 
 }
 
 // ---------------------------------------------------------------------

@@ -83,23 +83,96 @@ int test_version_message (const std::vector<std::string>& args) {
   msgver.nonce = 0;     // testbin
 
   bmx::Network::Message::Write (CreateWriteMemStream (&writebin[0], writebin.size ()), msgver); 
-
+ 
   PR_CHECK ( "message ver's match" , eql (testbin, writebin)); 
 
   return 0;
   
 }
 
+
+
+//
+// 
+struct Simple : public bmx::Network::MessageCB, public af::destructor {
+  
+  Simple (const std::string& addr, bool mainnet, bool logging)
+    : got_vers(false)
+    , got_verack (false) {
+  }
+
+  virtual ~Simple () {
+  }
+
+  // change name?? OnReceive ??
+  virtual void Do (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+    got_verack = true; 
+    printf ("    --> Simple Received VerAck message\n"); 
+  }
+
+  virtual void Do (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+    got_vers = true;
+    printf ("    --> Simple Received Version message, mebe shud respd \n"); 
+
+  }
+
+  bool ReceivedVersion () { return got_vers; } 
+
+  bool ReceivedVerack () { return got_verack; }   
+protected:
+
+  bool got_vers;
+  bool got_verack;
+  
+  Simple () = default;
+
+};
+
+
 //
 //
 int test_handshake  (const std::vector<std::string>& args) {
 
-// class SimpleNodeTest(TestCase):
+  using namespace bmx; 
+
+  const bool mainnet = false; 
+  const std::string transport = "tcp://"; 
+  const std::string sURL      = "testnet.programmingbitcoin.com"; 
+  const std::string port_num  = mainnet ? ":8333" : ":18333";
+
+  int create_flags = 0; 
+  std::string address = transport + sURL + port_num;
+  af::conn_ref conn = af::Create_TCP_Connection (address, create_flags);
+
+  
+  std::shared_ptr<Simple> simple = std::make_shared<Simple> (address, mainnet, false);
+  
+  Network::Message::Version  vers;
+  network_envelope           ne_w;
+  Network::Envelope::Payload (ne_w, Network::Message::Default (vers), mainnet);
+
+
+  // >> SEND
+  int sendflags = 0;
+  int sendlen = Network::Envelope::Send (conn, ne_w, sendflags);  
+
+  // << RECV 
+  int recvflags = 0; connection::RF_dont_wait;
+  int recvd_messages = 0; 
+  // while ( !simple->ReceivedVersion ()) { 
+  while ( !simple->ReceivedVerack() ) { 
+    int recvlen = Network::Envelope::Recv (simple.get(), conn, mainnet, recvflags); 
+    recvd_messages++; 
+  }
+
+
+
+  
+  printf ("   received messages [%i]\n", recvd_messages); 
+  return 0; 
 
 //     def test_handshake(self):
 //         node = SimpleNode('testnet.programmingbitcoin.com', testnet=True)
 //         node.handshake()
-
-  return 0; 
 
 }

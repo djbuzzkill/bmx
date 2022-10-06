@@ -435,7 +435,8 @@ struct Simple : public bmx::Network::MessageCB, public af::destructor {
 
   
   Simple (const std::string& addr, bool mainnet, bool logging)
-    : got_vers(false) 
+    : got_vers(false)
+    , got_verack (false)
   {
 	
         /* def __init__(self, host, port=None, testnet=False, logging=False): */
@@ -459,30 +460,32 @@ struct Simple : public bmx::Network::MessageCB, public af::destructor {
 
   virtual void Do (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     FN_SCOPE (); 
-    printf ("    Received VerAck message"); 
+    got_verack = true; 
+    printf ("    Received VerAck message\n"); 
   }
 
   
   virtual void Do (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     FN_SCOPE ();
     got_vers = true; 
-    printf ("    Received Version message"); 
+    printf ("    Received Version message\n"); 
 
   }
 
   
   virtual void Do (const bmx::Network::Message::Pong&   msg, const bmx::Network::Envelope::Struc& ne, bool mainnet)  {
     FN_SCOPE (); 
-    printf ("    Received Pong message"); 
+    printf ("    Received Pong message\n"); 
   }
 
 
   bool ReceivedVersion () { return got_vers; } 
 
-  
+  bool ReceivedVerack () { return got_verack; }   
 protected:
 
   bool got_vers;
+  bool got_verack;
   
   Simple () = default;
 
@@ -532,7 +535,8 @@ int test_node_obj (const std::vector<std::string> &args) {
   
   int recvflags = 0; connection::RF_dont_wait;
   int recvd_messages = 0; 
-  while ( !simple->ReceivedVersion () ) { 
+  // while ( !simple->ReceivedVersion ()) { 
+  while ( !simple->ReceivedVerack() ) { 
   
     int recvlen = Network::Envelope::Recv (simple.get(), conn, mainnet, recvflags); 
     recvd_messages++; 

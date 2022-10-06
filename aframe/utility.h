@@ -37,6 +37,22 @@ namespace af
   }
 
   //
+  inline std::string& to_string (std::string& s, const bytearray& bytes) {
+
+    s.clear();
+
+    for (auto e : bytes) 
+      s += std::to_integer<char> (e);
+
+      return s ; 
+  }
+  //
+  inline std::string to_string (const bytearray& bytes) {
+    std::string s; 
+    return to_string (s, bytes); 
+  }
+
+  //
   size_t SizeOf_file (const std::string& fq);
 
   //
@@ -49,7 +65,6 @@ namespace af
       if (0 == std::fseek (sp.get(), 0, SEEK_END)) 
 	return  std::ftell (sp.get()); 
     }
-    
     return 0; 
   }
 

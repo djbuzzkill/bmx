@@ -44,6 +44,9 @@ target_link_libraries (mtool
   gcrypt
   gmp
   gmpxx
+
+
+  zmq
   #ssl
   #crypt 
   # crypto++

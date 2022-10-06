@@ -27,7 +27,7 @@ struct _zmq_tcp_conn_00 : public af::connection {
 }; 
 
 _zmq_tcp_conn_00::_zmq_tcp_conn_00 (const char* addr, int flags) : ctx(zmq_ctx_new()), sock (zmq_socket(ctx, ZMQ_STREAM)), routingID(), buf(8 * 1024, byte(0)) {
-  FN_SCOPE();
+  //FN_SCOPE();
   
   assert (sock); 
   int connres = zmq_connect (sock, addr); 
@@ -119,7 +119,7 @@ int _zmq_tcp_conn_00::Send (const void *dat, int sendsize, int sflags) {
 
 //
 int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
-  FN_SCOPE ();
+  // FN_SCOPE ();
 
   // int optval = -1; 
   // size_t optsize = sizeof(optval); 
