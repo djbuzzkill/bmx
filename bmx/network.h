@@ -137,18 +137,10 @@ namespace bmx {
     };
     
     // ---------------------------------------------------------
-    // not quite anything here yet
+    // 
     // ---------------------------------------------------------
-    namespace Node { 
-      // 
-      struct Base {
-	virtual int Send () = 0; 
-	virtual int Recv () = 0; 
-	virtual int WaitFor () = 0;
-	
-      protected:
-	Base () = default; 
-      };
+    namespace Node {
+      // a node is free form atm, if u talk 2 a node, u r a node 
     }
 
     // ---------------------------------------------------------
@@ -160,14 +152,12 @@ namespace bmx {
   } // Network 
 
   // ---------------------------------------------------------
-  //
+  // 
   // ---------------------------------------------------------
   typedef Network::Envelope::Struc  network_envelope;
-  //  typedef Network::Node::Simple     simple_node; 
   typedef Network::Message::Version message_version; 
-
   typedef Network::MessageReceiver  netmessage_cb;
   
-  }
+}
 
 #endif 

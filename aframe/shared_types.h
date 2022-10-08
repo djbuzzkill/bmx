@@ -59,6 +59,13 @@ namespace af
   protected:
     destructor () = default;
   }; 
+
+  // ---------------------------------------------------
+  //
+  // ---------------------------------------------------
+  void log_error (const char* str); 
+  void log_warn  (const char* str); 
+  void log_info  (const char* str);
   
 }
 

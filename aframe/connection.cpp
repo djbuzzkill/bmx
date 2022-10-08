@@ -133,7 +133,9 @@ int _zmq_tcp_conn_00::Recv (void* dat, int rbufsize, int rflags) {
   int recv0len = zmq_msg_recv(&msg0, sock, flags);
   //printf ("     msg 0 len [%i] \n", recv0len);
 
-  bool is_sz_eq = (recv0len == routingID.size ()); 
+  bool is_sz_eq = recv0len == routingID.size () ;
+
+  
   bytearray dat0 (recv0len, byte(0));
   memcpy (&dat0[0], zmq_msg_data(&msg0), recv0len);
   

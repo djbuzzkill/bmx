@@ -93,7 +93,7 @@ int test_version_message (const std::vector<std::string>& args) {
 
 
 //
-// 
+//
 struct Simple : public bmx::netmessage_cb, public af::destructor {
   
   Simple (const std::string& addr, bool mainnet, bool logging)
@@ -107,12 +107,12 @@ struct Simple : public bmx::netmessage_cb, public af::destructor {
   // change name?? OnReceive ??
   virtual void Rcvd (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_verack = true; 
-    printf ("    --> Simple Received VerAck message\n"); 
+    printf ("    --> Simple Received [VerAck] message\n"); 
   }
 
   virtual void Rcvd (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_vers = true;
-    printf ("    --> Simple Received Version message, mebe shud respd \n"); 
+    printf ("    --> Simple Received [Version] message, mebe shud respd \n"); 
 
   }
 
@@ -143,18 +143,16 @@ int test_handshake (const std::vector<std::string>& args) {
   int create_flags = 0; 
   std::string address = transport + sURL + port_num;
   af::conn_ref conn = af::Create_TCP_Connection (address, create_flags);
-
   
   std::shared_ptr<Simple> simple = std::make_shared<Simple> (address, mainnet, false);
-  
+
+  //
+  // >> SEND
   Network::Message::Version  vers;
   network_envelope           ne_w;
   Network::Envelope::Payload (ne_w, Network::Message::Default (vers), mainnet);
-
-
-  // >> SEND
   int sendflags = 0;
-  int sendlen = Network::Envelope::Send (conn, ne_w, sendflags);  
+  int sendlen   = Network::Envelope::Send (conn, ne_w, sendflags);  
 
   // << RECV 
   int recvflags = 0; connection::RF_dont_wait;
@@ -164,17 +162,13 @@ int test_handshake (const std::vector<std::string>& args) {
     int recvlen = Network::Envelope::Recv (simple.get(), conn, mainnet, recvflags); 
     recvd_messages++; 
   }
-
   
   printf ("   received messages [%i]\n", recvd_messages); 
-  return 0; 
-
-//     def test_handshake(self):
-//         node = SimpleNode('testnet.programmingbitcoin.com', testnet=True)
-//         node.handshake()
-
+  return 0;
+  // def test_handshake(self):
+  //     node = SimpleNode('testnet.programmingbitcoin.com', testnet=True)
+  //     node.handshake()
 }
-
 
 int test_serialize  (const std::vector<std::string>& args) {
   FN_SCOPE (); 

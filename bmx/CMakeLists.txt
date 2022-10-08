@@ -20,6 +20,7 @@ set (BMX_SOURCES
   network_message.cpp
   network_envelope.cpp
   network_node.cpp
+  merkle_block.cpp
   )
 
 set (BMX_HEADERS
@@ -33,6 +34,7 @@ set (BMX_HEADERS
   script.h
   block.h
   network.h
+  merkle_block.h
   )
 
 add_library (bmx

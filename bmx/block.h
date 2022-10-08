@@ -15,7 +15,7 @@ namespace bmx {
   //
   namespace Block {
 
-    struct Struc {
+    struct Struc { 
       uint32   version;
       byte32   prev_block; 
       byte32   merkleroot;
@@ -24,9 +24,10 @@ namespace bmx {
       uint32   nonce; 
     };
 
-    //
+    // IO 
     uint64    Read             (Struc &oblk, af::ReadStreamRef rs); 
     uint64    Write            (af::WriteStreamRef ws, const Struc &oblk);
+    //
     digest32& Hash             (digest32& out, const Struc &oblk);
     fixnum32& Target           (fixnum32&, const Struc &oblk);
     fixnum32& Difficulty       (fixnum32&, const Struc &oblk); 
@@ -34,12 +35,13 @@ namespace bmx {
     bool      CheckPoW         (const Struc& blk); 
 
     // test capability of block
-    namespace Cap {
-
+    namespace Cap
+    { 
       bool bip9   (const Struc& blk); 
       bool bip91  (const Struc& blk); 
-      bool bip141 (const Struc& blk); 
+      bool bip141 (const Struc& blk);
     }
+
   }
 
   //

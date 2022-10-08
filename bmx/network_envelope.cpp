@@ -144,10 +144,11 @@ int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref con
   recv_state next_state = rs_read_env_prim;
 
   while (true) {
-    //printf ("   cur state [%i]\n", cur_state) ; 
-    switch (cur_state)  {
+    //printf ("   cur state [%i]\n", cur_state);
+    switch (cur_state) {
+    //
     // rs_recv_bytes -------------------------------------
-    case rs_recv_bytes:  {
+    case rs_recv_bytes: {
       
       int r = conn->Recv (&buf[accum_recv_len], bufsize - accum_recv_len , flags);
       //printf ("    rs_recv_bytes[%i]\n" , r);
@@ -156,8 +157,8 @@ int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref con
       cur_state = next_state;
       next_state = rs_limbo; 
       
-    } break;
-
+    } break; // case
+    //
     // rs_read_env_prim, read most of the ne, not payload
     case rs_read_env_prim: {
 
@@ -199,9 +200,8 @@ int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref con
 	next_state = rs_limbo;
       }
       
-
-    } break;
-
+    } break; // case 
+   //
    // rs_read_env_final
    case rs_read_env_final: {
 
@@ -260,7 +260,8 @@ int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref con
        return accum_recv_len; 
      } 
      
-   } break;
+   } break; // case
+
     } // switch 
   }
     
