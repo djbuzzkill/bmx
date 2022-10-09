@@ -278,10 +278,12 @@ std::string& bmx::Network::Envelope::Format (std::string& str, const bmx::Networ
 
   printf ( "    fmt command size[%zu]\n",   enve.command.size ()); 
 
-  str = std::string ("Envelope {\n")
-  + "  command {" + hex::encode (s0, &enve.command[0], enve.command.size()) + "}\n"
+  std::string cmd_s = af::to_string (enve.command); 
+  
+  str = std::string( "Envelope {\n")
+  + "  command { \'" + cmd_s + "\' }\n"
   + "  payload {" + hex::encode (s1, &enve.payload[0], enve.payload.size()) + "}\n"
-  + "  magic {" +   hex::encode (s2, &enve.magic     , sizeof (uint32))     + "}\n"
+  + "  magic { 9x" +   hex::encode (s2, &enve.magic     , sizeof (uint32))     + "}\n"
   +  "}\n";
 
   return str; 

@@ -47,13 +47,20 @@ int test_zmq (const std::vector<std::string> &args) {
 }
 
 
+// bmx/test 
+int test_merkle (const std::vector<std::string> &args); 
+
 // -----------------------------------------
 int main (int argv, char** argc) {
   
   std::vector<std::string> args (argc, argc + argv);
 
-  return test_zmq (args);
-
+  // test_std_math (args); 
+  test_merkle (args);
+  
+  
+  return 0 ;
+    
   }
 
 

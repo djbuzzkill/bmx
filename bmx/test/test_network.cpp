@@ -106,13 +106,20 @@ struct Simple : public bmx::netmessage_cb, public af::destructor {
 
   // change name?? OnReceive ??
   virtual void Rcvd (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
-    got_verack = true; 
-    printf ("    --> Simple Received [VerAck] message\n"); 
+    got_verack = true;
+
+    std::string ne_str; 
+    bmx::Network::Envelope::Format (ne_str, ne); 
+    printf ("    --> Simple Received message\n:%s", ne_str.c_str()); 
   }
 
   virtual void Rcvd (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_vers = true;
-    printf ("    --> Simple Received [Version] message, mebe shud respd \n"); 
+
+    std::string ne_str; 
+    bmx::Network::Envelope::Format (ne_str, ne);
+    printf ("    --> Simple Received message\n:%s", ne_str.c_str()); 
+
 
   }
 

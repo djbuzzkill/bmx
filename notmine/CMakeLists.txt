@@ -30,14 +30,16 @@ add_executable (notmine
 #
 target_link_libraries (notmine
 
-  crypt
-  dl
-  m
-  gmp
-#  gmpxx		      
-  aframe 	      
-  ffm		      
   bmx
+  curl	  
+  ffm
+  aframe
+  
+  gcrypt
+  gmp
+  gmpxx
+
+
   zmq
 )
 
