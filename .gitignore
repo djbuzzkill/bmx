@@ -38,3 +38,5 @@ install_manifest.txt
 **/Release
 build.x64.vs2013/test_Balls/test_Balls.vcxproj.user
 *.vp
+*.cpp~
+*.h~
