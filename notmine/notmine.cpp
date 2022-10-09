@@ -35,7 +35,7 @@ int test_zmq (const std::vector<std::string> &args) {
     printf ("Received Hello\n");
     //    sleep (1);          //  Do some 'work'
     zmq_send (sock, "World", 5, 0);
-  }
+    }
 
 
     bmx::OpCode op = bmx::OP_DUP; 

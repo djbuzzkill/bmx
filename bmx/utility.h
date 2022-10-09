@@ -31,8 +31,8 @@ namespace bmx {
   typedef af::bigint32  bigint32 ;
   typedef af::fixnum32  fixnum32 ;
 
-
-  
+  typedef std::vector<int32>    nodearray;
+  typedef std::vector<digest32> hasharray;
   
   constexpr std::uint32_t SIGHASH_ALL    = 1; 
   constexpr std::uint32_t SIGHASH_NONE   = 2; 

@@ -11,49 +11,54 @@ namespace bmx {
   namespace MerkleTree {
 
     const int32 k_nil_node = ~0x0; 
-    // 
     // values of node_array (int32) represent
     //  | = hash ref 
     //  | = nil
-    // hash reference or a nil value (!exists)
-    typedef std::vector<int32>    node_array;
-    // this is where we keep hashes
-    typedef std::vector<digest32> hash_array;
-    //
+    
     struct Struc {
-
       int32      total;
       int32      max_depth;
-      node_array nodes;
-      hash_array hbukkit;
+      nodearray nodes;
+      hasharray hbukkit;
     };
     //
     Struc&      Init     (Struc& mt, int32 total) ;
-    std::string Format   (const Struc& mt) ;
-    Struc&      Populate (Struc& mt, const bytearray& bits, const hash_array& hashes); 
+    Struc&      Populate (Struc& mt, const bytearray& bits, const hasharray& hashes); 
+    // 
+    std::string&       Format (std::string& os, const Struc& mt) ;
+    inline std::string Format (const Struc& mt) {
+      std::string ret = "";  return Format  (ret, mt);
+    }
 
     //
     namespace Node {
-     // just keep inds of nodes 
+      // just keep inds of nodes 
       inline int32        Root        () { return 1; }
       inline int32        Depth       (int32 ind) { return std::log2(ind); }
       inline int32        Parent      (int32 ind) { return (ind / 2); }
       inline int32        LeftChild   (int32 ind) { return (ind * 2); }
       inline int32        RightChild  (int32 ind) { return (ind * 2) + 1; }
-
-
-      inline int32 RightChildExists (const Struc& mt, int32 ind) {
-	auto num_items = std::ceil (mt.total / (1 << (mt.max_depth - Depth(ind)))); 
-        return num_items  > RightChild (ind); 
+      inline bool         IsLeaf      (const Struc& mt, int32 ind) { return mt.max_depth == Depth (ind); }
+      // num nodes per depth level
+      inline int32 num_nodes (const Struc& mt, int32 depth) {
+        return  std::ceil (mt.total / std::pow (2, mt.max_depth - depth));
       }
-
+      // 
+      inline bool RightChildExists (const Struc& mt, int32 ind) {
+	
+	if (IsLeaf (mt, ind))
+	  return false;
+	
+	int32 rchild = RightChild (ind); 
+	
+	int32 depth = Depth (rchild);
+	int32 diff  = rchild - (1 << depth); 
+	return diff < num_nodes (mt, depth); 
+      }
 	  
-      //      inline bool         Exists      (const Struc& mt, int32 ind) { return (mt.nodes[ind] != k_nil_node); }
-      inline bool         IsLeaf      (const Struc& mt, int32 ind) { return mt.max_depth == std::log2 (ind); } 
       inline int32&       Val         (Struc &mt, int32 ind) { return mt.nodes[ind]; }
       inline const int32& Val         (const Struc &mt, int32 ind) { return mt.nodes[ind]; }
-      // inline int32        Right       (int32 ind) { return (Depth (ind) == Depth (ind + 1) ? (ind + 1) : k_nil_node); }
-      // inline int32        Left        (int32 ind) { return (Depth (ind) == Depth (ind - 1) ? (ind - 1) : k_nil_node); }
+
     } // MerkleTree::Node 
   } // MerkleTree
 

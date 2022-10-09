@@ -20,6 +20,7 @@ set (BMX_SOURCES
   network_message.cpp
   network_envelope.cpp
   network_node.cpp
+  merkle_tree.cpp
   merkle_block.cpp
   )
 
