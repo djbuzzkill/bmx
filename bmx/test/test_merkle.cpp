@@ -55,7 +55,6 @@ int test_merkle_tree_populate_1(const std::vector<std::string> &args) {
   digest32 wantroot;
   copy_BE (wantroot, rootbin);
 
-  PR("55"); 
   // get hash
   digest32 roothash; 
   PR_CHECK("root hash calc'd", MerkleTree::Node::Hash (roothash, mt, MerkleTree::Node::Root())); 
@@ -93,6 +92,51 @@ int test_merkle_tree_populate_1(const std::vector<std::string> &args) {
 
 //
 int test_merkle_tree_populate_2(const std::vector<std::string> &args) {
+
+  const char*  hex_hashes[] = {
+    "42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e",
+    "94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4",
+    "959428d7c48113cb9149d0566bde3d46e98cf028053c522b8fa8f735241aa953",
+    "a9f27b99d5d108dede755710d4a1ffa2c74af70b4ca71726fa57d68454e609a2",
+    "62af110031e29de1efcad103b3ad4bec7bdcf6cb9c9f4afdd586981795516577",
+  }; 
+
+  const size_t num_hashes = sizeof(hex_hashes) / sizeof(char*); 
+
+  merkletree mt;
+  Init (mt, num_hashes);
+
+  bytearray flag_bits (11, byte{1}); 
+  hasharray hashes    (num_hashes);
+  //
+  for (int32 i = 0; i < num_hashes; ++i) {
+    bytearray bytes;
+    std::string hexs = hex_hashes[i];
+
+    printf ("   hexs(%i):%s\n", i, hexs.c_str()); 
+    hex::decode (bytes, hexs); 
+  
+    copy_BE (hashes[i], hex::decode (bytes, hexs));
+  }
+
+  Populate (mt, flag_bits, hashes);
+  
+  const std::string want_root_hex = "a8e8bd023169b81bc56854137a135b97ef47a6a7237f4c6e037baed16285a5ab"; 
+  bytearray want_root_hash;
+  hex::decode (want_root_hash, want_root_hex); 
+
+  digest32 want_hash; 
+  copy_BE(want_hash, want_root_hash); 
+  
+
+  digest32 root_hash; 
+  PR_CHECK("root hash calc'd", MerkleTree::Node::Hash (root_hash, mt, MerkleTree::Node::Root())); 
+  PR_CHECK("pop2 root eql", want_hash == root_hash); 
+
+
+
+
+
 
   return 0;   
 }

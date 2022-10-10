@@ -13,9 +13,10 @@ MerkleTree::Struc& MerkleTree::Init (Struc& mt, int32 total) {
   mt.total     = total;
   mt.max_depth = std::ceil(std::log2 (total)); 
   //
-  // * total+1 b/c, index starts at 1 for binary tree to work
-  mt.nodes.resize (std::pow (2, mt.max_depth + 1) + 1, k_node_nil); 
-  // * pow+1 b/c, index starts at 1 for binary tree to work
+  // always allocate full tree, indexing depends on it
+  mt.nodes.resize (std::pow (2, mt.max_depth + 1) + 1, MerkleTree::Node::kNIL); 
+  // * pow1 b/c, index starts at 1..(1-based)
+  // * pow+1 b/c, index starts at 1..(1-based)
   return mt; 
 }
 
@@ -34,8 +35,7 @@ MerkleTree::Struc& MerkleTree::Populate (Struc& mt, const bytearray& bits, const
   int32 bit_ind  = 0;
 
   mt.shbukkit.resize (hashes.size() + 8 * bits.size());
-
-  printf("    flag_bits(%zu), hashes(%zu), bukkit(%zu)\n", bits.size(), hashes.size(), mt.shbukkit.size()); 
+  //printf("    flag_bits(%zu), hashes(%zu), bukkit(%zu)\n", bits.size(), hashes.size(), mt.shbukkit.size()); 
 
   // copy into begining of bukkit
   for (auto i = 0; i < hashes.size (); ++i) {
@@ -49,61 +49,56 @@ MerkleTree::Struc& MerkleTree::Populate (Struc& mt, const bytearray& bits, const
 
   int32 curnode = MerkleTree::Node::Root (); 
   // start at the top
-  while ( mt.nodes[curnode] == kNIL ) {
-   printf ("looP,node[%i], shid[%i], newsh[%i], bit_ind[%i]\n", curnode, shind, newsh, bit_ind); 
+  while ( mt.nodes[curnode] == MerkleTree::Node::kNIL ) {
+  //printf ("looP,node[%i], shid[%i], newsh[%i], bit_ind[%i]\n", curnode, shind, newsh, bit_ind); 
 
    if (MerkleTree::Node::IsLeaf (mt, curnode)) {
-   puts ( " is leaef\n"); 
+   //puts ( " is leaef\n"); 
       bit_ind++;
       mt.nodes[curnode] = shind++; // u git next hash
       curnode = MerkleTree::Node::Parent (curnode);
     }
     else {
-    puts ( " not leaef\n");
     int32 lchild_val = mt.nodes[MerkleTree::Node::LeftChild(curnode)]; // MerkleTree::Node::hash(mt, MerkleTree::Node::LeftChild(curnode));
-    puts ( " not leaef\n");
-      if (lchild_val == kNIL) {
+      if (lchild_val == MerkleTree::Node::kNIL) {
         if (bits[bit_ind++] == b00) {
-          puts("63");
 	  mt.nodes[curnode] = shind++; // u get next hash
 	  curnode = MerkleTree::Node::Parent (curnode);
         }
 	else {
-	   puts ("69"); 
 	   curnode = MerkleTree::Node::LeftChild(curnode);
-	   puts ("70"); 
         }
       }
       else if (MerkleTree::Node::RightChildExists (mt, curnode)) { 
 	int32 rchild_val = mt.nodes[MerkleTree::Node::RightChild (curnode)]; 
-	if (rchild_val == kNIL) {
+	if (rchild_val == MerkleTree::Node::kNIL) {
 	  curnode = MerkleTree::Node::RightChild(curnode); 
 	}
         else {
 
 	  std::array<byte, 64> bytes;
 	  int32 hash_ind = mt.nodes[curnode] = newsh++;  // put in bukkit
-         printf (" HASH_LR, hash_ind[%i]", hash_ind); 
+         //printf (" HASH_LR, hash_ind[%i]", hash_ind); 
 	  WriteStreamRef ws = af::CreateWriteMemStream (&bytes, 64);
 	  ws->Write (&mt.shbukkit[lchild_val], 32); 
 	  ws->Write (&mt.shbukkit[rchild_val], 32);
 	  // hashit 
           af::hash256 (mt.shbukkit[hash_ind], &bytes, 64); 
 	  curnode = MerkleTree::Node::Parent (curnode); 
-         printf (" ..done\n"); 
+	  //printf (" ..done\n"); 
 	}
       }
       else {
 	std::array<byte, 64> bytes;
 	int32 hash_ind = mt.nodes[curnode] = newsh++; 
-	printf (" HASH_LL, hash_ind[%i]", hash_ind); 
+	//printf (" HASH_LL, hash_ind[%i]", hash_ind); 
 	WriteStreamRef ws = af::CreateWriteMemStream (&bytes, 64);
 	ws->Write (&mt.shbukkit[lchild_val], 32); 
 	ws->Write (&mt.shbukkit[lchild_val], 32); 
 	// hashit 
 	af::hash256 (mt.shbukkit[hash_ind], &bytes, 64); 
 	curnode = MerkleTree::Node::Parent (curnode);
-         printf ("..done\n"); 
+	//printf ("..done\n"); 
       }
     }
   }

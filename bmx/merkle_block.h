@@ -9,12 +9,7 @@
 namespace bmx {
 
   namespace MerkleTree {
-
-    const int32 kNIL      = ~0x0; 
-    const int32 k_node_nil = kNIL; 
-    // values of nodearray (int32) represent
-    //  | = index into hash bukkit  
-    //  | = nil
+    //  
     struct Struc {
       int32      total;
       int32      max_depth;
@@ -32,6 +27,11 @@ namespace bmx {
 
     //
     namespace Node {
+
+      // values of nodearray (int32) represent
+      //  | = index into hash bukkit  
+      //  | = nil
+      const int32 kNIL      = ~0x0; 
       // just keep inds of nodes 
       inline int32 Root        () { return 1; }
       inline int32 Depth       (int32 ind) { return std::log2(ind); }
@@ -53,14 +53,6 @@ namespace bmx {
 	return diff < num_nodes (mt, depth); 
       }
 	  
-      /* inline int32& hash (Struc &mt, int32 ind) { */
-      /* 	return mt.nodes[ind]; */
-      /* } */
-      /* //  */
-      /* inline const int32& hash (const Struc &mt, int32 ind) { */
-      /* 	return mt.nodes[ind]; */
-      /* } */
-
       // get hash if exists
       inline bool Hash (digest32& out, const Struc& mt, int32 ind) {
 	if (mt.nodes[ind] != kNIL) {
