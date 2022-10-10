@@ -25,17 +25,42 @@ int test_merkle_tree_populate_1(const std::vector<std::string> &args) {
   printf ("   num_hashes: %i\n", num_hashes);
 
   hasharray hashes (num_hashes);
-
+  bytearray bits (31, byte{1});
+  //
   for (int32 i = 0; i < num_hashes; ++i) {
     bytearray bytes;
     std::string hexs = hex_hashes[i];
 
-    printf ("   hexs:%s\n", hexs.c_str()); 
+    printf ("   hexs(%i):%s\n", i, hexs.c_str()); 
     hex::decode (bytes, hexs); 
   
     copy_BE (hashes[i], hex::decode (bytes, hexs));
   }
-  
+  printf (" wat \n");
+
+
+  merkletree mt;
+
+  Init (mt, hashes.size ());
+  printf ( "    merkle:\n%s\n",   MerkleTree::Format (mt).c_str ());
+
+  Populate (mt, bits, hashes);
+  printf (" wat \n");
+
+  std::string want_hex = "597c4bafe3832b17cbbabe56f878f4fc2ad0f6a402cee7fa851a9cb205f87ed1";
+
+  bytearray rootbin;
+  hex::decode (rootbin, want_hex);
+
+  digest32 wantroot;
+  copy_BE (wantroot, rootbin);
+
+  PR("55"); 
+  // get hash
+  digest32 roothash; 
+  PR_CHECK("root hash calc'd", MerkleTree::Node::Hash (roothash, mt, MerkleTree::Node::Root())); 
+  PR_CHECK("root hash eql",  roothash == wantroot); 
+
   
   //   def test_populate_tree_1(self):
   //       hex_hashes = [

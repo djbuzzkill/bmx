@@ -42,7 +42,7 @@ bool MerkleBlock::IsValid (const MerkleBlock::Struc& mb) {
 
 
   return false; 
-  }
+}
 
 //
 //
