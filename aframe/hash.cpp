@@ -2,7 +2,7 @@
 #include "hash.h"
 #include "gcrypt.h"
 
-
+#include "utility.h"
 
 
 
@@ -36,15 +36,77 @@ static void local_init_gcry() {
 
 
 
+af::uint32 murmur3_x86_32 (const void* dat, af::uint32 len, af::uint32 seed) {
+ http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
+  using namespace af;
+
+  const uint32 c1 = 0xcc9e2d51; 
+  const uint32 c2 = 0x1b873593; 
+
+  const uint8* u8d = reinterpret_cast<const uint8*>(dat); 
+  
+  uint32 h1 = seed; 
+
+  uint32 k1, val; 
+  
+  uint32 rounded_end =  (len & 0xfffffffc);   // # round down to 4 byte block
+
+  for (uint32 i = 0; i < rounded_end; i+=4) {
+    // for i in range(0, roundedEnd, 4):
+    //   # little endian load order
+    k1 = (u8d[i] & 0xff) | ((u8d[i + 1] & 0xff) << 8) |  ((u8d[i + 2] & 0xff) << 16) | (u8d[i + 3] << 24); 
+    k1 *= c1;
+    k1 = (k1 << 15) | ((k1 & 0xffffffff) >> 17); // ROTL32(k1,15); 
+    k1 *= c2; 
+    
+    h1 ^= k1; 
+    h1 = (h1 << 13) | ((h1 & 0xffffffff) >> 19); // ROTL32(h1,13);
+    h1 = h1 * 5 + 0xe6546b64; 
+  }
 
 
+  // tail
+  k1  = 0;
+  val = len & 0x03;
+
+  // if val == 3:
+  if (val == 3) {
+    // k1 = (ord(data[roundedEnd + 2]) & 0xff) << 16
+    k1 = (u8d[rounded_end + 2] & 0xff) << 16; 
+  }
+  // if val in [2, 3]:
+  if (val == 2 || val == 3) {
+    // k1 |= (ord(data[roundedEnd + 1]) & 0xff) << 8
+    k1 |= (u8d[rounded_end + 1] & 0xff) << 8; 
+  }
+  // if val in [1, 2, 3]:
+  if (in_bounds_incl<uint32> (val, 1, 3)) {
+    k1 |= u8d[rounded_end] & 0xff; 
+    k1 *= c1; 
+    k1 = (k1 << 15) | ((k1 & 0xffffffff) >> 17); // ROTL32(k1,15)
+    k1 *= c2; 
+    h1 ^= k1; 
+  }
+  
+  // finalization
+  h1 ^= len; 
+
+  // fmix(h1)
+  h1 ^= ((h1 & 0xffffffff) >> 16); 
+  h1 *= 0x85ebca6b; 
+  h1 ^= ((h1 & 0xffffffff) >> 13); 
+  h1 *= 0xc2b2ae35; 
+  h1 ^= ((h1 & 0xffffffff) >> 16); 
+
+  return (h1 & 0xffffffff); 
+}
 
 
 
 //
 af::digest32& af::sha256 (digest32& out, const void* in, size_t lin) {
   //FN_SCOPE (); 
-
+ 
   // uint32 reqlen = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
   // printf ("    required length [%u]\n", reqlen); 
     
