@@ -22,6 +22,7 @@ set (BMX_SOURCES
   network_node.cpp
   merkle_tree.cpp
   merkle_block.cpp
+  bloom_filter.cpp
   )
 
 set (BMX_HEADERS
@@ -36,6 +37,7 @@ set (BMX_HEADERS
   block.h
   network.h
   merkle_block.h
+  bloom_filter.h
   )
 
 add_library (bmx
