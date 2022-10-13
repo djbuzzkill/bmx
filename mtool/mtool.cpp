@@ -149,6 +149,8 @@ void print_sig (const bmx::Signature& s) {
 #include "ch08_ex.cpp"
 #include "ch09_ex.cpp"
 #include "ch10_ex.cpp"
+#include "ch11_ex.cpp"
+#include "ch12_ex.cpp"
 
 
 // ----------------------- main --------------------------
@@ -170,6 +172,8 @@ int main (int argv, char** argc) {
   //CH8_Ex(args); 
   //CH9_Ex(args); 
   CH10_Ex(args); 
+  CH11_Ex(args); 
+  CH12_Ex(args); 
   
     // test_gcrypt (args);
   printf ("%s:EXIT\n", __FUNCTION__); 

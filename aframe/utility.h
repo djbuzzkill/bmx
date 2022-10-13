@@ -152,9 +152,17 @@ namespace af
     return to_bytes (bytes, seq); 
   }
   
+  template<typename Ty> 
+  inline std::string fmti (Ty i) { 
+
+    char chbuf[256];
+    sprintf (chbuf, "[dec:%u|hex:%x]", i, i);
+
+    return std::string(chbuf); 
+    
+  }
   
-  
-  //
+    //
   //
   template<typename Seq>
   inline void print_bytes (const Seq& seq) {
@@ -164,8 +172,8 @@ namespace af
 
   //
   //
-  template<typename Seq>
-  inline std::string fmthex(const Seq& seq) {
+  template<typename ByteSeq>
+  inline std::string fmthex(const ByteSeq& seq) {
 
     uint8 stride = 3;
     

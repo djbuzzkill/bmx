@@ -24,8 +24,6 @@ MerkleTree::Struc& MerkleTree::Init (Struc& mt, int32 total) {
 //
 MerkleTree::Struc& MerkleTree::Populate (Struc& mt, const bytearray& bits, const hasharray& hashes) {
 
-  FN_SCOPE ();
-
   const byte b00{0};
   const byte b01{1};
 
@@ -53,7 +51,6 @@ MerkleTree::Struc& MerkleTree::Populate (Struc& mt, const bytearray& bits, const
   //printf ("looP,node[%i], shid[%i], newsh[%i], bit_ind[%i]\n", curnode, shind, newsh, bit_ind); 
 
    if (MerkleTree::Node::IsLeaf (mt, curnode)) {
-   //puts ( " is leaef\n"); 
       bit_ind++;
       mt.nodes[curnode] = shind++; // u git next hash
       curnode = MerkleTree::Node::Parent (curnode);

@@ -100,14 +100,22 @@ namespace bmx {
    uint64 Read    (Struc& , af::ReadStreamRef rs, bool mainnet);
    uint64 Write   (af::WriteStreamRef ws, const Struc& mb, bool mainnet);
    
- }; 
+ } 
 
-
- //
  //
  typedef MerkleBlock::Struc merkleblock;
  typedef MerkleTree::Struc  merkletree;
 
- }
+  //
+  // merkle_ut
+  namespace merkle_ut {
+    
+    // expand  into flags
+    bytearray& bytes_to_bit_field (bytearray &oflags, const bytearray &bitfields);
+    // pack into bytes'n'bits
+    bytearray& bit_field_to_bytes (bytearray &obits, const bytearray &flags); 
+
+  } // merkle_util 
+} // bmx
 
 #endif

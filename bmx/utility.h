@@ -47,7 +47,7 @@ namespace bmx {
   }
 
 
-  
+  // script_ut
   namespace util {
 
     //

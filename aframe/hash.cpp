@@ -7,7 +7,7 @@
 
 
 
-
+using namespace af; 
 
 static void local_init_gcry() {
 
@@ -30,15 +30,16 @@ static void local_init_gcry() {
   /* Tell Libgcrypt that initialization has completed. */
   gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
 
-  
+
+  // wat is this for 
 }
 
 
-
-
-af::uint32 murmur3_x86_32 (const void* dat, af::uint32 len, af::uint32 seed) {
- http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
-  using namespace af;
+//
+//
+uint32 af::murmur3_x86_32 (const void* dat, uint32 len, uint32 seed) {
+  //
+  http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
 
   const uint32 c1 = 0xcc9e2d51; 
   const uint32 c2 = 0x1b873593; 
@@ -63,7 +64,6 @@ af::uint32 murmur3_x86_32 (const void* dat, af::uint32 len, af::uint32 seed) {
     h1 = (h1 << 13) | ((h1 & 0xffffffff) >> 19); // ROTL32(h1,13);
     h1 = h1 * 5 + 0xe6546b64; 
   }
-
 
   // tail
   k1  = 0;
