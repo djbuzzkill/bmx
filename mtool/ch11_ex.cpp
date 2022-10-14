@@ -6,7 +6,7 @@ int test_merkle_tree_populate_2(const std::vector<std::string>& args) ;
 int test_merkle_block_parse    (const std::vector<std::string>& args) ;
 int test_valid_merkle_block    (const std::vector<std::string>& args) ;
 
-
+int test_headers_message_parse (const std::vector<std::string>& args) ;
 //
 //
 int CH11_Ex (const std::vector<std::string>& args) {

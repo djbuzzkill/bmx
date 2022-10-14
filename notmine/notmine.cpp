@@ -1,19 +1,12 @@
 #include "notmine.h"
 
-#include "bmx/script.h"
+#include "zmq.h"
 
 
 using namespace af;
-
-
-
-
-
-    
 //
 //
 int test_zmq (const std::vector<std::string> &args) {
-
 
   // the abyss is a server 
   // 
@@ -65,18 +58,17 @@ int test_murmur(const std::vector<std::string> &args) {
 
 // bmx/test 
 int test_merkle (const std::vector<std::string> &args); 
+int test_bloom_filter(const std::vector<std::string> &args); 
 
 // -----------------------------------------
 int main (int argv, char** argc) {
   FN_SCOPE ();
-
-
   std::vector<std::string> args (argc, argc + argv);
 
   // test_std_math (args); 
-  test_merkle (args);
-  
-  test_murmur(args) ; 
+  // test_merkle (args);
+  // test_murmur(args) ; 
+  test_bloom_filter (args); 
   
   return 0 ;
     

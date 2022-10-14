@@ -90,6 +90,11 @@ int test_version_message (const std::vector<std::string>& args) {
   
 }
 
+int test_headers_message_parse (const std::vector<std::string>& args) ;
+int test_getheaders_message_parse (const std::vector<std::string>& args) ;
+int test_ping_message_parse (const std::vector<std::string>& args) ;
+int test_pong_message_parse (const std::vector<std::string>& args) ;
+int test_merkleblock_message_parse (const std::vector<std::string>& args) ;
 
 
 //
@@ -105,7 +110,7 @@ struct Simple : public bmx::netmessage_cb, public af::destructor {
   }
 
   // change name?? OnReceive ??
-  virtual void Rcvd (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void OnVerAck (const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_verack = true;
 
     std::string ne_str; 
@@ -113,7 +118,7 @@ struct Simple : public bmx::netmessage_cb, public af::destructor {
     printf ("    --> Simple Received message\n:%s", ne_str.c_str()); 
   }
 
-  virtual void Rcvd (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void OnVersion (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     got_vers = true;
 
     std::string ne_str; 

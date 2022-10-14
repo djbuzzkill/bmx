@@ -458,14 +458,14 @@ struct Simple : public bmx::netmessage_cb, public af::destructor {
   virtual ~Simple () {
   }
 
-  virtual void Rcvd (const bmx::Network::Message::VerAck& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void OnVerAck (const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     FN_SCOPE (); 
     got_verack = true; 
     printf ("    >> Received VerAck message\n"); 
   }
 
   
-  virtual void Rcvd (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
+  virtual void OnVersion (const bmx::Network::Message::Version& msg, const bmx::Network::Envelope::Struc& ne, bool mainnet) {
     FN_SCOPE ();
     got_vers = true; 
     printf ("    >> Received Version message\n"); 

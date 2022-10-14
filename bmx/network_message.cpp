@@ -192,16 +192,89 @@ uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const bmx::Network::
 
 
 
-// ---------------------------------------------------------------------
+// getheader
+uint64 bmx::Network::Message::Read (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet)  {
+  return 0;
+}
+
+uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet) {
+  return 0; }
+
+
+
+uint64  bmx::Network::Message::SizeOf (const bmx::Network::Message::GetHeaders& hdrs) {
+
+  return sizeof(uint32)      // version(4)
+    + util::SizeOf_varint(hdrs.num_hashes) // 
+    + sizeof(digest32)   // start_block;  // 32bytes
+    + sizeof(digest32);  // end_block;    // 32bytes
+
+  
+}
+
+
+
+
+#ifdef USE_BMX_MESSAGE_PING_IO_FNS
+
+
+// ping
+uint64 bmx::Network::Message::Read (Ping& msg, af::ReadStreamRef rs, bool mainnet) {
+  return rs->Read (&msg.nonce, sizeof(uint64)); 
+} 
+uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Ping& msg, bool mainnet)  {
+  return ws->Write (&msg.nonce, sizeof(uint64));
+  }
+
+#endif
+
+
+#ifdef USE_BMX_MESSAGE_PING_IO_FNS
+  // pong
+uint64 bmx::Network::Message::Read (Pong& msg, af::ReadStreamRef rs, bool mainnet) {
+  return rs->Read (&msg.nonce, sizeof(uint64));
+}
+
+uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Pong& msg, bool mainnet) {
+  return ws->Write (&msg.nonce, sizeof(uint64));
+}
+
+#endif
+
+
+
+#ifdef USE_BMX_MESSAGE_HEADERS_IO_FNS
 //
-// ---------------------------------------------------------------------
-uint64 bmx::Network::Message::Read  (Pong& msg, af::ReadStreamRef rs, bool mainnet) { return 0; } 
-uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Pong& msg, bool mainnet)  { return 0; } 
+// headers 
+uint64 bmx::Network::Message::Read  (Headers& msg, af::ReadStreamRef rs, bool mainnet)  {
+  uint64 readlen = 0; 
 
-uint64 bmx::Network::Message::Read  (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet)  { return 0; } 
-uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet) { return 0; } 
+  uint64 num_blocks = 0; 
+  readlen += util::read_varint (num_blocks, rs, "num_blocks"); 
 
-uint64 bmx::Network::Message::Read  (Headers& msg, af::ReadStreamRef rs, bool mainnet)  { return 0; } 
-uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Headers& msg, bool mainnet)  { return 0; }
+  msg.blocks.resize (num_blocks); 
+  for (auto i = 0; i < num_blocks; ++i) {
+    
+    readlen += Block::Read (msg.blocks[i], rs);
+
+    uint64 num_txs = 0; 
+    readlen += util::read_varint (num_txs, rs, "num_blocks"); 
+    if (num_txs != 0) {
+      printf ("ERROR : num_txs != 0"); 
+      return readlen; 
+    }
+    
+  }
+
+  return readlen; 
+}
+
+//
+uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Headers& msg, bool mainnet) {
+  uint64 writelen = 0; 
+
+  return writelen; 
+}
+#endif
 
 

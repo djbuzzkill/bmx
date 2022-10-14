@@ -62,24 +62,10 @@ bool MerkleBlock::IsValid (const MerkleBlock::Struc& mb) {
   digest32 roothash;
   if (MerkleTree::Node::Hash (roothash, mt, MerkleTree::Node::Root())) {
     std::reverse (&roothash[0], &roothash[32]); 
-    printf ( "Hash! block[%s]\ncompd[%s]\n", fmthex(mb.merkle_root).c_str(), fmthex(roothash).c_str()); 
+    //printf ( "Hash! block[%s]\ntest[%s]\n", fmthex(mb.merkle_root).c_str(), fmthex(roothash).c_str()); 
     return  mb.merkle_root == roothash; 
   }
   
-  // def is_valid(self):
-  //     '''Verifies whether the merkle tree information validates to the merkle root'''
-  //     # convert the flags field to a bit field
-  //     # reverse self.hashes for the merkle root calculation
-  //     # initialize the merkle tree
-  //     # populate the tree with flag bits and hashes
-  //     # check if the computed root reversed is the same as the merkle root
-  //     flag_bits = bytes_to_bit_field(self.flags)
-  //     hashes = [h[::-1] for h in self.hashes]
-  //     merkle_tree = MerkleTree(self.total)
-  //     merkle_tree.populate_tree(flag_bits, hashes)
-  //     return merkle_tree.root()[::-1] == self.merkle_root
-
-  printf ( "fail : block[%s]\ncompd[%s]\n", fmthex(mb.merkle_root).c_str(), fmthex(roothash).c_str()); 
   return  false; 
 }
 

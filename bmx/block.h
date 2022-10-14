@@ -45,7 +45,8 @@ namespace bmx {
   }
 
   //
-  typedef Block::Struc block; 
+  typedef Block::Struc       block;
+  typedef std::vector<block> blockarray;
 }
 
 static_assert (sizeof(bmx::block) == 80, "size of block"); 

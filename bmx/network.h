@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "utility.h"
+#include "block.h"
 
 #include <aframe/binary_IO.h>
 #include <aframe/shared_types.h>
@@ -25,17 +26,15 @@ namespace bmx {
     //
     // ---------------------------------------------------------
     namespace Message {
-      // VerAck Message 
-      struct VerAck {
-	VerAck () : dumb (0) {
-	}
-        uint8  dumb; 
-      };
+
       //
+      // VerAck Message 
+      // struct VerAck { };
       /* VerAck& Default (VerAck& msg);  */
       /* uint64   Read    (VerAck& msg, af::ReadStreamRef rs, bool mainnet); */
       /* uint64   Write   (af::WriteStreamRef ws, const VerAck& msg, bool mainnet); */
 
+      //
       // Version Message 
       struct Version {
 	uint32 version;
@@ -59,32 +58,56 @@ namespace bmx {
       Version& Default (Version& msg); 
       uint64   Read    (Version& msg, af::ReadStreamRef rs, bool mainnet);
       uint64   Write   (af::WriteStreamRef ws, const Version& msg);
-      uint64   SizeOf  (const bmx::Network::Message::Version& vers); 
+      uint64   SizeOf  (const bmx::Network::Message::Version& vers);
+
       //
-      
       // Ping Message 
-      struct Ping { int dumb; };
-      uint64 Read  (Ping& msg, af::ReadStreamRef rs, bool mainnet);
-      uint64 Write (af::WriteStreamRef ws, const Ping& msg, bool mainnet);
-      //
-      //
+      // struct Ping {
+      // 	uint64 nonce;
+      // };
+      // uint64 Read  (Ping& msg, af::ReadStreamRef rs, bool mainnet);
+      // uint64 Write (af::WriteStreamRef ws, const Ping& msg, bool mainnet);
 
+      //
       // Pong Message
-      struct Pong { int dumb; };
-      uint64 Read  (Pong& msg, af::ReadStreamRef rs, bool mainnet);
-      uint64 Write (af::WriteStreamRef ws, const Pong& msg, bool mainnet);
-      //
+      // struct Pong {
+      // 	uint64 nonce;
+      // };
+      // uint64 Read  (Pong& msg, af::ReadStreamRef rs, bool mainnet);
+      // uint64 Write (af::WriteStreamRef ws, const Pong& msg, bool mainnet);
 
-      // Get Headers Message 
-      struct GetHeaders { int dumb; };
+      //
+      // GetHeaders Message 
+      struct GetHeaders {
+
+	uint32   version;      // 4
+	uint64    num_hashes;  // varint
+	digest32 start_block;  // 32bytes
+	digest32 end_block;    // 32bytes
+
+      };
+
+      uint64 Init  (GetHeaders& msg, uint32 ver, uint64 num_hashes, const digest32& start_block);
+      uint64 Init  (GetHeaders& msg, uint32 ver, uint64 num_hashes, const digest32& start_block, const digest32& end_block);
       uint64 Read  (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet);
       uint64 Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet);
-      //
+      uint64 SizeOf(const bmx::Network::Message::GetHeaders& hdrs);
 
+
+      //
       // Headers Message 
-      struct Headers { int dumb;  }; 
-      uint64 Read  (Headers& msg, af::ReadStreamRef rs, bool mainnet);
-      uint64 Write (af::WriteStreamRef ws, const Headers& msg, bool mainnet); 
+      // struct Headers {
+      // 	blockarray blocks;
+      // }; 
+
+      // uint64 Read  (blockarray& blocks, af::ReadStreamRef rs, bool mainnet);
+      // uint64 Write (af::WriteStreamRef ws, const blockarray& blocks, bool mainnet);
+
+      // 
+      // MerkleBlock Message 
+      struct MerkleBlock { int dumb; }; 
+      uint64 Read  (MerkleBlock& msg, af::ReadStreamRef rs, bool mainnet);
+      uint64 Write (af::WriteStreamRef ws, const MerkleBlock& msg, bool mainnet); 
       // 
     }
 
@@ -102,16 +125,19 @@ namespace bmx {
       struct Struc {
 
 	bytearray command;
-	bytearray payload;
 	uint32    magic; 
+	bytearray payload;
       };
 
-      Struc& Payload (Struc& oenve, const Message::Version& vers, bool mainnet);
-      Struc& Payload (Struc& oenve, const Message::VerAck& msg, bool mainnet);
-      Struc& Payload (Struc& oenve, const Message::GetHeaders& msg, bool mainnet);
-      Struc& Payload (Struc& oenve, const Message::Headers& msg, bool mainnet);
-      Struc& Payload (Struc& oenve, const Message::Ping& msg, bool mainnet);
-      Struc& Payload (Struc& oenve, const Message::Pong& msg, bool mainnet);
+      Struc& PayloadVerAck (Struc& ne, bool mainnet);
+      Struc& PayloadPing   (Struc& ne, uint64 nonce, bool mainnet);
+      Struc& PayloadPong   (Struc& ne, uint64 nonce, bool mainnet);
+      Struc& PayloadHeaders(Struc& ne, const blockarray& blocks, bool mainnet);
+
+      Struc& Payload       (Struc& ne, const Message::Version&     vers, bool mainnet);
+      Struc& Payload       (Struc& ne, const Message::GetHeaders&  msg, bool mainnet);
+
+      Struc& Payload (Struc& oenve, const Message::MerkleBlock& msg, bool mainnet);
       
       uint64 Read    (Struc& env, af::ReadStreamRef rs, bool mainnet);
       uint64 Write   (af::WriteStreamRef ws, const Struc& nv);
@@ -128,10 +154,14 @@ namespace bmx {
     // ---------------------------------------------------------
     struct MessageReceiver { 
       // change name?? OnReceive ??
-      virtual void Rcvd (const Message::VerAck&  msg, const Envelope::Struc& ne, bool mainnet) {} 
-      virtual void Rcvd (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) {} 
-      virtual void Rcvd (const Message::Pong&    msg, const Envelope::Struc& ne, bool mainnet) {} 
-
+      virtual void OnVerAck (const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void OnVersion (const Message::Version& msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void OnPing (uint64 nonce, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void OnPong (uint64 nonce, const Envelope::Struc& ne, bool mainnet) {}
+      virtual void OnMerkleBlock (const Message::MerkleBlock& msg, const Envelope::Struc& ne, bool mainnet) {}
+      virtual void OnGetHeaders (const Message::GetHeaders& msg, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void OnHeaders (const blockarray& blocks, const Envelope::Struc& ne, bool mainnet) {} 
+      
     protected: 
       MessageReceiver () = default;
     };
@@ -140,7 +170,7 @@ namespace bmx {
     // 
     // ---------------------------------------------------------
     namespace Node {
-      // a node is free form atm, if u talk 2 a node, u r a node 
+      // a node is like water
     }
 
     // ---------------------------------------------------------
@@ -148,15 +178,21 @@ namespace bmx {
     // ---------------------------------------------------------
     bool Milkshake (const Message::Version& ver, MessageReceiver* cb);
 
-
   } // Network 
 
   // ---------------------------------------------------------
   // 
   // ---------------------------------------------------------
-  typedef Network::Envelope::Struc  network_envelope;
-  typedef Network::Message::Version message_version; 
-  typedef Network::MessageReceiver  netmessage_cb;
+  typedef Network::Envelope::Struc      network_envelope;
+  typedef Network::MessageReceiver      netmessage_cb;
+
+  typedef Network::Message::Version     message_version; 
+  typedef Network::Message::MerkleBlock message_merkleblock; 
+  // typedef Network::Message::Ping        message_ping; 
+  // typedef Network::Message::Pong        message_pong; 
+  typedef Network::Message::GetHeaders  message_getheaders; 
+  //typedef Network::Message::Headers     message_headers; 
+  typedef Network::Message::Version     message_version;
   
 }
 

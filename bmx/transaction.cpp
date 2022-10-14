@@ -116,6 +116,7 @@ bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool 
     af::hex::decode (txbin, strhex);
 
     size_t binoffs = 0;
+    // segwit check??
     if (std::to_integer<uint8>(txbin[4]) == 0) {
       txbin[5] = txbin[3];
       txbin[4] = txbin[2];
@@ -127,8 +128,6 @@ bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool 
     else {
       txbinlen += ReadTransaction (otx, CreateReadMemStream (&txbin[0], txbin.size()));
     }
-
-      
 
     return (txbinlen == txbin.size ()); 
   }
