@@ -7,6 +7,10 @@ int test_merkle_block_parse    (const std::vector<std::string>& args) ;
 int test_valid_merkle_block    (const std::vector<std::string>& args) ;
 
 int test_headers_message_parse (const std::vector<std::string>& args) ;
+int test_getheaders_message_parse (const std::vector<std::string>& args);
+int test_ping_message_parse (const std::vector<std::string>& args);
+int test_pong_message_parse(const std::vector<std::string> &args);
+int test_merkleblock_message_parse (const std::vector<std::string>& args);
 //
 //
 int CH11_Ex (const std::vector<std::string>& args) {
@@ -16,6 +20,12 @@ int CH11_Ex (const std::vector<std::string>& args) {
   test_merkle_tree_populate_2(args) ;
   test_merkle_block_parse    (args) ;
   test_valid_merkle_block    (args) ;
+
+  test_headers_message_parse (args) ;
+  test_getheaders_message_parse(args);
+  test_ping_message_parse    (args);
+  test_pong_message_parse    (args);
+  test_merkleblock_message_parse(args);
 
   return 0;
 }

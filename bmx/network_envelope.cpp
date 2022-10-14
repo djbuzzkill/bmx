@@ -225,7 +225,7 @@ int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref con
      }
 
      //
-     // dispatch_message
+     // Dispatchmessage (cb, cmd_s, ne) someday
      if (cb) { // && good_checksum ??
 
        const std::string cmd_s = af::to_string (ne.command);
@@ -415,16 +415,11 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadHeaders (bmx::Netw
   ne.command.clear (); 
   to_bytes (ne.command, headers_s);
 
-
-  // payload 
-  ne.payload.resize ( sizeof(block) * blocks.size() );
-
+  // payload
+  ne.payload.resize (sizeof(block) * blocks.size());
   WriteStreamRef payl_ws = CreateWriteMemStream (&ne.payload[0], ne.payload.size());
-  uint64 writelen_payload = 0; 
-  for (const auto&  bl : blocks) {
-    writelen_payload += Block::Write (payl_ws, bl); 
-  }
-  
+  uint64 writelen_payload = 0;
+  writelen_payload += Network::Message::Write (payl_ws, blocks, mainnet); 
 		      
   return ne;
 }

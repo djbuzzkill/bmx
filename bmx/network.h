@@ -100,8 +100,8 @@ namespace bmx {
       // 	blockarray blocks;
       // }; 
 
-      // uint64 Read  (blockarray& blocks, af::ReadStreamRef rs, bool mainnet);
-      // uint64 Write (af::WriteStreamRef ws, const blockarray& blocks, bool mainnet);
+      uint64 Read  (blockarray& blocks, af::ReadStreamRef rs, bool mainnet);
+      uint64 Write (af::WriteStreamRef ws, const blockarray& blocks, bool mainnet);
 
       // 
       // MerkleBlock Message 
@@ -165,6 +165,9 @@ namespace bmx {
     protected: 
       MessageReceiver () = default;
     };
+
+
+    void DispatchMessage (MessageReceiver* cb, const std::string& cmd_s, const Network::Envelope::Struc& ne); 
     
     // ---------------------------------------------------------
     // 

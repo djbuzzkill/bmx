@@ -243,38 +243,48 @@ uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Pong& msg, boo
 
 
 
-#ifdef USE_BMX_MESSAGE_HEADERS_IO_FNS
 //
 // headers 
-uint64 bmx::Network::Message::Read  (Headers& msg, af::ReadStreamRef rs, bool mainnet)  {
+uint64 bmx::Network::Message::Read (blockarray& blocks, af::ReadStreamRef rs, bool mainnet) {
   uint64 readlen = 0; 
 
   uint64 num_blocks = 0; 
   readlen += util::read_varint (num_blocks, rs, "num_blocks"); 
 
-  msg.blocks.resize (num_blocks); 
-  for (auto i = 0; i < num_blocks; ++i) {
+  blocks.resize (num_blocks); 
+  for (uint64 i = 0; i < num_blocks; ++i) {
     
-    readlen += Block::Read (msg.blocks[i], rs);
+    readlen += Block::Read (blocks[i], rs);
 
-    uint64 num_txs = 0; 
-    readlen += util::read_varint (num_txs, rs, "num_blocks"); 
+    uint64 num_txs = 0xffffffffffffffff; 
+    readlen += util::read_varint (num_txs, rs, "num_txs"); 
     if (num_txs != 0) {
-      printf ("ERROR : num_txs != 0"); 
+      printf ("ERROR : [%zu] num_txs != 0", i); 
       return readlen; 
     }
-    
   }
 
   return readlen; 
 }
 
 //
-uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Headers& msg, bool mainnet) {
+uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const blockarray& blocks, bool mainnet) {
   uint64 writelen = 0; 
 
+  writelen += util::write_varint (ws, blocks.size()); 
+
+  for (const auto& bl : blocks) {
+    //
+    writelen += Block::Write (ws, bl);
+    //
+    writelen += util::write_varint  (ws, 0); 
+    
+  }
+  
+  
+  
   return writelen; 
 }
-#endif
+
 
 
