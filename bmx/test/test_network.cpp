@@ -92,26 +92,53 @@ int test_version_message (const std::vector<std::string>& args) {
 
 
 
-int test_headers_message_parse (const std::vector<std::string>& args) {
-  FN_SCOPE ();
+int test_headers_message_read (const std::vector<std::string>& args) {
+  FN_SCOPE();
+
+  bool mainnet = true; 
+  
+  using namespace bmx;
+  
   std::string hex_msg = "0200000020df3b053dc46f162a9b00c7f0d5124e2676d47bbe7c5d0793a500000000000000ef445fef2ed495c275892206ca533e7411907971013ab83e3b47bd0d692d14d4dc7c835b67d8001ac157e670000000002030eb2540c41025690160a1014c577061596e32e426b712c7ca00000000000000768b89f07044e6130ead292a3f51951adbd2202df447d98789339937fd006bd44880835b67d8001ade09204600"; 
 
-  blockarray blocks; 
-  
-  Network::Message::Read (
-  //   def test_parse(self):
-  //       hex_msg = '0200000020df3b053dc46f162a9b00c7f0d5124e2676d47bbe7c5d0793a500000000000000ef445fef2ed495c275892206ca533e7411907971013ab83e3b47bd0d692d14d4dc7c835b67d8001ac157e670000000002030eb2540c41025690160a1014c577061596e32e426b712c7ca00000000000000768b89f07044e6130ead292a3f51951adbd2202df447d98789339937fd006bd44880835b67d8001ade09204600'
-  //       stream = BytesIO(bytes.fromhex(hex_msg))
-  //       headers = HeadersMessage.parse(stream)
-  //       self.assertEqual(len(headers.blocks), 2)
-  //       for b in headers.blocks:
-  //           self.assertEqual(b.__class__, Block)
+  bytearray msgbin;
+  hex::decode (msgbin, hex_msg); 
+  ReadStreamRef rs = CreateReadMemStream (&msgbin[0], msgbin.size()); 
+  blockarray blocks;
 
-  // return 0;
+  Network::Message::Read (blocks, rs, mainnet);
+
+  PR_CHECK("num blocks match ", blocks.size() == 2);
+
+  return 0;
 }
 
-int test_getheaders_message_parse (const std::vector<std::string>& args) {
-  FN_SCOPE (); 
+int test_getheaders_message_write (const std::vector<std::string>& args) {
+  FN_SCOPE(); 
+  // class GetHeadersMessageTest(TestCase):
+
+  bool mainnet = true; 
+  std::string test_start_block_hex = "0000000000000000001237f46acddf58578a37e213d2a6edc4884a2fcad05ba3";
+  bytearray startbin;
+  hex::decode (startbin, test_start_block_hex);
+  
+  Network::Message::GetHeaders gh;
+  Network::Message::Default (gh); 
+  copy_BE (gh.start_block, startbin); 
+  
+  bytearray  testbin (bmx::Network::Message::SizeOf (gh));
+
+  uint64 writelen_test = Network::Message::Write (CreateWriteMemStream (&testbin[0], testbin.size()), gh, mainnet);
+  std::string testhex;
+  hex::encode (testhex, &testbin[0], testbin.size());
+  //
+  const std::string wanthex = "7f11010001a35bd0ca2f4a88c4eda6d213e2378a5758dfcd6af437120000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+  bytearray wantbin;
+  hex::decode (wantbin, wanthex);
+
+  printf ( "    want [%s]\n    test [%s]\n", wanthex.c_str(), testhex.c_str()); 
+  PR_CHECK("write getheaders match",  eql(testbin, wantbin)); 
+
   return 0;
 }
 

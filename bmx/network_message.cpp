@@ -6,6 +6,7 @@
 
 using namespace af;
 using namespace ffm; 
+using namespace bmx; 
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
@@ -190,17 +191,66 @@ uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const bmx::Network::
   return writelen; 
 }
 
+//
+Network::Message::GetHeaders& Network::Message::Default(GetHeaders& gh) {
+  gh.version    = 70015; 
+  gh.num_hashes = 1;
+  const byte b00 {0}; 
+  std::fill(&gh.start_block[0], &gh.start_block[32], b00); 
+  std::fill(&gh.end_block[0], &gh.end_block[32], b00); 
+  return gh; 
+}
 
+// getheaders
+// Network::Message::GetHeaders& Network::Message::Init (GetHeaders& gh, uint32 ver, uint64 num_hashes, const digest32& start_block) {
+//   return gh;
+// }
 
-// getheader
+// Network::Message::GetHeaders& Network::Message::Init (GetHeaders& gh, uint32 ver, uint64 num_hashes, const digest32& start_block, const digest32& end_block) {
+//   return gh;
+// }
+
+//
+//
 uint64 bmx::Network::Message::Read (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet)  {
-  return 0;
+  FN_SCOPE();
+
+  uint64 readlen = 0;
+  readlen += rs->Read (&msg.version, sizeof(uint32)); 
+  readlen += util::read_varint (msg.num_hashes, rs, "num_hashes");
+
+  digest32 hash_LE;
+  readlen += rs->Read (&hash_LE, sizeof(digest32));
+  std::reverse_copy (&hash_LE[0], &hash_LE[32], &msg.start_block[0]); 
+  
+  readlen += rs->Read (&hash_LE, sizeof(digest32)); 
+  std::reverse_copy (&hash_LE[0], &hash_LE[32], &msg.end_block[0]); 
+  
+  return readlen;
 }
 
 uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet) {
-  return 0; }
+  FN_SCOPE(); 
+  uint64 writelen = 0;
 
+  writelen += ws->Write (&msg.version, sizeof(uint32));
+  printf ("    writelen[%zu]\n", writelen);
 
+  printf ("    num_hashes[%zu]\n", msg.num_hashes);
+  writelen += util::write_varint (ws, msg.num_hashes);
+  printf ("    writelen[%zu]\n", writelen);
+
+  digest32 rhash;
+  std::reverse_copy (&msg.start_block[0] , &msg.start_block[32], &rhash[0]); 
+  writelen += ws->Write (&rhash[0], sizeof(digest32));
+  printf ("    writelen[%zu]\n", writelen);
+
+  std::reverse_copy (&msg.end_block[0], &msg.end_block[32], &rhash[0]); 
+  writelen += ws->Write (&rhash[0], sizeof(digest32));
+  //printf ("    num_hashes\n", msg.num_hashes);
+
+  return writelen;
+}
 
 uint64  bmx::Network::Message::SizeOf (const bmx::Network::Message::GetHeaders& hdrs) {
 
@@ -209,7 +259,6 @@ uint64  bmx::Network::Message::SizeOf (const bmx::Network::Message::GetHeaders& 
     + sizeof(digest32)   // start_block;  // 32bytes
     + sizeof(digest32);  // end_block;    // 32bytes
 
-  
 }
 
 

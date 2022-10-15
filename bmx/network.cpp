@@ -5,6 +5,7 @@
 
 using namespace af;
 using namespace ffm; 
+using namespace bmx;
 
 // ---------------------------------------------------------------------
 //

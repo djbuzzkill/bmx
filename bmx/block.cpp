@@ -12,7 +12,7 @@ constexpr uint32 kTWO_WEEKS = 60 * 60 * 24 * 14;
 
 //
 //    
-uint64 Block::Read(bmx::Block::Struc &oblk, af::ReadStreamRef rs) {
+uint64 Block::Read (bmx::Block::Struc &oblk, af::ReadStreamRef rs) {
 
   uint64 readlen = 0;
 
@@ -32,7 +32,7 @@ uint64 Block::Read(bmx::Block::Struc &oblk, af::ReadStreamRef rs) {
 }
 
 //
-uint64 Block::Write(af::WriteStreamRef ws, const Struc &oblk) {
+uint64 Block::Write (af::WriteStreamRef ws, const Struc &oblk) {
 
   uint64 writelen = 0;
   //platform_endian (
@@ -51,7 +51,7 @@ uint64 Block::Write(af::WriteStreamRef ws, const Struc &oblk) {
 }
 
 //
-digest32& Block::Hash(bmx::digest32& out, const block& oblk) {
+digest32& Block::Hash (bmx::digest32& out, const block& oblk) {
 
   bytearray mem (sizeof(bmx::block), byte(0));
   auto writelen = Block::Write (CreateWriteMemStream (&mem[0], sizeof(bmx::block)), oblk);
@@ -119,7 +119,6 @@ uint32 target_to_bits (const bmx::fixnum32& targ) {
 
   auto count0 = 0;
 
-
   while (bytes[count0] == zero)
     count0++;
 
@@ -139,7 +138,6 @@ uint32 target_to_bits (const bmx::fixnum32& targ) {
     //int32 coefficient (0x00ffffff)
     ws->Write (&bytes[count0], 3);
   }      
-
   
   return bits; 
 }
@@ -180,7 +178,7 @@ fixnum32& Block::Difficulty (fixnum32& odiff, const Struc& blk) {
 
 //
 //
-uint32 Block::CalculateNewBits(uint32 prevbits, uint32 timediff) {
+uint32 Block::CalculateNewBits (uint32 prevbits, uint32 timediff) {
   FN_SCOPE ();
   
   if (timediff > kTWO_WEEKS) {

@@ -16,12 +16,12 @@ namespace bmx {
   namespace Block {
 
     struct Struc { 
-      uint32   version;
-      byte32   prev_block; 
-      byte32   merkleroot;
-      uint32   timestamp;
-      uint32   bits;
-      uint32   nonce; 
+      uint32 version;
+      byte32 prev_block; 
+      byte32 merkleroot;
+      uint32 timestamp;
+      uint32 bits;
+      uint32 nonce;
     };
 
     // IO 

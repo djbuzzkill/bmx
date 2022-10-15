@@ -87,8 +87,10 @@ namespace bmx {
 
       };
 
-      uint64 Init  (GetHeaders& msg, uint32 ver, uint64 num_hashes, const digest32& start_block);
-      uint64 Init  (GetHeaders& msg, uint32 ver, uint64 num_hashes, const digest32& start_block, const digest32& end_block);
+      GetHeaders& Default (GetHeaders& gh);
+      // GetHeaders& Init  (GetHeaders& gh, uint32 ver, uint64 num_hashes, const digest32& start_block);
+      // GetHeaders& Init  (GetHeaders& gh, uint32 ver, uint64 num_hashes, const digest32& start_block, const digest32& end_block);
+
       uint64 Read  (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet);
       uint64 Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet);
       uint64 SizeOf(const bmx::Network::Message::GetHeaders& hdrs);
