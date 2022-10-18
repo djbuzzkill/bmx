@@ -293,8 +293,10 @@ uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Pong& msg, boo
 
 
 //
-// headers 
-uint64 bmx::Network::Message::Read (blockarray& blocks, af::ReadStreamRef rs, bool mainnet) {
+//
+// MESSAGE[Headers]
+//
+uint64 bmx::Network::Message::Read (Headers& blocks, af::ReadStreamRef rs, bool mainnet) {
   uint64 readlen = 0; 
 
   uint64 num_blocks = 0; 
@@ -317,7 +319,7 @@ uint64 bmx::Network::Message::Read (blockarray& blocks, af::ReadStreamRef rs, bo
 }
 
 //
-uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const blockarray& blocks, bool mainnet) {
+uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const Headers& blocks, bool mainnet) {
   uint64 writelen = 0; 
 
   writelen += util::write_varint (ws, blocks.size()); 
@@ -336,4 +338,53 @@ uint64 bmx::Network::Message::Write (af::WriteStreamRef ws, const blockarray& bl
 }
 
 
+//
+// MESSAGE [GetData]
+//
+uint64 Network::Message::Read (Network::Message::GetData& gd, af::ReadStreamRef rs, bool mainnet) {
+  return 0;
+}
 
+
+//
+uint64 Network::Message::Write (af::WriteStreamRef ws, const GetData& gd, bool mainnet) {
+  return 0;
+}
+
+//
+Network::Message::GetData& Network::Message::AddData (Network::Message::GetData& gd, Network::Message::GetData::GETDATA_TYPE dt, const bytearray& identifier) {
+
+  gd.data.push_back (Network::Message::GetData::getdata_tuple{dt, identifier}); 
+  
+  return gd;
+}
+
+
+uint64 Network::Message::SizeOf (Network::Message::GetData& gd) {
+
+  uint64 count = 0;
+
+  for (const auto& tup : gd.data) 
+
+    count += (sizeof(uint64) + tup.identifier.size ()); 
+
+
+  return count;
+}
+
+      // struct GetData {
+
+      // 	enum GETDATA_TYPE {
+      // 	  GD_kTX_DATA_TYPE = 1,
+      // 	  GD_BLOCK_DATA_TYPE = 2,
+      // 	  GD_FILTERED_BLOCK_DATA_TYPE = 3,
+      // 	  GD_COMPACT_BLOCK_DATA_TYPE = 4}; 
+
+      // 	struct getdata_tuple {
+      //     GETDATA_TYPE type;
+      //     bytearray identifier; };
+
+      // 	typedef std::vector<getdata_tuple>  DataArray;
+
+      //   DataArray data; 
+      // };

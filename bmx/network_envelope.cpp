@@ -4,11 +4,33 @@
 
 
 using namespace af;
-using namespace ffm; 
+using namespace bmx; 
+using namespace ffm;
+
+
+namespace { // local
+
+  //
+  //
+  Network::Envelope::Struc& command_and_magic (Network::Envelope::Struc& ne, const std::string& cmd, bool mainnet) { 
+
+    ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC; 
+
+    // command
+    ne.command.clear (); 
+    to_bytes (ne.command, cmd); 
+    return ne; 
+
+
+  }
+
+
+}
+
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-uint64 bmx::Network::Envelope::Read (Struc& envel, ReadStreamRef rs, bool mainnet) {
+uint64 Network::Envelope::Read (Struc& envel, ReadStreamRef rs, bool mainnet) {
 
   //FN_SCOPE ();
 
@@ -73,7 +95,7 @@ uint64 bmx::Network::Envelope::Read (Struc& envel, ReadStreamRef rs, bool mainne
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-uint64 bmx::Network::Envelope::Write (WriteStreamRef ws, const Struc& nv) {
+uint64 Network::Envelope::Write (WriteStreamRef ws, const Struc& nv) {
   uint64 writelen = 0;
   // magic
   uint32  magicbytes = nv.magic; 
@@ -103,7 +125,7 @@ uint64 bmx::Network::Envelope::Write (WriteStreamRef ws, const Struc& nv) {
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-int bmx::Network::Envelope::Send (af::conn_ref conn, const bmx::Network::Envelope::Struc& ne, int flags) {
+int Network::Envelope::Send (af::conn_ref conn, const Network::Envelope::Struc& ne, int flags) {
   //FN_SCOPE (); 
   const int32 bufsize = 1024; 
   std::array<byte, bufsize> sendbuf;
@@ -118,7 +140,7 @@ int bmx::Network::Envelope::Send (af::conn_ref conn, const bmx::Network::Envelop
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref conn, bool mainnet, int flags) {
+int Network::Envelope::Recv (netmessage_cb* const cb, af::conn_ref conn, bool mainnet, int flags) {
 
   enum recv_state {
     rs_recv_bytes,
@@ -289,7 +311,7 @@ int bmx::Network::Envelope::Recv (bmx::netmessage_cb* const cb, af::conn_ref con
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-std::string& bmx::Network::Envelope::Format (std::string& str, const bmx::Network::Envelope::Struc& enve) {
+std::string& Network::Envelope::Format (std::string& str, const Network::Envelope::Struc& enve) {
   //  FN_SCOPE (); 
   std::string s0, s1, s2;
 
@@ -309,24 +331,15 @@ std::string& bmx::Network::Envelope::Format (std::string& str, const bmx::Networ
 // ---------------------------------------------------------------------
 // Payload Message::Version
 // ---------------------------------------------------------------------
-bmx::Network::Envelope::Struc& bmx::Network::Envelope::Payload (
-   bmx::Network::Envelope::Struc&        ne,
-   const bmx::Network::Message::Version& vers,
-   bool                                  mainnet)
+Network::Envelope::Struc& Network::Envelope::Payload (
+   Network::Envelope::Struc&        ne,
+   const Network::Message::Version& vers,
+   bool                             mainnet)
 { 
   // FN_SCOPE ();
-  const std::string version_s             = "version";
+  const std::string version_s = "version";
 
-  //SizeOf (const bmx::Network::Message::Version&  vers); 
-  size_t sizeOf_MessageVersion = bmx::Network::Message::SizeOf (vers); 
-  //printf ( "    sizeOf_MessageVersion [%zu]\n", sizeOf_MessageVersion); 
-  
-  //
-  ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC; 
-
-  // command
-  ne.command.clear (); 
-  to_bytes (ne.command, version_s);
+  command_and_magic (ne, version_s, mainnet); 
   // {
   //   printf ("   command size [%zu]\n",  oenve.command.size ());
   //   std::string chars;
@@ -334,9 +347,10 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::Payload (
   //     chars += std::to_integer<uint8>(e);
   //   printf("   chars[%s]\n", chars.c_str());
   // }
-  ne.payload.resize(sizeOf_MessageVersion); 
-  auto writelen_vers = bmx::Network::Message::Write (CreateWriteMemStream (&ne.payload[0], sizeOf_MessageVersion), vers);
-  assert (writelen_vers == sizeOf_MessageVersion); 
+  
+  ne.payload.resize(Network::Message::SizeOf (vers)); 
+  auto writelen_vers = Network::Message::Write (CreateWriteMemStream (&ne.payload[0], ne.payload.size()), vers);
+  assert (writelen_vers == Network::Message::SizeOf (vers)); 
 
   return ne; 
 }
@@ -344,18 +358,14 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::Payload (
 // ---------------------------------------------------------------------
 // Payload Message::Version
 // ---------------------------------------------------------------------
-bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadVerAck (
-   bmx::Network::Envelope::Struc& ne,
-   bool                           mainnet)
+Network::Envelope::Struc& Network::Envelope::PayloadVerAck (
+   Network::Envelope::Struc& ne,
+   bool                      mainnet)
 {
   //FN_SCOPE ();
   const std::string verack_s = "verack";
 
-  // magic
-  ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC;
-  // command
-  ne.command.clear (); 
-  to_bytes (ne.command, verack_s);
+  command_and_magic (ne, verack_s, mainnet); 
 
   // nada
   ne.payload.clear ();
@@ -367,20 +377,15 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadVerAck (
 // ---------------------------------------------------------------------
 // Payload Message::GetHeaders
 // ---------------------------------------------------------------------
-bmx::Network::Envelope::Struc& bmx::Network::Envelope::Payload (
-    bmx::Network::Envelope::Struc&           ne,
-    const bmx::Network::Message::GetHeaders& msg,
-    bool                                     mainnet) {
+Network::Envelope::Struc& Network::Envelope::Payload (
+    Network::Envelope::Struc&           ne,
+    const Network::Message::GetHeaders& msg,
+    bool                                mainnet) {
 
   // FN_SCOPE ();
   const std::string getheaders_s             = "getheaders";
 
-  //
-  ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC; 
-
-  // command
-  ne.command.clear (); 
-  to_bytes (ne.command, getheaders_s);
+  command_and_magic (ne, getheaders_s, mainnet); 
   // {
   //   printf ("   command size [%zu]\n",  oenve.command.size ());
   //   std::string chars;
@@ -403,17 +408,12 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::Payload (
 // ---------------------------------------------------------------------
 // Payload Message::Headers
 // ---------------------------------------------------------------------
-bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadHeaders (bmx::Network::Envelope::Struc& ne, const blockarray& blocks, bool mainnet) {
+Network::Envelope::Struc& Network::Envelope::PayloadHeaders (Network::Envelope::Struc& ne, const blockarray& blocks, bool mainnet) {
 
   // FN_SCOPE ();
   const std::string headers_s = "headers";
 
-  //
-  ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC; 
-
-  // command
-  ne.command.clear (); 
-  to_bytes (ne.command, headers_s);
+  command_and_magic (ne, headers_s, mainnet); 
 
   // payload
   ne.payload.resize (sizeof(block) * blocks.size());
@@ -427,18 +427,12 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadHeaders (bmx::Netw
 // ---------------------------------------------------------------------
 // Payload Message::Ping
 // ---------------------------------------------------------------------
-bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadPing (bmx::Network::Envelope::Struc& ne, uint64 nonce, bool mainnet) {
+Network::Envelope::Struc& Network::Envelope::PayloadPing (Network::Envelope::Struc& ne, uint64 nonce, bool mainnet) {
 
   // FN_SCOPE ();
   const std::string ping_s = "ping";
 
-  //
-  ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC; 
-
-  // command
-  ne.command.clear (); 
-  to_bytes (ne.command, ping_s);
-
+  command_and_magic (ne, ping_s, mainnet); 
 
   union {
     uint64 nonce_BE; 
@@ -455,14 +449,12 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadPing (bmx::Network
 // ---------------------------------------------------------------------
 // Payload Message::Pong
 // ---------------------------------------------------------------------
-bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadPong (bmx::Network::Envelope::Struc& ne, uint64 nonce, bool mainnet) {
+Network::Envelope::Struc& Network::Envelope::PayloadPong (Network::Envelope::Struc& ne, uint64 nonce, bool mainnet) {
   // FN_SCOPE ();
   const std::string pong_s             = "pong";
   // 
-  ne.magic = mainnet ? Network::kMAINNET_MAGIC : Network::kTESTNET_MAGIC; 
-  // command
-  ne.command.clear (); 
-  to_bytes (ne.command, pong_s);
+  command_and_magic (ne, pong_s, mainnet);
+
 
   union {
     uint64 nonce_BE; 
@@ -476,3 +468,15 @@ bmx::Network::Envelope::Struc& bmx::Network::Envelope::PayloadPong (bmx::Network
   return ne;
 }
 
+  
+//
+// ---------------------------------------------------------------------
+// Message ['generic'] 
+// ---------------------------------------------------------------------
+Network::Envelope::Struc& Network::Envelope::PayloadGeneric (Network::Envelope::Struc& ne, const std::string& cmd, const bytearray& payload, bool mainnet) {
+
+  command_and_magic (ne, cmd, mainnet);
+  ne.payload = payload; 
+
+  return ne;
+}

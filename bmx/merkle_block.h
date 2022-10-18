@@ -106,16 +106,18 @@ namespace bmx {
  typedef MerkleBlock::Struc merkleblock;
  typedef MerkleTree::Struc  merkletree;
 
-  //
-  // merkle_ut
-  namespace merkle_ut {
+  // //
+  // // merkle_ut
+  // namespace merkle_ut {
     
-    // expand  into flags
-    bytearray& bytes_to_bit_field (bytearray &oflags, const bytearray &bitfields);
-    // pack into bytes'n'bits
-    bytearray& bit_field_to_bytes (bytearray &obits, const bytearray &flags); 
+  //   // expand  into flags
+  //   bytearray& bytes_to_bit_field (bytearray &oflags, const bytearray &bitfields);
+  //   // pack into bytes'n'bits
+  //   bytearray& bit_field_to_bytes (bytearray &obits, const bytearray &flags); 
 
-  } // merkle_util 
+  // } // merkle_util
+
+
 } // bmx
 
 #endif

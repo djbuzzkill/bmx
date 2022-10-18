@@ -27,15 +27,15 @@ namespace bmx {
     // ---------------------------------------------------------
     namespace Message {
 
-      //
-      // VerAck Message 
+      // 
+      // Message [VerAck]  .. not necessary 
       // struct VerAck { };
       /* VerAck& Default (VerAck& msg);  */
       /* uint64   Read    (VerAck& msg, af::ReadStreamRef rs, bool mainnet); */
       /* uint64   Write   (af::WriteStreamRef ws, const VerAck& msg, bool mainnet); */
 
       //
-      // Version Message 
+      // Message [Version] 
       struct Version {
 	uint32 version;
 	uint64 services;
@@ -61,7 +61,7 @@ namespace bmx {
       uint64   SizeOf  (const bmx::Network::Message::Version& vers);
 
       //
-      // Ping Message 
+      // MESSAGE [Ping]  ..not necessary 
       // struct Ping {
       // 	uint64 nonce;
       // };
@@ -69,7 +69,7 @@ namespace bmx {
       // uint64 Write (af::WriteStreamRef ws, const Ping& msg, bool mainnet);
 
       //
-      // Pong Message
+      // MESSAGE [Pong] ..not necessary 
       // struct Pong {
       // 	uint64 nonce;
       // };
@@ -77,40 +77,67 @@ namespace bmx {
       // uint64 Write (af::WriteStreamRef ws, const Pong& msg, bool mainnet);
 
       //
-      // GetHeaders Message 
+      // Message [GetHeaders]  
       struct GetHeaders {
 
-	uint32   version;      // 4
-	uint64    num_hashes;  // varint
-	digest32 start_block;  // 32bytes
-	digest32 end_block;    // 32bytes
+	uint32   version;     // 4
+	uint64   num_hashes;  // varint
+	digest32 start_block; // 32bytes
+	digest32 end_block;   // 32bytes
 
       };
 
       GetHeaders& Default (GetHeaders& gh);
+      
+      uint64 Read   (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet);
+      uint64 Write  (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet);
+      uint64 SizeOf (const bmx::Network::Message::GetHeaders& hdrs);
       // GetHeaders& Init  (GetHeaders& gh, uint32 ver, uint64 num_hashes, const digest32& start_block);
       // GetHeaders& Init  (GetHeaders& gh, uint32 ver, uint64 num_hashes, const digest32& start_block, const digest32& end_block);
 
-      uint64 Read  (GetHeaders& msg, af::ReadStreamRef rs, bool mainnet);
-      uint64 Write (af::WriteStreamRef ws, const GetHeaders& msg, bool mainnet);
-      uint64 SizeOf(const bmx::Network::Message::GetHeaders& hdrs);
-
 
       //
-      // Headers Message 
-      // struct Headers {
+      // Message [Headers]  
+      typedef blockarray Headers;  // deceit
       // 	blockarray blocks;
       // }; 
 
-      uint64 Read  (blockarray& blocks, af::ReadStreamRef rs, bool mainnet);
-      uint64 Write (af::WriteStreamRef ws, const blockarray& blocks, bool mainnet);
+      uint64 Read  (Headers& blocks, af::ReadStreamRef rs, bool mainnet);
+      uint64 Write (af::WriteStreamRef ws, const Headers& blocks, bool mainnet);
 
       // 
       // MerkleBlock Message 
       struct MerkleBlock { int dumb; }; 
       uint64 Read  (MerkleBlock& msg, af::ReadStreamRef rs, bool mainnet);
       uint64 Write (af::WriteStreamRef ws, const MerkleBlock& msg, bool mainnet); 
+      //
+
+
+
       // 
+      // Message [GetData]
+      struct GetData {
+
+	enum GETDATA_TYPE {
+	  GD_kTX_DATA_TYPE = 1,
+	  GD_BLOCK_DATA_TYPE = 2,
+	  GD_FILTERED_BLOCK_DATA_TYPE = 3,
+	  GD_COMPACT_BLOCK_DATA_TYPE = 4}; 
+
+	struct getdata_tuple {
+          GETDATA_TYPE type;
+          bytearray identifier; };
+
+	typedef std::vector<getdata_tuple>  DataArray;
+
+        DataArray data; 
+      }; 
+      // 
+      uint64   Read    (GetData& gd, af::ReadStreamRef rs, bool mainnet);
+      uint64   Write   (af::WriteStreamRef ws, const GetData& gd, bool mainnet); 
+      GetData& AddData (GetData& gd, GetData::GETDATA_TYPE dt, const bytearray& identifier);
+      uint64   SizeOf  (Network::Message::GetData& gd); 
+
     }
 
     // ---------------------------------------------------------
@@ -122,7 +149,6 @@ namespace bmx {
     //
     // ---------------------------------------------------------
     namespace Envelope {
-
       // 
       struct Struc {
 
@@ -135,10 +161,12 @@ namespace bmx {
       Struc& PayloadPing   (Struc& ne, uint64 nonce, bool mainnet);
       Struc& PayloadPong   (Struc& ne, uint64 nonce, bool mainnet);
       Struc& PayloadHeaders(Struc& ne, const blockarray& blocks, bool mainnet);
+      Struc& PayloadGeneric(Struc& ne, const std::string& cmd, const bytearray& payload, bool mainnet);
 
       Struc& Payload       (Struc& ne, const Message::Version&     vers, bool mainnet);
       Struc& Payload       (Struc& ne, const Message::GetHeaders&  msg, bool mainnet);
 
+      Struc& Payload (Struc& oenve, const Message::MerkleBlock& msg, bool mainnet);
       Struc& Payload (Struc& oenve, const Message::MerkleBlock& msg, bool mainnet);
       
       uint64 Read    (Struc& env, af::ReadStreamRef rs, bool mainnet);
@@ -163,6 +191,10 @@ namespace bmx {
       virtual void OnMerkleBlock (const Message::MerkleBlock& msg, const Envelope::Struc& ne, bool mainnet) {}
       virtual void OnGetHeaders (const Message::GetHeaders& msg, const Envelope::Struc& ne, bool mainnet) {} 
       virtual void OnHeaders (const blockarray& blocks, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void OnGetData (const Message::GetData& gd, const Envelope::Struc& ne, bool mainnet) {}
+
+      virtual void OnFilterLoad (const Message::GetData& gd, const Envelope::Struc& ne, bool mainnet) {} 
+      virtual void OnFilterAdd  (const Message::GetData& gd, const Envelope::Struc& ne, bool mainnet) {} 
       
     protected: 
       MessageReceiver () = default;

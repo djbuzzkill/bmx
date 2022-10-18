@@ -177,7 +177,7 @@ int main (int argv, char** argc) {
 
   CH11_Ex(args);
 
-  // CH12_Ex(args); 
+  CH12_Ex(args); 
   // CH13_Ex(args); 
   
     // test_gcrypt (args);

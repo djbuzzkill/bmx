@@ -5,11 +5,12 @@
 
 using namespace af; 
 using namespace ffm;
+using namespace bmx;
 
 
 
 
-uint64 bmx::util::SizeOf_varint(bmx::uint64 x) {
+uint64 util::SizeOf_varint(bmx::uint64 x) {
 
   static_assert (sizeof(size_t) == sizeof(uint64), "size_t == uint64"); 
 
@@ -34,7 +35,7 @@ uint64 bmx::util::SizeOf_varint(bmx::uint64 x) {
 
 //
 // 
-size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
+size_t util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
 
 
 
@@ -62,7 +63,7 @@ size_t bmx::util::read_varint (size_t& out, af::ReadStreamRef rs, const char* tr
   
 }
         //
-size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
+size_t util::write_varint (af::WriteStreamRef ws, size_t v) {
   //  FN_SCOPE ();
   // printf ("   num to write[%zu]\n", v); 
 
@@ -96,7 +97,7 @@ size_t bmx::util::write_varint (af::WriteStreamRef ws, size_t v) {
 
 //
 //
-bytearray& bmx::util::encode_num (bytearray& enc_out, FE_t num, FEConRef F) {
+bytearray& util::encode_num (bytearray& enc_out, FE_t num, FEConRef F) {
   
   //  printf ("[%s:decinum:%s]\n", __FUNCTION__, decinum.c_str()); 
   enc_out.clear ();
@@ -132,7 +133,7 @@ bytearray& bmx::util::encode_num (bytearray& enc_out, FE_t num, FEConRef F) {
 
 //
 //
-FE_t bmx::util::decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) {
+FE_t util::decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) {
   
   if (n_enc.empty ()) {
     F->Set_ui (num, 0); 
@@ -160,3 +161,49 @@ FE_t bmx::util::decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) {
   return num; 
 }
 
+
+
+
+
+//
+bytearray& bmx::bytes_to_bitfield (bytearray &oflags, const bytearray& bits) {
+  FN_SCOPE ();
+
+  const byte b00 {0x0}; 
+  const byte b01 {0x1}; 
+  
+  oflags.clear (); 
+  for (auto b : bits) {
+    uint8 bitfield =  std::to_integer<uint8>(b); 
+    for (auto i = 0; i < 8; ++i) {
+      oflags.push_back (bitfield & 0x1 ? b01 : b00);  
+      bitfield >>= 1; 
+    }
+  }
+
+  return oflags; 
+}
+
+//
+//
+bytearray& bmx::bitfield_to_bytes (bytearray &obits, const bytearray &flags) {
+  FN_SCOPE(); 
+  assert ((flags.size () % 8) == 0);
+  if ((flags.size () % 8) != 0)
+    return obits;
+
+  const byte b01 {0x1}; 
+  
+  obits.resize (flags.size () / 8); 
+  for (auto i = 0; i < flags.size(); ++i) {
+    uint8 ibit  = i % 8; 
+    uint8 ibyte = i / 8; 
+
+    if (flags[i] == b01) 
+      obits[ibyte] |= byte(1 << ibit); 
+    
+  }
+  
+  return obits; 
+  
+}

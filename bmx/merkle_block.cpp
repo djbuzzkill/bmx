@@ -43,7 +43,7 @@ bool MerkleBlock::IsValid (const MerkleBlock::Struc& mb) {
   FN_SCOPE();  
 
   bytearray flag_bits; 
-  merkle_ut::bytes_to_bit_field (flag_bits, mb.flags); 
+  bytes_to_bitfield (flag_bits, mb.flags); 
 
 
   merkletree mt;
@@ -184,68 +184,6 @@ uint64 MerkleBlock::Write (WriteStreamRef ws, const MerkleBlock::Struc &mb, bool
   
 }
 
-
-//
-bytearray& bmx::merkle_ut::bytes_to_bit_field (bytearray &oflags, const bytearray& bits) {
-  FN_SCOPE ();
-
-  const byte b00 {0x0}; 
-  const byte b01 {0x1}; 
-  
-  oflags.clear (); 
-  for (auto b : bits) {
-    uint8 bitfield =  std::to_integer<uint8>(b); 
-    for (auto i = 0; i < 8; ++i) {
-      oflags.push_back (bitfield & 0x1 ? b01 : b00);  
-      bitfield >>= 1; 
-    }
-  }
-
-  // # tag::source1[]
-  // def bytes_to_bit_field(some_bytes):
-  //     flag_bits = []
-  //     for byte in some_bytes:
-  //         for _ in range(8):
-  //             flag_bits.append(byte & 1)
-  //             byte >>= 1
-  //     return flag_bits
-  // # end::source1[]
-  return oflags; 
-}
-
-//
-//
-bytearray& bmx::merkle_ut::bit_field_to_bytes (bytearray &obits, const bytearray &flags) {
-  FN_SCOPE(); 
-  assert ((flags.size () % 8) == 0);
-  if ((flags.size () % 8) != 0)
-    return obits;
-
-  const byte b01 {0x1}; 
-  
-  obits.resize (flags.size () / 8); 
-  for (auto i = 0; i < flags.size(); ++i) {
-    uint8 ibit  = i % 8; 
-    uint8 ibyte = i / 8; 
-
-    if (flags[i] == b01) 
-      obits[ibyte] |= byte(1 << ibit); 
-    
-  }
-  
-  // def bit_field_to_bytes(bit_field):
-  //     if len(bit_field) % 8 != 0:
-  //         raise RuntimeError('bit_field does not have a length that is divisible by 8')
-  //     result = bytearray(len(bit_field) // 8)
-  //     for i, bit in enumerate(bit_field):
-  //         byte_index, bit_index = divmod(i, 8)
-  //         if bit:
-  //             result[byte_index] |= 1 << bit_index
-  //     return bytes(result)
-
-  return obits; 
-  
-}
 
   
 

@@ -143,17 +143,17 @@ int test_getheaders_message_write (const std::vector<std::string>& args) {
 }
 
 int test_ping_message_parse (const std::vector<std::string>& args) {
-  FN_SCOPE (); 
+  //FN_SCOPE(); 
   return 0;
 }
 
 int test_pong_message_parse(const std::vector<std::string> &args) {
-  FN_SCOPE (); 
+  //FN_SCOPE(); 
   return 0;
 }
 
 int test_merkleblock_message_parse (const std::vector<std::string>& args) {
-  FN_SCOPE (); 
+  //FN_SCOPE(); 
   return 0;
 }
 
@@ -243,14 +243,48 @@ int test_handshake (const std::vector<std::string>& args) {
   //     node.handshake()
 }
 
-int test_serialize  (const std::vector<std::string>& args) {
+
+
+
+int test_getdata_serialize  (const std::vector<std::string>& args) {
   FN_SCOPE (); 
 
-    // def test_serialize(self):
-    //     block_hex = '0000000000000000001237f46acddf58578a37e213d2a6edc4884a2fcad05ba3'
-    //     gh = GetHeadersMessage(start_block=bytes.fromhex(block_hex))
-    //     self.assertEqual(gh.serialize().hex(), '7f11010001a35bd0ca2f4a88c4eda6d213e2378a5758dfcd6af437120000000000000000000000000000000000000000000000000000000000000000000000000000000000')
+  bool mainnet = true; 
+  std::string block1_hex = "00000000000000cac712b726e4326e596170574c01a16001692510c44025eb30";
+  bytearray block1; 
 
+  std::string block2_hex = "00000000000000beb88910c46f6b442312361c6693a7fb52065b583979844910"; 
+  bytearray block2;
+
+  
+  bmx::Network::Message::GetData gd; 
+  //  Network::Message::Default (gd);
+  
+  Network::Message::AddData (gd, Network::Message::GetData::GD_FILTERED_BLOCK_DATA_TYPE, block1);
+  Network::Message::AddData (gd, Network::Message::GetData::GD_FILTERED_BLOCK_DATA_TYPE, block2);
+
+  bytearray   gdbin (Network::Message::SizeOf (gd), byte(0)); 
+  // get_data.add_data(FILTERED_BLOCK_DATA_TYPE, block1)
+  uint64 writelen_gd = Network::Message::Write (CreateWriteMemStream(&gdbin[0], gdbin.size()), gd, mainnet); 
+	      
+	      
+  std::string want_hex = "020300000030eb2540c41025690160a1014c577061596e32e426b712c7ca00000000000000030000001049847939585b0652fba793661c361223446b6fc41089b8be00000000000000";
+  bytearray wantbin; 
+  hex::decode (wantbin, want_hex); 
+
+  PR_CHECK("getdata serialize  matches", eql(wantbin, gdbin));
+
+//     def test_serialize(self):
+//         hex_msg = '020300000030eb2540c41025690160a1014c577061596e32e426b712c7ca00000000000000030000001049847939585b0652fba793661c361223446b6fc41089b8be00000000000000'
+//         get_data = GetDataMessage()
+//         block1 = bytes.fromhex('00000000000000cac712b726e4326e596170574c01a16001692510c44025eb30')
+//         get_data.add_data(FILTERED_BLOCK_DATA_TYPE, block1)
+//         block2 = bytes.fromhex('00000000000000beb88910c46f6b442312361c6693a7fb52065b583979844910')
+//         get_data.add_data(FILTERED_BLOCK_DATA_TYPE, block2)
+//         self.assertEqual(get_data.serialize().hex(), hex_msg)
+// K
+
+  
   return 0;
 }
 

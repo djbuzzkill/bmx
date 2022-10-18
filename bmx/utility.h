@@ -46,7 +46,7 @@ namespace bmx {
 
   }
 
-
+  
   // script_ut
   namespace util {
 
@@ -60,6 +60,25 @@ namespace bmx {
 
   }
 
+    
+  // expand into flags 0b00000101 -> [0, 0, 0, 0, 0, 0, 1, 0, 1]  
+  bytearray& bytes_to_bitfield (bytearray &oflags, const bytearray &bitfield);
+
+  // pack into bytes into bits:  [0, 0, 0, 0, 0, 0, 1, 0, 1] -> 0b00000101 
+  bytearray& bitfield_to_bytes (bytearray &bitfield, const bytearray &flags);
+
+
+
+  // flags_from_bits = bytes_to_bitfield
+  inline bytearray& flags_from_bits (bytearray &oflags, const bytearray &bitfield) {
+    return bytes_to_bitfield(oflags, bitfield);
+  }
+  // bits_from_flags = bitfield_to_bytes 
+  inline bytearray& bits_from_flags (bytearray &bitfield, const bytearray &flags) {
+    return bitfield_to_bytes (bitfield, flags); 
+  }
+
+  
 }
 
 
