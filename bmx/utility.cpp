@@ -31,8 +31,6 @@ uint64 util::SizeOf_varint(bmx::uint64 x) {
 }
 
 
-
-
 //
 // 
 size_t util::read_varint (size_t& out, af::ReadStreamRef rs, const char* trace) {
@@ -161,13 +159,8 @@ FE_t util::decode_num (FE_t num, FEConRef F, const af::bytearray& n_enc) {
   return num; 
 }
 
-
-
-
-
 //
 bytearray& bmx::bytes_to_bitfield (bytearray &oflags, const bytearray& bits) {
-  FN_SCOPE ();
 
   const byte b00 {0x0}; 
   const byte b01 {0x1}; 
@@ -185,9 +178,8 @@ bytearray& bmx::bytes_to_bitfield (bytearray &oflags, const bytearray& bits) {
 }
 
 //
-//
 bytearray& bmx::bitfield_to_bytes (bytearray &obits, const bytearray &flags) {
-  FN_SCOPE(); 
+
   assert ((flags.size () % 8) == 0);
   if ((flags.size () % 8) != 0)
     return obits;
@@ -205,5 +197,5 @@ bytearray& bmx::bitfield_to_bytes (bytearray &obits, const bytearray &flags) {
   }
   
   return obits; 
-  
+ 
 }

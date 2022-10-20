@@ -75,7 +75,6 @@ namespace bmx {
     return secp256k1::Sign (sig, privk, zbin); 
   }
 
-
   // all things ffm together
   struct FFM_Env { 
     //
@@ -85,7 +84,6 @@ namespace bmx {
     ffm::pt::map  pm; 
 
   }; 
-
   //
   bool        Init_FE_context    (ffm::FEConRef& ofecon); 
   bool        Init_secp256k1_Env (ffm::FEConRef& ofecon, ffm::ECConRef& oeccon, ffm::el::map& em, ffm::pt::map& pm);

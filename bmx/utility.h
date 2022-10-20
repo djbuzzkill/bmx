@@ -21,7 +21,9 @@ namespace bmx {
   typedef af::int64   int64;
   typedef af::byte    byte;
 
-
+  typedef af::digest32 digest32;
+  typedef af::digest20 digest20; 
+  
   // ---------------------------------------------------
   //
   // ---------------------------------------------------
@@ -49,34 +51,30 @@ namespace bmx {
   
   // script_ut
   namespace util {
-
     //
-    uint64         SizeOf_varint (uint64  x); 
-    size_t         read_varint  (size_t& out, af::ReadStreamRef rs, const char* trace = 0); 
-    size_t         write_varint (af::WriteStreamRef ws, size_t v) ;
+    uint64         SizeOf_varint (uint64 n); 
+    size_t         read_varint  (size_t& n, af::ReadStreamRef rs, const char* trace = 0); 
+    size_t         write_varint (af::WriteStreamRef ws, size_t n) ;
 
     af::bytearray& encode_num   (af::bytearray& enc_out, ffm::FE_t num, ffm::FEConRef F); 
     ffm::FE_t      decode_num   (ffm::FE_t num, ffm::FEConRef F, const af::bytearray& n_enc); 
-
   }
 
-    
   // expand into flags 0b00000101 -> [0, 0, 0, 0, 0, 0, 1, 0, 1]  
   bytearray& bytes_to_bitfield (bytearray &oflags, const bytearray &bitfield);
 
   // pack into bytes into bits:  [0, 0, 0, 0, 0, 0, 1, 0, 1] -> 0b00000101 
   bytearray& bitfield_to_bytes (bytearray &bitfield, const bytearray &flags);
 
-
-
   // flags_from_bits = bytes_to_bitfield
   inline bytearray& flags_from_bits (bytearray &oflags, const bytearray &bitfield) {
     return bytes_to_bitfield(oflags, bitfield);
   }
-  // bits_from_flags = bitfield_to_bytes 
+  // bits_from_flags = bitfield_to_bytes, or just rename
   inline bytearray& bits_from_flags (bytearray &bitfield, const bytearray &flags) {
     return bitfield_to_bytes (bitfield, flags); 
   }
+
 
   
 }

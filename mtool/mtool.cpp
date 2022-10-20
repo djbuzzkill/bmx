@@ -174,11 +174,9 @@ int main (int argv, char** argc) {
   CH8_Ex(args);
   CH9_Ex(args); 
   CH10_Ex(args);
-
   CH11_Ex(args);
-
   CH12_Ex(args); 
-  // CH13_Ex(args); 
+  CH13_Ex(args); 
   
     // test_gcrypt (args);
   printf ("%s:EXIT\n", __FUNCTION__); 

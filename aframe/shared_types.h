@@ -24,7 +24,6 @@ namespace af
   typedef std::int64_t  int64;
   typedef std::byte     byte;
 
-
   // ---------------------------------------------------
   //
   // ---------------------------------------------------
@@ -35,6 +34,8 @@ namespace af
   typedef byte32                    bigint32;
   typedef byte32                    fixnum32;
 
+  typedef byte32 digest32;
+  typedef byte20 digest20;
 
   // ---------------------------------------------------
   // 

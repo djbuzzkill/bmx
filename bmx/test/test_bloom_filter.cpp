@@ -1,7 +1,7 @@
 
 
 int test_bloom_filter_add (const std::vector<std::string> &args) {
-
+  FN_SCOPE ();
   bloomfilter bf;
   BloomFilter::Init (bf, 10, 5, 99);
 
@@ -31,6 +31,8 @@ int test_bloom_filter_add (const std::vector<std::string> &args) {
 }
 
 int test_bloom_filter_filterload (const std::vector<std::string> &args) {
+  FN_SCOPE ();
+
   bloomfilter bf;
   BloomFilter::Init (bf, 10, 5, 99);
 
@@ -39,7 +41,6 @@ int test_bloom_filter_filterload (const std::vector<std::string> &args) {
 
   bytearray bits1 (bf.size, byte(0)); 
   bitfield_to_bytes  (bits1, bf.bitfield);
-
 
   std::string expected_hex = "0a4000600a080000010940050000006300000001";
 
@@ -54,10 +55,14 @@ int test_bloom_filter_filterload (const std::vector<std::string> &args) {
   
   PR_CHECK("serialize bloom filter", bfhex == expected_hex); 
   return 0; 
-
 }
 
+
+
+// int test_getdata_message_serialize ( (const std::vector<std::string> &args) {
+//   }
   
+
 int test_bloom_filter (const std::vector<std::string> &args) {
   FN_SCOPE(); 
   test_bloom_filter_add (args) ;

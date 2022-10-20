@@ -9,8 +9,6 @@
 namespace af {
 
   // ------------------------------------------------------------
-  typedef byte32 digest32;
-  typedef byte20 digest20;
 
   //
   uint32 murmur3_x86_32 (const void* dat, uint32 len, uint32 seed = 0); 

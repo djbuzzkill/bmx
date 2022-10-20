@@ -290,7 +290,8 @@ bool bmx::EvalScript (script_env& env) {
 	if ( !op_map[OP_VERIFY] (env) )
 	  return false;
 
-	auto          script_buf_size = env.stack.back().size () + 10; // lil xtra 4 varint
+	
+	auto           script_buf_size = env.stack.back().size () + util::SizeOf_varint (env.stack.back().size ()); // lil xtra 4 varint
         bytearray      redeembytes     (script_buf_size, byte(0));
 	WriteStreamRef ws              = CreateWriteMemStream (&redeembytes[0], script_buf_size);
 

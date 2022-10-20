@@ -469,7 +469,7 @@ bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainn
 
   // BIP0016
   command_list redeem_script;
-  if (util::is_p2sh_script_pubkey (script_pubkey)) {
+  if (script_ut::is_p2sh_script_pubkey (script_pubkey)) {
 
     const bmx::script_command& cmd = tx.inputs[input_index].script_sig.back ();
 

@@ -113,6 +113,7 @@ int test_headers_message_read (const std::vector<std::string>& args) {
   return 0;
 }
 
+
 int test_getheaders_message_write (const std::vector<std::string>& args) {
   FN_SCOPE(); 
   // class GetHeadersMessageTest(TestCase):
@@ -139,6 +140,8 @@ int test_getheaders_message_write (const std::vector<std::string>& args) {
   printf ( "    want [%s]\n    test [%s]\n", wanthex.c_str(), testhex.c_str()); 
   PR_CHECK("write getheaders match",  eql(testbin, wantbin)); 
 
+
+  
   return 0;
 }
 
