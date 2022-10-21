@@ -43,22 +43,20 @@ inline void pr_hex (const char* lbl, const Seq& bytes) {
   
 }
 
-
-;;
-;;
-template <typename Ty> 
+//
+//
+template <typename Ty>
 std::string hexfrom (const Ty& srcbin) {
     std::string ret = ""; 
     for (auto x : srcbin) {
     ret +=   af::hex::from_uc (x);
   }
-    
   return ret;
 }
 
 //
 //
-int thicnspicy  (std::vector<std::string>& args)  {
+int thicnspicy  (std::vector<std::string>& args) {
 
   printf ("%s:ENTER\n", __FUNCTION__); 
 
@@ -70,8 +68,6 @@ int thicnspicy  (std::vector<std::string>& args)  {
 				   kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
 				   kSEC256k1_n_sz, 0);
   
-
-
   ScopeDeleter dr(F);
   //
   bytearray   ar;
@@ -102,17 +98,17 @@ int thicnspicy  (std::vector<std::string>& args)  {
   
   //FE_t secr_a = dr(F->New_ui(5002));
   MakePublicKey (pubk, privatek);
-  MakeAddress   (addressa, true, false, pubk);
+  MakeAddress   (addressa, pubk, true, false);
   printf ("_ADDRESS:%s\n", addressa.c_str()); 
   printf ("expected:%s\n", "mmTPbXQFxboEtNRkwfh6K51jvdtHLxGeMA"); 
     
   printf ("%s:EXIT\n", __FUNCTION__); 
-  
+
   return 0; 
 }      
 
 
-void print_point (const std::string& lbl, const bmx::Point& p){
+void print_point (const std::string& lbl, const bmx::Point& p) {
 
   std::string xstr, ystr; 
 
@@ -124,7 +120,7 @@ void print_point (const std::string& lbl, const bmx::Point& p){
 }
 
 
-void print_sig (const std::string& lbl, const bmx::Signature& s){
+void print_sig (const std::string& lbl, const bmx::Signature& s) {
 
   std::string rstr, sstr; 
 

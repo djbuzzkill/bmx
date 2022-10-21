@@ -374,7 +374,7 @@ size_t bmx::ReadSignature_DER (Signature& osig, size_t binsize, ReadStreamRef rs
 
 
 //
-std::string& bmx::MakeAddress (std::string& out, bool compr, bool mainnet, const PublicKey &pubk) {
+std::string& bmx::MakeAddress (std::string& out, const PublicKey &pubk, bool compr, bool mainnet) {
 
   //1
   unsigned char  netprefix = mainnet ? 0x0 : 0x6f;

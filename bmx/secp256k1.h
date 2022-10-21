@@ -44,7 +44,9 @@ namespace bmx {
   //
   // 
   Point&       MakePublicKey (Point& out, const PrivateKey& sec); 
-  std::string& MakeAddress   (std::string& out, bool compr, bool mainnet, const PublicKey& pubk); 
+  std::string& MakeAddress   (std::string& out, const PublicKey &pubk, bool compr, bool mainnet); 
+
+
   // 
   std::string& MakeWIF       (std::string& out, bool compr, bool mainnet, const PrivateKey& prvk); 
   //
