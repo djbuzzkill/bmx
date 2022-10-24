@@ -217,18 +217,13 @@ namespace priveval {
 //
 //bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
 bool bmx::EvalScript (script_env& env) {
-  FN_SCOPE (); 
+  //FN_SCOPE (); 
+  static bool diag_print_stack = false; 
   
   using namespace priveval;
-  //printf ("Enter:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
-  //script_env env; // env (commands, z, F);
-  std::string script_fmt = script_ut::format_script (env.cmds); 
-  printf ( " script to eval\n%s\n", script_fmt.c_str()); 
-  //std::copy (z.begin(), z.end(),  env.z.begin());
-  //std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
+
   auto pass_counter  = 0; // this is for display
   
-  //printf ("env.cmds.size():%zu\n",  env.cmds.size ()); 
   while (env.cmds.size ()) {
     //printf ("%s [op no.%zu]-> current stack size : %zu\n", __FUNCTION__, op_num, env.stack.size()) ;
     script_command cmd = std::move (env.cmds.front ()); 
@@ -263,15 +258,16 @@ bool bmx::EvalScript (script_env& env) {
     // ELEMENT
     // -------------------------------------------------------- 
     case command_type::SC_element:
-      printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
+      
+      if (diag_print_stack)
+	printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
+
       env.stack.push_back (std::move (arr(cmd)));
 
 #ifdef ENABLE_EVAL_BIP0016
       // BIP0016 check
       if(env.cmds.size () == 3) {
-	// make a copy of whats there now
-	bytearray maybe_redeem = env.stack.back (); 
-	
+
 	command_list::const_iterator it = env.cmds.begin ();
 	if (ty(*it) != command_type::SC_operation || op(*it) != OP_HASH160)
 	  continue; 
@@ -285,6 +281,9 @@ bool bmx::EvalScript (script_env& env) {
 	  continue;
 
 	//printf (" ************* THIS LOOKS LIKE BIP0016\n"); 
+	// make a copy of top right now
+	bytearray maybe_redeem = env.stack.back (); 
+	
         env.cmds.pop_back ();  // OP_HASH160
 	bytearray h160 = std::move(arr(env.cmds.back())); 
 	env.cmds.pop_back (); 
@@ -301,18 +300,15 @@ bool bmx::EvalScript (script_env& env) {
 	  return false;
 	
 	uint64         writelen_redeem = 0;
-	auto           redeem_buf_size = maybe_redeem.size () + util::SizeOf_varint (maybe_redeem.size ()); // lil xtra 4 varint
-        bytearray      redeembuf (redeem_buf_size, byte(0));
-	WriteStreamRef redeem_ws  = CreateWriteMemStream (&redeembuf[0], redeem_buf_size);
+        bytearray      redeembuf (maybe_redeem.size () + util::SizeOf_varint (maybe_redeem.size ()), byte(0));
+	WriteStreamRef redeem_ws  = CreateWriteMemStream (&redeembuf[0], redeembuf.size());
 
 	writelen_redeem += util::write_varint(redeem_ws, maybe_redeem.size ()); 
 	writelen_redeem += redeem_ws->Write (&maybe_redeem[0], maybe_redeem.size ()); 
 
         command_list redeem_script; 
 	uint64 readlen_redeem = ReadScript (redeem_script, CreateReadMemStream (&redeembuf[0], writelen_redeem)); 
-	std::string redeem_script_str = script_ut::format_script (redeem_script); 
 	append (env.cmds, redeem_script); 
-	std::string script_end = script_ut::format_script (env.cmds); 
 	
       }
 #endif //  ENABLE_EVAL_BIP0016
@@ -330,9 +326,7 @@ bool bmx::EvalScript (script_env& env) {
 
     } // switch 
 
-
-    static bool print_stack = true; 
-    if (print_stack) {
+    if (diag_print_stack) {
       printf ("stack[%zu]\n", env.stack.size ()); 
       for (size_t ist = 0; ist < env.stack.size (); ++ist) {
 	auto stack_ind = env.stack.size () - 1 - ist;
