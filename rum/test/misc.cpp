@@ -77,7 +77,7 @@ int test_inspect_tx(const std::vector<std::string> &args) {
 
 
   for (auto i = 0; i < tx.outputs.size (); ++i)
-    printf ( "    output[%zu] %s \n", i, format_script (tx.outputs[i].script_pubkey).c_str());
+    printf ( "    output[%zu] %s \n", i, script_ut::format_script (tx.outputs[i].script_pubkey).c_str());
 
 
 

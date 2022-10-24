@@ -7,6 +7,9 @@
 #include "aframe/utility.h"
 
 
+#define ENABLE_EVAL_BIP0016 1
+
+
 using namespace af;
 
 //
@@ -215,10 +218,12 @@ namespace priveval {
 //bool bmx::EvalScript (const command_list& commands, const af::digest32& z) {
 bool bmx::EvalScript (script_env& env) {
   FN_SCOPE (); 
+  
   using namespace priveval;
   //printf ("Enter:%s|ln: %i", __FUNCTION__, __LINE__ + 1);
   //script_env env; // env (commands, z, F);
-
+  std::string script_fmt = script_ut::format_script (env.cmds); 
+  printf ( " script to eval\n%s\n", script_fmt.c_str()); 
   //std::copy (z.begin(), z.end(),  env.z.begin());
   //std::copy (commands.begin(), commands.end(), std::back_inserter(env.cmds)); 
   auto pass_counter  = 0; // this is for display
@@ -258,11 +263,15 @@ bool bmx::EvalScript (script_env& env) {
     // ELEMENT
     // -------------------------------------------------------- 
     case command_type::SC_element:
-      //printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
+      printf ("[[ push element[%zu] ]]\n", arr(cmd).size()); 
       env.stack.push_back (std::move (arr(cmd)));
 
-      // BIP0016
+#ifdef ENABLE_EVAL_BIP0016
+      // BIP0016 check
       if(env.cmds.size () == 3) {
+	// make a copy of whats there now
+	bytearray maybe_redeem = env.stack.back (); 
+	
 	command_list::const_iterator it = env.cmds.begin ();
 	if (ty(*it) != command_type::SC_operation || op(*it) != OP_HASH160)
 	  continue; 
@@ -274,35 +283,41 @@ bool bmx::EvalScript (script_env& env) {
 	it++; 
 	if (ty(*it) != command_type::SC_operation || op(*it) != OP_EQUAL)
 	  continue;
-        //
-	// WOOOO!!!
-        env.cmds.pop_front ();  // OP_HASH160
-	if ( !op_map[OP_HASH160] (env) ) 
+
+	//printf (" ************* THIS LOOKS LIKE BIP0016\n"); 
+        env.cmds.pop_back ();  // OP_HASH160
+	bytearray h160 = std::move(arr(env.cmds.back())); 
+	env.cmds.pop_back (); 
+	env.cmds.pop_back (); 
+
+	if (!op_map[OP_HASH160](env)) 
 	  return false;
 	
-        env.stack.push_back ( std::move(arr(env.cmds.front())) ); // hash160
-	env.cmds.pop_front (); 
-	
-	env.cmds.pop_front (); // OP_EQUAL 
-	if ( !op_map[OP_EQUAL] (env) )
+        env.stack.push_back (std::move (h160)); // hash160
+	if (!op_map[OP_EQUAL](env))
 	  return false;
 
-	if ( !op_map[OP_VERIFY] (env) )
+	if (!op_map[OP_VERIFY](env))
 	  return false;
-
 	
-	auto           script_buf_size = env.stack.back().size () + util::SizeOf_varint (env.stack.back().size ()); // lil xtra 4 varint
-        bytearray      redeembytes     (script_buf_size, byte(0));
-	WriteStreamRef ws              = CreateWriteMemStream (&redeembytes[0], script_buf_size);
+	uint64         writelen_redeem = 0;
+	auto           redeem_buf_size = maybe_redeem.size () + util::SizeOf_varint (maybe_redeem.size ()); // lil xtra 4 varint
+        bytearray      redeembuf (redeem_buf_size, byte(0));
+	WriteStreamRef redeem_ws  = CreateWriteMemStream (&redeembuf[0], redeem_buf_size);
 
-	auto writelen = 0;
-	writelen += util::write_varint (ws, env.stack.back().size ());
-	writelen += ws->Write (&env.stack.back()[0], env.stack.back().size());
+	writelen_redeem += util::write_varint(redeem_ws, maybe_redeem.size ()); 
+	writelen_redeem += redeem_ws->Write (&maybe_redeem[0], maybe_redeem.size ()); 
 
         command_list redeem_script; 
-	ReadScript (redeem_script, CreateReadMemStream (&redeembytes[0], writelen )); 
+	uint64 readlen_redeem = ReadScript (redeem_script, CreateReadMemStream (&redeembuf[0], writelen_redeem)); 
+	std::string redeem_script_str = script_ut::format_script (redeem_script); 
 	append (env.cmds, redeem_script); 
+	std::string script_end = script_ut::format_script (env.cmds); 
+	
       }
+#endif //  ENABLE_EVAL_BIP0016
+
+      
       break;
 
     default:
@@ -316,7 +331,7 @@ bool bmx::EvalScript (script_env& env) {
     } // switch 
 
 
-    static bool print_stack = false; 
+    static bool print_stack = true; 
     if (print_stack) {
       printf ("stack[%zu]\n", env.stack.size ()); 
       for (size_t ist = 0; ist < env.stack.size (); ++ist) {
@@ -386,39 +401,12 @@ int print_verify_mapping () {
 
 
 
+const std::string nada = ""; 
+const std::string& OpName (bmx::OpCode o) {
+  
+  if (priveval::op_name.count (o) == 0) 
+    return nada;
+  
+  return    priveval::op_name[o]; 
 
-
-//
-//
-std::string bmx::format_script (const command_list& scrip) {
-
-  std::string ret; 
-  std::vector<char> buf (256, 0x0);
-
-  std::string hexs;
-  uint32 count = 0;
-  for (auto& e : scrip) {
-    std::string curs;
-
-    switch (ty(e)) {
-
-    case command_type::SC_element : {
-
-      hex::encode(hexs, &arr(e)[0], arr(e).size()); 
-      sprintf (&buf[count], "elem[%zu|0x%s] ", arr(e).size(), hexs.c_str());  
-      curs = &buf[0]; 
-    } break;
-
-    case command_type::SC_operation : {
-      sprintf (&buf[0], "<op(0x%02x)> ", op(e)); 
-      curs = &buf[0]; 
-    } break;
-
-    default: { } break;
-    }
-
-    ret += curs; 
-    
-  }
-  return ret;
 }

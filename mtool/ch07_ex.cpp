@@ -3,46 +3,6 @@
 
 
 
-//
-int test_sig_hash (std::vector<std::string>& args) {
-
-  //FN_SCOPE ("");
-  //
-  //printf ("%s:ENTER\n", __FUNCTION__);
-
-  bmx::Transaction tx; 
-  bmx::TxFetcher   txf;
-  //bytearray        txbin;
-
-  // these are ver 2
-  //std::string      txid_hex   = "c8258fd502b2593c1d77466ba3d64503e05c3f091d5ab652e16a15891a0c3bdd"; 
-  //std::string      txid_hex   = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8";
-
-  //
-  // use this instead
-  std::string      txid_hex   = "0d6fe5213c0b3291f208cba8bfb59b7476dffacc4e5cb66f6eb20a080843a299"; 
-  const bool       on_mainnet = false;
-
-  if (txf.Fetch (tx, txid_hex , on_mainnet) ) { 
-
-    printf  ("TxID:%s\n", txid_hex.c_str()); 
-    printf  ("  ver:%i\n", tx.version); 
-    printf  ("  num txis:%zu\n", tx.inputs.size ()); 
-    printf  ("  num txos:%zu\n", tx.outputs.size ()); 
-    printf  ("  locktime:%zu\n", tx.locktime);
-
-
-  }
-  else {
-    printf  ("  fetching tx failed\n", tx.locktime); 
-  }
-
-  
-  
-  //printf ("%s:EXIT\n", __FUNCTION__); 
-  return 0;
-}
-
 
 
 int tx_test_p1  (std::vector<std::string>& args) {
@@ -244,7 +204,52 @@ int tx_test_fee (std::vector<std::string>& args) {
   //     self.assertEqual(tx.fee(), 140500)
   return 0; 
   }
+
+
+
+
 //
+int test_sig_hash (std::vector<std::string>& args) {
+
+  FN_SCOPE ();
+  //
+  //printf ("%s:ENTER\n", __FUNCTION__);
+
+  bmx::Transaction tx; 
+  bmx::TxFetcher   txf;
+  //bytearray        txbin;
+
+  // these are ver 2
+  //std::string      txid_hex   = "c8258fd502b2593c1d77466ba3d64503e05c3f091d5ab652e16a15891a0c3bdd"; 
+  //std::string      txid_hex   = "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8";
+
+  //
+  // use this instead
+  std::string      txid_hex   = "0d6fe5213c0b3291f208cba8bfb59b7476dffacc4e5cb66f6eb20a080843a299"; 
+  const bool       on_mainnet = false;
+
+  if (txf.Fetch (tx, txid_hex , on_mainnet) ) { 
+
+    printf  ("TxID:%s\n", txid_hex.c_str()); 
+    printf  ("  ver:%i\n", tx.version); 
+    printf  ("  num txis:%zu\n", tx.inputs.size ()); 
+    printf  ("  num txos:%zu\n", tx.outputs.size ()); 
+    printf  ("  locktime:%zu\n", tx.locktime);
+
+
+  }
+  else {
+    printf  ("  fetching tx failed\n", tx.locktime); 
+  }
+
+  
+  
+  //printf ("%s:EXIT\n", __FUNCTION__); 
+  return 0;
+}
+
+
+  //
 //
 int tx_test_sig_hash (std::vector<std::string>& args) {
 
@@ -276,17 +281,19 @@ int tx_test_sig_hash (std::vector<std::string>& args) {
 
 
 int tx_test_verify_p2pkh (std::vector<std::string>& args) {
-
-  bool on_mainnet = true;
+  FN_SCOPE (); 
+  bool on_mainnet = false;
   bool on_testnet = !on_mainnet;
   TxFetcher txf;
 
+  puts ("terw525fas32"); 
   {
     Transaction tx; 
     txf.Fetch (tx, "452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03", on_testnet);
     PR_CHECK ("verify 1", Tx::Verify (tx, on_testnet)); 
-
   }
+
+  puts ("525fas32"); 
   // def test_verify_p2pkh(self):
   //     tx = TxFetcher.fetch('452c629d67e41baec3ac6f04fe744b4b9617f8f859c63b3002f8684e7a4fee03')
   //     self.assertTrue(tx.verify())
@@ -296,21 +303,25 @@ int tx_test_verify_p2pkh (std::vector<std::string>& args) {
     txf.Fetch (tx, "5418099cc755cb9dd3ebc6cf1a7888ad53a1a3beb5a025bce89eb1bf7f1650a2", on_mainnet); 
     PR_CHECK ("verify 2",  Tx::Verify (tx, on_mainnet)); 
   }
+  puts ("iop525fas32"); 
 
   //     tx = TxFetcher.fetch('5418099cc755cb9dd3ebc6cf1a7888ad53a1a3beb5a025bce89eb1bf7f1650a2', testnet=True)
   //     self.assertTrue(tx.verify())
   return 0; 
   }
 
+  
 int test_verify_p2sh (std::vector<std::string>& args) {
-
+  FN_SCOPE ();
   bool on_mainnet = true;
   // def test_verify_p2sh(self):
   //     tx = TxFetcher.fetch('46df1a9484d0a81d03ce0ee543ab6e1a23ed06175c104a178268fad381216c2b')
   //     self.assertTrue(tx.verify())
   TxFetcher txf;
   Transaction tx; 
-  txf.Fetch (tx, "46df1a9484d0a81d03ce0ee543ab6e1a23ed06175c104a178268fad381216c2b", on_mainnet); 
+  txf.Fetch (tx, "46df1a9484d0a81d03ce0ee543ab6e1a23ed06175c104a178268fad381216c2b", on_mainnet);
+
+
   PR_CHECK (std::string(__FUNCTION__).c_str(), Tx::Verify (tx, on_mainnet)); 
 
   return 0; 
@@ -488,6 +499,21 @@ int test_Deterministic_K (std::vector<std::string>& args) {
 }
 
 
+int Ex_7_4 (std::vector<std::string> &args) {
+  FN_SCOPE();
+
+
+  return 0;
+}
+
+
+int Ex_7_5  (std::vector<std::string>& args) {
+  FN_SCOPE();
+  // Advanced: Get some more testnet coins from a testnet faucet and create a two-input,
+  //one-output transaction. One input should be from the faucet, the other should be
+  //from the previous exercise; the output can be your own address.
+  return 0; 
+}
 
 //
 int CH7_Ex (std::vector<std::string>& args) {
@@ -499,27 +525,22 @@ int CH7_Ex (std::vector<std::string>& args) {
   // tx_test_fee         (args);
   // tx_test_input_value (args); 
     
+  Ex_7_4 (args); 
+  Ex_7_5 (args);
     
   //test_problem_tx (args);
   // tx_test_sig_hash (args); 
   // test_input_pubkey    (args);
-  // tx_test_verify_p2pkh (args);
-  // test_verify_p2sh     (args);
-  //tx_test_sig_hash (args);
+  //  tx_test_sig_hash (args);
+  //tx_test_verify_p2pkh (args);
+    test_verify_p2sh     (args);
 
-  // test_hmac_sha256 (args); 
+  //test_hmac_sha256 (args); 
   // test_Deterministic_K (args) ; 
-  test_sign_input      (args);
+  //test_sign_input      (args);
 
   return 0;
 }
 
 
 
-void look_at_this_shhhhi () {
-
-  auto tup = std::tuple{ 420, "wtf", 3.15f}; 
-  auto& [a1, b1, c1] = tup; 
-
-  
-  }

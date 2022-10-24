@@ -32,6 +32,7 @@ namespace bmx {
     command_list& p2pkh_script(command_list& oscript, const digest20& addr); 
     command_list& p2sh_script (command_list& oscript, const digest20& addr); 
 
+    std::string format_script (const command_list& scrip, char delim = '\n'); 
   }
   
 }

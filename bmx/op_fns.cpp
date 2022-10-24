@@ -571,7 +571,34 @@ bool bmx::proc_OP_MUL (script_env& env) {
  bool bmx::proc_OP_NUMEQUALVERIFY    (script_env& env) { I_AM(__FUNCTION__); return false; }  
  bool bmx::proc_OP_NUMNOTEQUAL       (script_env& env) { I_AM(__FUNCTION__); return false; }  
  bool bmx::proc_OP_LESSTHAN          (script_env& env) { I_AM(__FUNCTION__); return false; }  
- bool bmx::proc_OP_GREATERTHAN       (script_env& env) { I_AM(__FUNCTION__); return false; }  
+
+bool bmx::proc_OP_GREATERTHAN (script_env& env) {
+  FN_SCOPE ();
+
+  if (env.stack.size () < 2)
+    return false; 
+  
+  const bytearray e1 = std::move(env.stack.back ());
+  env.stack.pop_back ();
+
+  const bytearray e2 = std::move(env.stack.back ()); 
+  env.stack.pop_back (); 
+
+
+  printf ( "   e1[%zu], e2[%zu]\n", e1.size(), e2.size()); 
+  
+  bytearray tmp;
+  FEConRef F (nullptr);
+  Init_FE_context (F); 
+  if (e2.size() > e1.size()) { 
+    env.stack.push_back (encode_num (tmp, F->New_si(1), F));
+  }
+  else {
+    env.stack.push_back (encode_num (tmp, F->New_si(0), F));
+  }
+  return true;
+}
+
  bool bmx::proc_OP_LESSTHANOREQUAL   (script_env& env) { I_AM(__FUNCTION__); return false; }  
  bool bmx::proc_OP_GREATERTHANOREQUAL(script_env& env) { I_AM(__FUNCTION__); return false; } 
  bool bmx::proc_OP_MIN               (script_env& env) { I_AM(__FUNCTION__); return false; }  

@@ -47,6 +47,7 @@ int test_p2sh_addr(std::vector<std::string> &args) {
 
 
 
+
 //
 int CH8_Ex (std::vector<std::string>& args) {
 
@@ -56,6 +57,7 @@ int CH8_Ex (std::vector<std::string>& args) {
   test_op_multisig (args); 
   test_p2pkh_addr  (args); 
   test_p2sh_addr   (args); 
+  test_verify_p2sh (args); 
 
   return 0;
 }

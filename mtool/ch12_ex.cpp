@@ -14,8 +14,7 @@ int CH12_Ex (const std::vector<std::string>& args) {
 
   test_bloom_filter_add (args) ;
   test_bloom_filter_filterload (args); 
-  test_getdata_serialize  (args); 
-
+  test_getdata_serialize  (args);
 
   return 0;
 }

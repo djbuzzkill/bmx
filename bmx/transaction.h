@@ -56,16 +56,16 @@ namespace bmx {
       Struc () : version (0), inputs (), locktime (0), outputs (0) {
       }
       // 
-      std::uint32_t version;    
-      TxInputs      inputs;
-      TxOutputs     outputs; 
-      std::uint32_t locktime; //; 
+      uint32    version;    
+      TxInputs  inputs;
+      TxOutputs outputs; 
+      uint32    locktime; //; 
       //
     };
-  
-    digest32&    SignatureHash   (digest32& ohash, const Struc& tx,  size_t indx, bool mainnet, const command_list* redeemscript = nullptr); 
+
+    digest32&    SignatureHash   (digest32& ohash, const Struc& tx,  size_t indx, bool mainnet, const command_list& redeemscript = command_list()); 
     bool         VerifyInput     (const Struc& tx, size_t input_index, bool mainnet); 
-    std::int64_t Fee             (const Struc& tx, bool mainnet); 
+    int64        Fee             (const Struc& tx, bool mainnet); 
     
     bool         SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&, bool mainnet); 
     bool         Verify          (const Struc& tx, bool mainnet); 

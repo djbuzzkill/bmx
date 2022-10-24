@@ -300,107 +300,56 @@ size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& tx) {
 }
 
 //
-//
-void bmx::print_txin (const TxIn& txin, size_t indent) {
-
-  std::string space (indent, ' '); 
-  std::string stmp;  
-  printf ( "%sTxIn {\n",  space.c_str());
-
-  hex::encode (stmp, &txin.prev_txid[0], txin.prev_txid.size()); 
-  printf ("%s  prev_txid:0x%s\n",   space.c_str(), stmp.c_str());
-  
-  printf ("%s  prev_ind:%u\n",    space.c_str(), txin.prev_index);        // int LE
-
-  printf ("%s  script_sig(%zu)\n", space.c_str(), txin.script_sig.size ());
-
-  hex::encode (stmp, &txin.sequence, sizeof(txin.sequence)); 
-  printf ("%s  sequence:0x%s\n",    space.c_str(), stmp.c_str());   //
-  printf ("%s}\n", space.c_str());   //
-}
-
-//
-//
-void bmx::print_txo (const TxOut& txo, size_t indent) {
-
-  std::string space (indent, ' '); 
-  std::string stmp;  
-
-  printf ( "%sTxOut {\n", space.c_str());
-  printf ( "%s  amount:%zu\n",   space.c_str(), txo.amount);
-
-  printf ( "%s  script_pubkey(%zu)\n", space.c_str() , txo.script_pubkey.size ()); 
-      //hex::encode (stmp, &txo.script_pubkey[0], txo.script_pubkey.size()); 
-  //printf ( "%s  scriptbin:0x%s\n",   space.c_str(), stmp.c_str()); 
-  printf ( "%s}\n",       space.c_str());
-}
-
-//
-//
-digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet, const command_list* redeemscript) {
+digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet, const command_list& redeemscript) {
   //FN_SCOPE(); 
   using namespace ffm;
+  const size_t bufsize = 8 * 1024; 
+  bytearray buf (bufsize); 
+  WriteStreamRef ws = CreateWriteMemStream (&buf[0], bufsize); 
 
-  //const std::uint32_t ver      = 4;  // x86 LE
-  const size_t        buf_size = 1024 * 128; 
-  bytearray           workb    (buf_size); 
-  size_t writetxlen = WriteTransaction (CreateWriteMemStream (&workb[0], buf_size) , tx );
-  //printf  ("writetxlen:%zu\n", writetxlen);
-  Transaction htx ; 
-  size_t readtxlen = ReadTransaction (htx, CreateReadMemStream (&workb[0], buf_size)); 
-  
-  if (writetxlen != readtxlen) {
-    printf("..writetxlen: %zu\n", writetxlen);
-    printf("..readtxlen: %zu\n", readtxlen);
-    assert (writetxlen == readtxlen); 
-  }
-
-  command_list script_pubkey;
+  uint64 writelen = 0; 
+  // begin write 
+  writelen += ws->Write (&tx.version, sizeof(uint32)); 
   //
-  for (size_t i = 0;  i < htx.inputs.size (); ++i)  {
+  TxInputs htx_ins (tx.inputs.size()); ; 
+  for (size_t i = 0;  i < tx.inputs.size (); ++i)  {
+    htx_ins[i] = tx.inputs[i]; 
 
     if (i == txind) {
-      if (redeemscript)  {
-	htx.inputs[i].script_sig = *redeemscript; 
+      if (redeemscript.size ())  {
+	htx_ins[i].script_sig = redeemscript; 
+	printf ("%s have Redeem Script\n", __FUNCTION__); 
       }
-      else { 
-	htx.inputs[i].script_sig = ScriptPubKey (script_pubkey, htx.inputs[i], on_mainnet);
+      else {
+	command_list script_pubkey;
+	htx_ins[i].script_sig = ScriptPubKey (script_pubkey, tx.inputs[i], on_mainnet);
       }
     }
     else {
-      htx.inputs[i].script_sig.clear ();
+      htx_ins[i].script_sig.clear ();
     }
   }
+  // tx ins
+  writelen += write_tx_inputs  (ws, htx_ins) ;
+  // tx outs
+  writelen += write_tx_outputs (ws, tx.outputs); 
 
-  const std::uint32_t hashtype = SIGHASH_ALL; 
+  const uint32 hashtype = SIGHASH_ALL; 
 #ifdef ARCH_BIG_ENDIAN
-  // HASHTYPE also LE 
+  swap_endian (&hash_type); // arch is BE
 #endif
+  writelen += ws->Write (&tx.locktime, sizeof(uint32)); 
+  writelen += ws->Write (&hashtype, sizeof(uint32)); 
 
-
-  WriteStreamRef wsh = CreateWriteMemStream (&workb[0], buf_size);
-  size_t tx_for_hashing_len = 0; 
-  tx_for_hashing_len += WriteTransaction (wsh, htx);
-  tx_for_hashing_len += wsh->Write (&hashtype , sizeof(SIGHASH_ALL));
-
+  printf("<wsh|writelen: %zu\n", writelen);
   //
-  size_t streampos = wsh->GetPos (); 
-  if (tx_for_hashing_len != streampos) {
-    printf("<wsh|streamposition: %zu\n", streampos);
-    printf("<wsh|txlen_to_hash: %zu\n", tx_for_hashing_len);
-    assert (tx_for_hashing_len == streampos);
-  }
-
-  //
-  //digest32 ztmp; 
-  hash256 (osh, &workb[0], wsh->GetPos ());
-  //std::reverse(osh.begin(), osh.end()); 
+  hash256 (osh, &buf[0], writelen);
   return osh;
 }
 
-//
-//  TxIn&         ScriptPubKey (command_list& oscr, const TxIn &inout, bool mainnet);
 
+
+//
 bmx::command_list& bmx::ScriptPubKey (bmx::command_list& oscr, const TxIn &txin, bool mainnet) {
   //FN_SCOPE ();
   TxFetcher txfr;
@@ -438,15 +387,15 @@ std::uint64_t bmx::Amount (const TxIn& txin, bool mainnet) {
 
 //
 //
-std::int64_t bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
+int64 bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
   //FN_SCOPE ();
 
-  std::int64_t input_sum =  0;
+  int64 input_sum =  0;
   for (size_t i = 0; i < tx.inputs.size (); ++i) {
     input_sum += Amount (tx.inputs[i], mainnet);
   }
 
-  std::int64_t output_sum = 0; 
+  int64 output_sum = 0; 
   for (size_t i =0 ; i < tx.outputs.size (); ++i) {
     output_sum +=  tx.outputs[i].amount; 
   }
@@ -458,7 +407,6 @@ std::int64_t bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
 //
 bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainnet) {
   //FN_SCOPE ();
-
   script_env env;
   Init_secp256k1_Env (env.ffme);
 
@@ -470,7 +418,7 @@ bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainn
   // BIP0016
   command_list redeem_script;
   if (script_ut::is_p2sh_script_pubkey (script_pubkey)) {
-
+    
     const bmx::script_command& cmd = tx.inputs[input_index].script_sig.back ();
 
     auto buf_size = arr(cmd).size () + 10;
@@ -480,35 +428,35 @@ bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainn
     WriteStreamRef ws = CreateWriteMemStream (&scriptbytes[0], buf_size); 
     writelen += util::write_varint (ws, arr(cmd).size ());
     writelen += ws->Write (&arr(cmd)[0], arr(cmd).size ()); 
-    
-    auto readlen = ReadScript (redeem_script, CreateReadMemStream (&scriptbytes[0], writelen)); 
+    printf ("   redeem_script len(%zu)\n", writelen); 
+    auto readlen = ReadScript (redeem_script, CreateReadMemStream (&scriptbytes[0], writelen));
   }
 
-  SignatureHash (env.z , tx, input_index, mainnet, redeem_script.size () ? &redeem_script : nullptr);
-
+  SignatureHash (env.z , tx, input_index, mainnet, redeem_script);
+  
   append (append (env.cmds, tx.inputs[input_index].script_sig), script_pubkey);
+
   return EvalScript (env);
 }
 
 //
 //
 bool bmx::Tx::Verify (const Transaction& tx, bool mainnet) {
-  //FN_SCOPE ();
+  FN_SCOPE ();
 		     
   if (Tx::Fee (tx, mainnet) < 0) {
-    printf (" -----------------------------return false\n"); 
+    printf (" BAD -----------------------------> fee is < 0 !!\n"); 
     return false;
   }
 
   for (size_t i = 0; i < tx.inputs.size (); ++i) {
 
     if ( !VerifyInput (tx, i, mainnet) ) {
-      printf(" |||||||||| %s ||||||||||| input (%zu) return false\n", __FUNCTION__, i);
+      printf(" <<<<<<<<< %s >>>>>>>>> fail verify input (%zu)\n", __FUNCTION__, i);
       return false;
     }
   }
 
-  printf ("<true>\n"); 
   return true; 
 }
 
@@ -550,4 +498,42 @@ bool bmx::Tx::SignInput (bmx::Transaction& otx, unsigned int input_index, const 
 
   return false; 
 }
+
+//
+//
+void bmx::print_txin (const TxIn& txin, size_t indent) {
+
+  std::string space (indent, ' '); 
+  std::string stmp;  
+  printf ( "%sTxIn {\n",  space.c_str());
+
+  hex::encode (stmp, &txin.prev_txid[0], txin.prev_txid.size()); 
+  printf ("%s  prev_txid:0x%s\n",   space.c_str(), stmp.c_str());
+  
+  printf ("%s  prev_ind:%u\n",    space.c_str(), txin.prev_index);        // int LE
+
+  printf ("%s  script_sig(%zu)\n", space.c_str(), txin.script_sig.size ());
+
+  hex::encode (stmp, &txin.sequence, sizeof(txin.sequence)); 
+  printf ("%s  sequence:0x%s\n",    space.c_str(), stmp.c_str());   //
+  printf ("%s}\n", space.c_str());   //
+}
+
+//
+//
+void bmx::print_txo (const TxOut& txo, size_t indent) {
+
+  std::string space (indent, ' '); 
+  std::string stmp;  
+
+  printf ( "%sTxOut {\n", space.c_str());
+  printf ( "%s  amount:%zu\n",   space.c_str(), txo.amount);
+
+  printf ( "%s  script_pubkey(%zu)\n", space.c_str() , txo.script_pubkey.size ()); 
+      //hex::encode (stmp, &txo.script_pubkey[0], txo.script_pubkey.size()); 
+  //printf ( "%s  scriptbin:0x%s\n",   space.c_str(), stmp.c_str()); 
+  printf ( "%s}\n",       space.c_str());
+}
+
+
 
