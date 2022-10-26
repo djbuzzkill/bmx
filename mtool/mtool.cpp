@@ -150,6 +150,10 @@ void print_sig (const bmx::Signature& s) {
 #include "ch13_ex.cpp"
 
 
+//void test_encoding_base58_match ();
+
+int test_base58_decode (const std::vector<std::string>& args); 
+
 // ----------------------- main --------------------------
 int main (int argv, char** argc) {
 
@@ -163,17 +167,22 @@ int main (int argv, char** argc) {
   //thicnspicy (args);
   //test_read_SEC_bin (args); 
 
-  //CH6_Ex(args);
-
-  //  CH7_Ex(args); 
-   CH8_Ex(args);
+  // CH6_Ex(args);
+  // CH7_Ex(args); 
+  // CH8_Ex(args);
   // CH9_Ex(args); 
   // CH10_Ex(args);
   // CH11_Ex(args);
   // CH12_Ex(args); 
+
   // CH13_Ex(args); 
+
+  test_base58_decode (args);
   
-    // test_gcrypt (args);
+  //test_encoding_base58_match ();
+
+ 
+  // test_gcrypt (args);
   printf ("%s:EXIT\n", __FUNCTION__); 
   return 0; 
 }

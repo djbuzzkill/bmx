@@ -9,20 +9,33 @@
 
 
 
-namespace af
-{
-  namespace base58
-  {
-    
+
+namespace af {
+
+  namespace base58 {
     //
     const char base58_enc[] =
       "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"; 
     
     // 58 + 1 
     static_assert (sizeof(base58_enc) == 59, "base58 alpabet is 58 bytes long"); 
+
+    const std::map<char, uint8> char_to_int_map = {
+      {'1',0 },{'2',1 },{'3', 2},{'4', 3},{'5', 4},{'6',5 },{'7', 6},{'8',7}, {'9',8}, {'A', 9}, 
+      {'B',10},{'C',11},{'D',12},{'E',13},{'F',14},{'G',15},{'H',16},{'J',17},{'K',18},{'L',19}, 
+      {'M',20},{'N',21},{'P',22},{'Q',23},{'R',24},{'S',25},{'T',26},{'U',27},{'V',28},{'W',29}, 
+      {'X',30},{'Y',31},{'Z',32},{'a',33},{'b',34},{'c',35},{'d',36},{'e',37},{'f',38},{'g',39}, 
+      {'h',40},{'i',41},{'j',42},{'k',43},{'m',44},{'n',45},{'o',46},{'p',47},{'q',48},{'r',49}, 
+      {'s',50},{'t',51},{'u',52},{'v',53},{'w',54},{'x',55},{'y',56},{'z',57},
+    };
+
+    // 
+    uint8 ch_2_int (char c) {
+      assert (char_to_int_map.count (c)); 
+      return char_to_int_map.at(c); 
+    }
     
-  }
-  
+  } 	   
 } // af
 
 //const char af::base58::base58_enc_[] = "plkj"; 
@@ -30,10 +43,6 @@ namespace af
 // 
 using namespace ffm;
 using namespace af;
-
-
-
-
 
 std::string af::hex::from_byte(byte b) {
 
@@ -191,29 +200,13 @@ byte af::hex::to_byte(const std::string& chars) {
   return out; 
 }
 
-
-
-// turn  binary number into string
+// turn binary number into string
 std::string& af::base58::encode (std::string& out, const void* inBE, size_t len) {
   
   const char secp256k1_p_sz[] = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
   
   ffm::FEConRef F = ffm::Create_FE_context (secp256k1_p_sz);
   ffm::ScopeDeleter dr (F); 
-  // def encode_base58(s):
-  //     count = 0
-  //     for c in s:  # <1>
-  //         if c == 0:
-  //             count += 1
-  //         else:
-  //             break
-  //     num = int.from_bytes(s, 'big')
-  //     prefix = '1' * count
-  //     result = ''
-  //     while num > 0:  # <2>
-  //         num, mod = divmod(num, 58)
-  //         result = BASE58_ALPHABET[mod] + result
-  //     return prefix + result  # <3>
   
   size_t count = 0;  {
     const unsigned char* in = reinterpret_cast<const unsigned char*>(inBE);  
@@ -264,23 +257,51 @@ std::string& base58::encode_checksum (std::string& out, const void* inBE, size_t
 }
 
 
+//  should this b called decode_checksum. ?
+af::bytearray &base58::decode (af::bytearray& outBE, const std::string &instr) {
 
-
-// base58 string into BE binary
-void* af::base58::decode (void* outBE, size_t olen,  const std::string& ) {
-  
   const char secp256k1_p_sz[] = "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
-  
   ffm::FEConRef F = ffm::Create_FE_context (secp256k1_p_sz);
-  ffm::ScopeDeleter dr (F); 
+  ffm::ScopeDeleter dr (F);
 
-  CODE_ME();  
-  
-  unsigned char* out = reinterpret_cast<unsigned char*>(outBE);  
+  FE_t n = dr(F->New_si(0));
+  for (auto c : instr) {
+    //printf ("      --> add char[%c| %u]\n", c, ch_2_int (c)); 
+    F->SMul_ui (n, n, 58);
+    F->SAdd_ui (n, n, ch_2_int (c));
+  }
 
-  return outBE; 
-}
+  int n_sign = 0;  //
+  bytearray n_bin; //  
+  F->Raw (n_bin, n_sign, n, false); 
 
+  bytearray checksum_in;
+  checksum_in.push_back(n_bin.back()); 
+  n_bin.pop_back ();
+  checksum_in.push_back(n_bin.back()); 
+  n_bin.pop_back (); 
+  checksum_in.push_back(n_bin.back()); 
+  n_bin.pop_back (); 
+  checksum_in.push_back(n_bin.back()); 
+  n_bin.pop_back ();
+
+  digest32 h256; 
+  hash256(h256, &n_bin[0], n_bin.size());
+
+  bytearray checksum_test (4); 
+  std::reverse_copy (&h256[0], &h256[4], &checksum_test[0]);
+  //std::copy (&h256[0], &h256[3], &checksum_test[0]);
+  if (!eql (checksum_in, checksum_test)) {
+    printf (" [ FAILED CHECKSUM] ---> inpput[%s] != check[%s]\n", fmthex(checksum_in).c_str(), fmthex(checksum_test).c_str()); 
+    // bad checksum; 
+  }
+
+  uint64 size_diff = n_bin.size() -  20;
+  printf ("...size_diff[%zu]\n", size_diff);
+
+  outBE = n_bin;
+  return outBE;
+} 
 
 
 
@@ -328,3 +349,19 @@ std::string& af::hex::encode (std::string& out, const void* bin, size_t len ) {
   return out;
 }
 
+
+
+
+
+// TEST TEST TEST TEST TEST TEST TEST TEST 
+void test_encoding_base58_match () {
+  FN_SCOPE (); 
+  std::string base_encoding_s = base58::base58_enc; 
+  for (uint8 i = 0; i < base_encoding_s.size(); ++i) {
+    assert (i == base58::char_to_int_map.at (base58::base58_enc[i])); 
+  }
+}
+// TEST TEST TEST TEST TEST TEST TEST TEST
+
+
+#include "test/test_util.cpp"

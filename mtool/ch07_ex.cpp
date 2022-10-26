@@ -501,8 +501,17 @@ int test_Deterministic_K (std::vector<std::string>& args) {
 
 int Ex_7_4 (std::vector<std::string> &args) {
   FN_SCOPE();
+  
+  // Create a testnet transaction that sends 60% of a single UTXO to
+  // `mwJn1YPMq7y5F8J3LkC5Hxg9PHyZ5K4cFv`. The remaining amount minus
+  // fees should go back to your own change address. This should be
+  //a 1 input, 2 output transaction.
 
-
+  Transaction tx;
+  
+  std::string prev_tx_id = "75a1c4bc671f55f626dda1074c7725991e6f68b8fcefcfca7b64405ca3b45f1c";
+  uint64 prev_index = 0; 
+  
   return 0;
 }
 
@@ -544,3 +553,83 @@ int CH7_Ex (std::vector<std::string>& args) {
 
 
 
+int Ex_7_a (std::vector<std::string>& args) {
+
+  using namespace  bmx;
+  
+
+  const bool mainnet = false; 
+  // Prev TxID:  "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"
+  // Address: "mmGVDymUuKBqF25GJh791MpoBGqqw7JGjR"
+  //  Amount: 0.002"
+  Transaction tx;
+  uint32 version = 1; 
+  uint32 numin = 1;
+  uint32 numout = 2; 
+  uint32 locktime = 0;
+  Tx::Init (tx, version, numin, numout, locktime); 
+  
+  // input
+  {
+    //TxID: c8258fd502b2593c1d77466ba3d64503e05c3f091d5ab652e16a15891a0c3bdd
+    // Address: mwekue29EyJRVjTxn9Cq9RJmSoXVYYo75h
+    // Amount: 0.002
+    const std::string prev_txid_hex = "c8258fd502b2593c1d77466ba3d64503e05c3f091d5ab652e16a15891a0c3bdd"; 
+    const uint64      prev_tx_index   = 0;
+
+    bytearray    txid_bin;
+    byte32       prev_txid; 
+    command_list script_sig; 
+    Tx::Input (tx, 0, copy_BE (prev_txid, hex::decode (txid_bin, prev_txid_hex)), prev_tx_index, script_sig); 
+  }
+  
+  { // outputs
+    digest20 h160;
+    bytearray h160bin;
+    //send to TxID: "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"
+    //Address: "mmGVDymUuKBqF25GJh791MpoBGqqw7JGjR"
+    //Amount: 0.002"
+    float target_amount = 0.01f; 
+
+    
+    //    target_amount * 100000000
+    
+      uint64 amount = 0; 
+    // txo.00
+    std::string pay_to_addr_b58 = "mmGVDymUuKBqF25GJh791MpoBGqqw7JGjR";
+    command_list pay_script_pubkey; 
+    copy_BE (h160, base58::decode (h160bin, pay_to_addr_b58)); 
+    Tx::Output (tx, 0, amount, script_ut::p2pkh_script (pay_script_pubkey, h160)); 
+
+    // txo.01
+    std::string change_addr_b58 = "mwekue29EyJRVjTxn9Cq9RJmSoXVYYo75h";
+    copy_BE (h160, base58::decode (h160bin, change_addr_b58)); 
+    command_list change_script_pubkey; 
+    Tx::Output (tx, 1, amount, script_ut::p2pkh_script (change_script_pubkey, h160)); 
+  }
+  
+  // bool bmx::Tx::SignInput (bmx::Transaction& otx,
+  // 			   unsigned int input_index,
+  // 			   const bmx::PrivateKey& p,
+  // 			   bool mainnet)
+
+  // Point&       MakePublicKey (Point& out, const PrivateKey& sec); 
+  // std::string& MakeAddress   (std::string& out, const PublicKey &pubk, bool compr, bool mainnet); 
+
+  byte32 privatekey; 
+  
+  if (Tx::SignInput (tx, 0, privatekey, mainnet)) {
+    bytearray txbin (1024, byte(0)); 
+    uint64 writelen_tx = WriteTransaction (CreateWriteMemStream (&txbin[0], 1024), tx);
+
+
+    std::string tx_hex; 
+    hex::encode (tx_hex, &txbin[0], writelen_tx); 
+
+    printf ( "tx hex: \n%s\n", tx_hex.c_str()); 
+
+  }
+
+  
+  return 0;
+}

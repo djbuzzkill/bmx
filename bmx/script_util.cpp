@@ -59,7 +59,6 @@ bool script_ut::is_p2sh_script_pubkey (const bmx::command_list& cmds) {
     ++it; 
     if (ty(*it) != command_type::SC_operation || op(*it) != OP_EQUAL)
       return false;
-
     
     return true;
   }
@@ -75,7 +74,7 @@ command_list& script_ut::p2pkh_script(command_list& s, const digest20& addr) {
   s = {
     sco(OP_DUP),                 //    = 118, // 0x76 
     sco(OP_HASH160),             //    = 169, // 0xa9 
-    sco(std::move(to_bytes(hashbin, addr))),  // hash160
+    sco(to_bytes(hashbin, addr)),// hash160
     sco(OP_EQUALVERIFY),         //    = 136, // 0x88 
     sco(OP_CHECKSIG)             //    = 172, // 0xac 
   };
@@ -83,14 +82,14 @@ command_list& script_ut::p2pkh_script(command_list& s, const digest20& addr) {
   return s;
 }
 
-
-command_list &script_ut::p2sh_script (command_list &s, const digest20 &addr) {
+//
+command_list& script_ut::p2sh_script (command_list &s, const digest20 &addr) {
 
   bytearray hashbin;
 
   s = {
     sco (OP_HASH160),             // 169, // 0xa9 
-    sco (std::move(to_bytes(hashbin, addr))),  // hash160
+    sco (to_bytes(hashbin, addr)),// hash160
     sco (OP_EQUAL),               // 135, // 0x87 
   };
   

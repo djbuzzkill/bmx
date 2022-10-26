@@ -254,7 +254,7 @@ namespace af
   namespace base58
   {
     std::string& encode (std::string& out, const void* inBE, size_t len);
-    void*        decode (void* outBE, size_t olen,  const std::string& in); 
+    bytearray&   decode (bytearray& outBE, const std::string& in); 
 
 
     std::string& encode_checksum (std::string& out, const void* inBE, size_t len); 

@@ -300,6 +300,44 @@ size_t bmx::WriteTransaction (af::WriteStreamRef ws, const Transaction& tx) {
 }
 
 //
+bmx::Tx::Struc& bmx::Tx::Init (bmx::Tx::Struc& tx, uint32 ver, uint32 num_in, uint32 num_out, uint32 locktime) {
+
+  tx.version = ver;
+  tx.inputs.resize (num_in);
+  tx.outputs.resize(num_out); 
+  tx.locktime = locktime; 
+  
+  return tx; 
+}
+
+//
+bmx::Tx::Struc& bmx::Tx::Input  (bmx::Tx::Struc& tx, uint32 index, const byte32& txid, uint32 prev_ind, const command_list& script_sig, uint32 sequence) {
+
+  if (index < tx.inputs.size()) {
+    
+    tx.inputs[index].prev_txid  = txid; 
+    tx.inputs[index].prev_index = prev_ind;
+    tx.inputs[index].script_sig = script_sig;;
+    tx.inputs[index].sequence   = sequence; 
+
+  }
+
+  return tx; 
+}
+
+//
+bmx::Tx::Struc& bmx::Tx::Output (bmx::Tx::Struc& tx, uint32 index, uint64 amount, const command_list& script_pubkey) {
+
+  if (index < tx.outputs.size()) {
+    tx.outputs[0].amount        = amount;
+    tx.outputs[0].script_pubkey = script_pubkey; 
+  }
+  
+  return tx; 
+}
+
+
+//
 digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t txind, bool on_mainnet, const command_list& redeemscript) {
   //FN_SCOPE(); 
   using namespace ffm;
@@ -318,7 +356,6 @@ digest32& bmx::Tx::SignatureHash (digest32& osh, const Transaction& tx, size_t t
     if (i == txind) {
       if (redeemscript.size ())  {
 	htx_ins[i].script_sig = redeemscript; 
-	printf ("%s have Redeem Script\n", __FUNCTION__); 
       }
       else {
 	command_list script_pubkey;
@@ -402,7 +439,7 @@ int64 bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
     
   return input_sum - output_sum; 
 }
-
+mwJn1YPMq7y5F8J3LkC5Hxg9PHyZ5K4cFv
 //
 //
 bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainnet) {

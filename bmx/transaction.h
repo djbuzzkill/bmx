@@ -20,10 +20,10 @@ namespace bmx {
   // Input contains script_sig's
   // -----------------------------------------------------------------
   struct TxIn { 
-    af::byte32         prev_txid;   // 32b LE
-    std::uint32_t      prev_index;  // int LE
-    bmx::command_list  script_sig;  // 
-    std::uint32_t      sequence;    // 
+    af::byte32        prev_txid;   // 32b LE
+    uint32            prev_index;  // int LE
+    bmx::command_list script_sig;  // 
+    uint32            sequence;    // 
   }; 
 
   command_list&   ScriptPubKey (command_list& oscr, const TxIn &inout, bool mainnet);
@@ -38,8 +38,8 @@ namespace bmx {
   // output transaction pubkey in here
   // -----------------------------------------------------------------
   struct TxOut {
-    std::uint64_t      amount; 
-    bmx::command_list  script_pubkey;
+    uint64            amount; 
+    bmx::command_list script_pubkey;
   }; 
 
   typedef std::vector<TxOut>  TxOutputs;
@@ -63,12 +63,17 @@ namespace bmx {
       //
     };
 
+    Struc&       Init   (Struc& tx, uint32 ver, uint32 num_in, uint32 num_out, uint32 locktime); 
+    Struc&       Input  (Struc& tx, uint32 index, const byte32& txid, uint32 prev_ind, const command_list& script_sig, uint32 sequence = 0xffffffff); 
+    Struc&       Output (Struc& tx, uint32 index, uint64 amount, const command_list& script_pubkey); 
+
     digest32&    SignatureHash   (digest32& ohash, const Struc& tx,  size_t indx, bool mainnet, const command_list& redeemscript = command_list()); 
     bool         VerifyInput     (const Struc& tx, size_t input_index, bool mainnet); 
     int64        Fee             (const Struc& tx, bool mainnet); 
     
     bool         SignInput       (Struc& tx, unsigned int tx_ind, const PrivateKey&, bool mainnet); 
     bool         Verify          (const Struc& tx, bool mainnet); 
+
   }
   
   //
