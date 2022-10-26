@@ -439,7 +439,7 @@ int64 bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
     
   return input_sum - output_sum; 
 }
-mwJn1YPMq7y5F8J3LkC5Hxg9PHyZ5K4cFv
+
 //
 //
 bool bmx::Tx::VerifyInput (const Transaction& tx, size_t input_index, bool mainnet) {

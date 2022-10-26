@@ -212,7 +212,6 @@ std::string& af::base58::encode (std::string& out, const void* inBE, size_t len)
     const unsigned char* in = reinterpret_cast<const unsigned char*>(inBE);  
     while (in[count] == 0) count++; 
   }
-  
   std::string prefix (count, base58_enc[0]); 
   std::string result = ""; 
   
@@ -297,9 +296,12 @@ af::bytearray &base58::decode (af::bytearray& outBE, const std::string &instr) {
   }
 
   uint64 size_diff = n_bin.size() -  20;
-  printf ("...size_diff[%zu]\n", size_diff);
+  //printf ("...size_diff[%zu]\n", size_diff);
 
-  outBE = n_bin;
+  // ??
+  outBE.resize (n_bin.size()-1); //??
+  std::copy (&n_bin[1], &n_bin[21], &outBE[0]);
+
   return outBE;
 } 
 

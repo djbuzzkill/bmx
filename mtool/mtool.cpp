@@ -153,6 +153,7 @@ void print_sig (const bmx::Signature& s) {
 //void test_encoding_base58_match ();
 
 int test_base58_decode (const std::vector<std::string>& args); 
+int Ex_4_4 (const std::vector<std::string>& args); 
 
 // ----------------------- main --------------------------
 int main (int argv, char** argc) {
@@ -177,7 +178,8 @@ int main (int argv, char** argc) {
 
   // CH13_Ex(args); 
 
-  test_base58_decode (args);
+  //test_base58_decode (args);
+  Ex_4_4 (args); 
   
   //test_encoding_base58_match ();
 
