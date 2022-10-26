@@ -295,13 +295,10 @@ af::bytearray &base58::decode (af::bytearray& outBE, const std::string &instr) {
     // bad checksum; 
   }
 
-  uint64 size_diff = n_bin.size() -  20;
-  //printf ("...size_diff[%zu]\n", size_diff);
-
-  // ??
+  // remove net byte, y do this? here?
   outBE.resize (n_bin.size()-1); //??
-  std::copy (&n_bin[1], &n_bin[21], &outBE[0]);
-
+  std::copy (&n_bin[1], &n_bin[n_bin.size()], &outBE[0]);
+  
   return outBE;
 } 
 
