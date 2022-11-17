@@ -10,6 +10,7 @@ set (BMX_SOURCES
   secp256k1.cpp
   transaction.cpp
   op_fns.cpp
+  script.cpp
   script_util.cpp
   script_write.cpp
   script_read.cpp

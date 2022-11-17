@@ -3,7 +3,7 @@
 #define CURV_SCRIPT_TYPES_H
 
 #include "common.h"
-#include "aframe/af.h"
+#include <aframe/af.h>
 
 #include "secp256k1.h"
 #include "opcode.h"

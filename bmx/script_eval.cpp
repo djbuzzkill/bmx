@@ -4,7 +4,7 @@
 #include "script.h"
 #include "op_fns.h"
 #include "script_types.h"
-#include "aframe/utility.h"
+#include <aframe/utility.h>
 
 
 #define ENABLE_EVAL_BIP0016 1
@@ -46,7 +46,6 @@ namespace priveval {
     //
     { OP_IF                  , proc_OP_IF                  },  
     { OP_NOTIF               , proc_OP_NOTIF               },  
-    //
     //
     //
     { OP_VERIFY              , proc_OP_VERIFY              },  
@@ -367,9 +366,9 @@ int print_verify_mapping () {
 
   script_env env; 
   printf ("%s()\n\n ", __FUNCTION__); 
-	      
+  
   for (OpNameMap::const_iterator it = op_name.begin (); it != op_name.end (); ++it) {
-
+   
 
     if (0 == op_map.count (it->first)) {
       printf ("!![%s] not in map", it->second.c_str()); 

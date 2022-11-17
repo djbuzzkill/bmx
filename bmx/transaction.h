@@ -75,11 +75,8 @@ namespace bmx {
     bool         Verify          (const Struc& tx, bool mainnet); 
 
   }
-  
-  //
+
   typedef Tx::Struc Transaction; 
-
-
   // -----------------------------------------------------------------
   // 
   // -----------------------------------------------------------------
@@ -90,29 +87,28 @@ namespace bmx {
   size_t        ReadTransaction  (Transaction& out, af::ReadStreamRef rs);
   size_t        WriteTransaction (af::WriteStreamRef ws, const Transaction& tx); 
 
-
-  
   //  command_list& ScriptPubKey (command_list& outpubkey, const af::byte32 txid, size_t txind, bool mainnet_is_true = false); 
-
   //command_list& ScriptPubKey (command_list& outpubkey, const Transaction& tx, size_t txind); 
-			     
 
   // -----------------------------------------------------------------
   // 
   // -----------------------------------------------------------------
   typedef std::map<std::string, af::bytearray> TxMap; 
+
   // 
   bool FetchTx (std::string& out, bool mainnet, const std::string& txid_hex, TxMap& cache);
-  // 
   // -----------------------------------------------------------------
   // 
   // -----------------------------------------------------------------
-  struct TxFetcher  {
-
+  struct TxFetcher
+  {
     TxMap cache; 
     //
-    TxFetcher () : cache() {} 
-    ~TxFetcher() {} 
+    TxFetcher () : cache() {
+    }
+      
+    ~TxFetcher() {
+    } 
 
     bool Fetch (std::string& out, const std::string& txid_hex, bool mainnet);
     bool Fetch (Transaction& out, const std::string& txid_hex, bool mainnet);

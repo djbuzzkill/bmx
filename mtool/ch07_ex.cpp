@@ -1,11 +1,7 @@
 
 
 
-
-
-
-
-int tx_test_p1  (std::vector<std::string>& args) {
+int tx_test_p1  (const std::vector<std::string>& args) {
 
   //FN_SCOPE ("");
 
@@ -21,19 +17,21 @@ int tx_test_p1  (std::vector<std::string>& args) {
   bmx::Transaction tx; 
   ReadTransaction (tx, CreateReadMemStream (&txbin[0],  txbin.size ()));
 
+
+  
   {
 
     //     def test_parse_inputs(self):
 
     
     std::string want_txid_hex = "d1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81"; 
-    bytearray  want_txid_bin;
+    af::bytearray  want_txid_bin;
     hex::decode (want_txid_bin, want_txid_hex); 
 
     std::string prev_txid_hex; 
 
     hex::encode (prev_txid_hex, &tx.inputs[0].prev_txid[0], tx.inputs[0].prev_txid.size());
-    
+        
     if (prev_txid_hex != want_txid_hex) {  
       printf ("\nwant_txid_hex:%s\n", want_txid_hex.c_str()); 
       printf ("\nprev_txid_hex:%s\n", prev_txid_hex.c_str());
@@ -59,7 +57,6 @@ int tx_test_p1  (std::vector<std::string>& args) {
   }
   
 
-
   {
 //     def test_parse_outputs(self):
 //         raw_tx = bytes.fromhex('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600')
@@ -77,6 +74,8 @@ int tx_test_p1  (std::vector<std::string>& args) {
 
     bytearray script_pubkey_bin (1024);
     size_t script_pubkey_len = WriteScript (CreateWriteMemStream (&script_pubkey_bin[0], 1024) , tx.outputs[0].script_pubkey); 
+
+    bytearray shit;
 
     //printf ("fn:%s | ln:%i\n" , __FUNCTION__, __LINE__); 
 
@@ -108,7 +107,7 @@ int tx_test_p1  (std::vector<std::string>& args) {
 }
 
     //script_command obj;  
-int tx_test_p2  (std::vector<std::string>& args) {
+int tx_test_p2  (const std::vector<std::string>& args) {
 
   //FN_SCOPE ("");
   
@@ -150,7 +149,7 @@ int tx_test_p2  (std::vector<std::string>& args) {
 
 //
 //
-int tx_test_input_value(std::vector<std::string> &args) {
+int tx_test_input_value(const std::vector<std::string> &args) {
 
   const std::string tx_hash_hex      = "d1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81";
   const size_t      want             = 42505594;
@@ -171,7 +170,7 @@ int tx_test_input_value(std::vector<std::string> &args) {
 
 //
 //
-int tx_test_fee (std::vector<std::string>& args) {
+int tx_test_fee (const std::vector<std::string>& args) {
 
   bool on_mainnet = true;
   {
@@ -209,7 +208,7 @@ int tx_test_fee (std::vector<std::string>& args) {
 
 
 //
-int test_sig_hash (std::vector<std::string>& args) {
+int test_sig_hash (const std::vector<std::string>& args) {
 
   FN_SCOPE ();
   //
@@ -251,7 +250,7 @@ int test_sig_hash (std::vector<std::string>& args) {
 
   //
 //
-int tx_test_sig_hash (std::vector<std::string>& args) {
+int tx_test_sig_hash (const std::vector<std::string>& args) {
 
   FN_SCOPE (); 
   //prscope scope (__FUNCTION__, __LINE__, "tst"); 
@@ -280,7 +279,7 @@ int tx_test_sig_hash (std::vector<std::string>& args) {
 }
 
 
-int tx_test_verify_p2pkh (std::vector<std::string>& args) {
+int tx_test_verify_p2pkh (const std::vector<std::string>& args) {
   FN_SCOPE (); 
   bool on_mainnet = false;
   bool on_testnet = !on_mainnet;
@@ -331,7 +330,7 @@ int test_verify_p2sh (std::vector<std::string>& args) {
 
 //
 //
-int test_problem_tx (std::vector<std::string>& args) {
+int test_problem_tx (const std::vector<std::string>& args) {
 
   const bool on_mainnet = true; 
   const size_t      default_sequence = 0xffffffff;
@@ -353,7 +352,7 @@ int test_problem_tx (std::vector<std::string>& args) {
 
 
 
-int test_input_pubkey (std::vector<std::string>& args) {
+int test_input_pubkey (const std::vector<std::string>& args) {
   // FN_SCOPE(); 
   // def test_input_pubkey(self):
   const bool on_mainnet = true; 
@@ -385,7 +384,7 @@ int test_input_pubkey (std::vector<std::string>& args) {
 
 
 
-int test_sign_input (std::vector<std::string>& args) {
+int test_sign_input (const std::vector<std::string>& args) {
   FN_SCOPE (); 
   
   FFM_Env env;
@@ -460,7 +459,7 @@ int test_sign_input (std::vector<std::string>& args) {
 
 //
 //
-int test_hmac_sha256 (std::vector<std::string>& args) {
+int test_hmac_sha256 (const std::vector<std::string>& args) {
   FN_SCOPE();
 
   FFM_Env env;
@@ -491,7 +490,7 @@ int test_hmac_sha256 (std::vector<std::string>& args) {
 }
 
 
-int test_Deterministic_K (std::vector<std::string>& args) {
+int test_Deterministic_K (const std::vector<std::string>& args) {
   FN_SCOPE (); 
 
   //digest32&  Deterministic_K (digest32& ok, const PrivateKey& priv, const digest32& z); 
@@ -499,7 +498,7 @@ int test_Deterministic_K (std::vector<std::string>& args) {
 }
 
 
-int Ex_7_4 (std::vector<std::string> &args) {
+int Ex_7_4 (const std::vector<std::string> &args) {
   FN_SCOPE();
   
   // Create a testnet transaction that sends 60% of a single UTXO to
@@ -516,7 +515,7 @@ int Ex_7_4 (std::vector<std::string> &args) {
 }
 
 
-int Ex_7_5  (std::vector<std::string>& args) {
+int Ex_7_5  (const std::vector<std::string>& args) {
   FN_SCOPE();
   // Advanced: Get some more testnet coins from a testnet faucet and create a two-input,
   //one-output transaction. One input should be from the faucet, the other should be
@@ -524,8 +523,18 @@ int Ex_7_5  (std::vector<std::string>& args) {
   return 0; 
 }
 
+
+
+
+
+
+
+
+int MNBV_baecru_mp_256 (byte32&, const void* s, size_t len, uint32 flags); 
+int Ex_7_a (const std::vector<std::string>& args); 
+
 //
-int CH7_Ex (std::vector<std::string>& args) {
+int CH7_Ex (const std::vector<std::string>& args) {
 
   FN_SCOPE();
   
@@ -542,7 +551,8 @@ int CH7_Ex (std::vector<std::string>& args) {
   // test_input_pubkey    (args);
   //  tx_test_sig_hash (args);
   //tx_test_verify_p2pkh (args);
-    test_verify_p2sh     (args);
+  //    test_verify_p2sh     (args);
+    Ex_7_a (args); 
 
   //test_hmac_sha256 (args); 
   // test_Deterministic_K (args) ; 
@@ -552,25 +562,33 @@ int CH7_Ex (std::vector<std::string>& args) {
 }
 
 
+int le_func (int i,
+	     float g,
+	     void* work)
+{
+  {
+    return 0;
+  }
+}
 
-int Ex_7_a (std::vector<std::string>& args) {
 
+int Ex_7_a (const std::vector<std::string>& args) {
+  FN_SCOPE (); 
   using namespace  bmx;
-  
-
-  const bool mainnet = false; 
   // Prev TxID:  "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"
   // Address: "mmGVDymUuKBqF25GJh791MpoBGqqw7JGjR"
   //  Amount: 0.002"
+  const bool mainnet = false; 
+
   Transaction tx;
   uint32 version = 1; 
   uint32 numin = 1;
   uint32 numout = 2; 
   uint32 locktime = 0;
   Tx::Init (tx, version, numin, numout, locktime); 
-  
-  // input
-  {
+  // 
+
+  { // input
     //TxID: c8258fd502b2593c1d77466ba3d64503e05c3f091d5ab652e16a15891a0c3bdd
     // Address: mwekue29EyJRVjTxn9Cq9RJmSoXVYYo75h
     // Amount: 0.002
@@ -580,21 +598,23 @@ int Ex_7_a (std::vector<std::string>& args) {
     bytearray    txid_bin;
     byte32       prev_txid; 
     command_list script_sig; 
-    Tx::Input (tx, 0, copy_BE (prev_txid, hex::decode (txid_bin, prev_txid_hex)), prev_tx_index, script_sig); 
+    Tx::Input (tx, 0, copy_BE (prev_txid, hex::decode (txid_bin, prev_txid_hex)), prev_tx_index, script_sig);
   }
   
   { // outputs
     digest20 h160;
     bytearray h160bin;
+
     //send to TxID: "3db68a2171756cfb0c7af980ac8780b4b5c892412f50cd8c4808182c7408aeb8"
     //Address: "mmGVDymUuKBqF25GJh791MpoBGqqw7JGjR"
     //Amount: 0.002"
     float target_amount = 0.01f; 
+    
+    uint64 amount = target_amount * 100000000;
+    uint64 change = 0.008 * 100000000;  
 
+    printf (" amount(%zu), change(%zu)\n", amount, change);  
     
-    //    target_amount * 100000000
-    
-      uint64 amount = 0; 
     // txo.00
     std::string pay_to_addr_b58 = "mmGVDymUuKBqF25GJh791MpoBGqqw7JGjR";
     command_list pay_script_pubkey; 
@@ -605,31 +625,79 @@ int Ex_7_a (std::vector<std::string>& args) {
     std::string change_addr_b58 = "mwekue29EyJRVjTxn9Cq9RJmSoXVYYo75h";
     copy_BE (h160, base58::decode (h160bin, change_addr_b58)); 
     command_list change_script_pubkey; 
-    Tx::Output (tx, 1, amount, script_ut::p2pkh_script (change_script_pubkey, h160)); 
+    Tx::Output (tx, 1, change, script_ut::p2pkh_script (change_script_pubkey, h160)); 
   }
-  
-  // bool bmx::Tx::SignInput (bmx::Transaction& otx,
-  // 			   unsigned int input_index,
-  // 			   const bmx::PrivateKey& p,
-  // 			   bool mainnet)
 
-  // Point&       MakePublicKey (Point& out, const PrivateKey& sec); 
-  // std::string& MakeAddress   (std::string& out, const PublicKey &pubk, bool compr, bool mainnet); 
+  // 
+  printf ( "[Tx, numinp(%zu), numoutp(%zu)]\n", tx.inputs.size (), tx.outputs.size ()); 
 
-  byte32 privatekey; 
-  
+  bytearray config (128, byte(0)); ; 
+  byte32 privatekey;
+  MNBV_baecru_mp_256 (privatekey, &config[0], config.size(), 0); 
   if (Tx::SignInput (tx, 0, privatekey, mainnet)) {
+
+
+
     bytearray txbin (1024, byte(0)); 
     uint64 writelen_tx = WriteTransaction (CreateWriteMemStream (&txbin[0], 1024), tx);
-
-
     std::string tx_hex; 
     hex::encode (tx_hex, &txbin[0], writelen_tx); 
 
-    printf ( "tx hex: \n%s\n", tx_hex.c_str()); 
+
+    printf ( "Generated tx hex: \n%s\n", tx_hex.c_str()); 
+  }
+  else{
+
+    puts (" FAILED SIGN \n"); 
 
   }
-
-  
+  puts ("637"); 
   return 0;
 }
+
+// 0100000001dd3b0c1a89156ae152b65a1d093f5ce00345d6a36b46771d3c59b202d58f25c8000000006a4730440220256226c2735fb880325b5629e320c94516768fa912bd6e092ca907dfa6ea5f84022042ce68dc49d601627b9bd6fc3e0da214f2c65bcd37fe9d31c38a054e57a9da14012103c9ea3b6b9be9fa788f721bdbf47de20aae345f5d5a525e7eeb12a1e1cabec095ffffffff0200350c00000000001976a914b0fbd5d5c26a598d37be499f1baf11632ca4c20c88ac00000000000000000000000000637
+
+
+//
+//
+int MNBV_baecru_mp_256 (byte32& x, const void* s, size_t len, uint32 flags) { 
+
+  printf ("%s:ENTER\n", __FUNCTION__); 
+
+  pt::map pm;
+  el::map em;
+
+  FEConRef F  = Create_FE_context (kSEC256k1_p_sz);
+  ECConRef EC = Create_EC_context (F, em, pm,
+				   kSEC256k1_coeff_a_sz, kSEC256k1_coeff_b_sz,
+				   kSEC256k1_n_sz, 0);
+  
+  ScopeDeleter dr(F);
+  //
+  bytearray   ar;
+  PublicKey   pubk;
+  PrivateKey  privatek; 
+  std::string addressa;
+  bytearray   amem (256, byte{0x0});
+  
+  const std::string msgfile = "/home/djbuzzkill/secret.msg"; 
+  printf  ( "msgfile:%s\n", msgfile.c_str());    
+  
+  bytearray secretbytes; 
+  
+  af::From_file (secretbytes, msgfile); 
+
+  const std::string secretstr (secretbytes.size(), '*'); 
+
+  printf ("secretstr:%s\n", secretstr.c_str()); 
+  
+  std::string encodedstr = "REPLACE THIS STRING" ; 
+
+  af::From_file (encodedstr, msgfile); 
+    
+  af::hash256 (x, encodedstr.c_str(), encodedstr.size ()); 
+  
+  MakePublicKey (pubk, privatek);
+  MakeAddress   (addressa, pubk, true, false);
+  return 0; 
+}      

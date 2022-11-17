@@ -9,7 +9,7 @@
 #include "utility.h"
 #include "opcode.h"
 #include "script_types.h"
-#include "aframe/af.h"
+#include <aframe/af.h>
 
 namespace bmx {
 

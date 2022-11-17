@@ -12,6 +12,7 @@ set (AF_SOURCES
   hash.cpp
   task.cpp
   system.cpp
+  af.cpp
 )
 
 
@@ -24,6 +25,7 @@ set (AF_HEADERS
   hash.h
   task.h
   system.h
+  af.h
   )
 
 

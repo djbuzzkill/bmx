@@ -20,7 +20,7 @@ set (FFM_SOURCES
   utility.cpp
   fe_math.cpp
   ec_math.cpp
-
+  ffm.cpp
   fe_context.cpp
   )
 
@@ -32,7 +32,8 @@ set (FFM_HEADERS
   ec_math.h
 
   fe_context.h
-  )
+  ffm.h
+)
 
 
 add_library (ffm

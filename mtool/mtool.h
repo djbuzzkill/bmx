@@ -2,6 +2,9 @@
 #define MTOOL_H
 
 
+#include <vector>
+#include <string>
+#include <list>
 
 #include <ffm/ffm.h>
 #include <aframe/af.h>

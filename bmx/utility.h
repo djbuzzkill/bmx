@@ -5,7 +5,7 @@
 #include "common.h"
 #include "script_types.h"
 //#include "aframe/af.h"
-#include "aframe/shared_types.h"
+#include <aframe/shared_types.h>
 
 
 namespace bmx {

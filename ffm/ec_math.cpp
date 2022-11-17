@@ -6,7 +6,6 @@
 #include <tuple>
 
 namespace ffm {
-
   //
   // 
   class EC_con_imp2 : public EC_context {
@@ -156,27 +155,12 @@ namespace ffm {
     elmap["coeff.a"] = coeff_a = F->New(astr, base);
     elmap["coeff.b"] = coeff_b = F->New(bstr, base);
     
-    
-    //   printf ("%s\n", __FUNCTION__);
-    //printElem ("  order(n):", elmap["n"], format::hex);
-    //   PrintCoeffs ("  coeffs:", format::hex);  
   }
     
   //
-  //
+j  //
   EC_con_imp2:: ~EC_con_imp2 () {
     //printf ("%s\n", __FUNCTION__);  
-    // for (auto& p : pointmap) {
-    //   F->Del (x(p.second));
-    //   F->Del (y(p.second));
-    // }
-    
-    // for (auto e : elmap) {
-    //   F->Del(e.second); 
-    // }
-    
-    // F->Del (a(coeffs)); 
-    // F->Del (b(coeffs));
 
   }
 
@@ -510,11 +494,6 @@ namespace ffm {
       return false;
     }
 
-
-
-    
-    // const elem_tuple& R = point(rhs); 
-    // const elem_tuple& L = point(lhs);
     // O != 0
     char tbuf[32]; 
     
@@ -572,33 +551,6 @@ namespace ffm {
       // s=(3*x1**2+a)/(2*y1)
       // x3=s**2-2*x1
       // y3=s*(x1-x3)-y1
-      
-/*  
-    BEGIN_THIS_VERSION_CUR
-	  
-    F->Mul (u, x(lhs), x(lhs));
-    F->Add (t, u, u);
-    F->Add (t, t, u);  
-    F->Add(s_n, t, a(coeffs));
-    
-    F->Add (s_d, y(lhs), y(lhs));  
-    
-    F->Div (s, s_n, s_d);
-    // s = (3 * self.x**2 + self.a) / (2 * self.y)
-    
-    F->Mul (ss, s, s);
-    F->Add(u, x(lhs),  x(lhs)); 
-    
-    F->Sub(xo, ss, u);
-    // x = s**2 - 2 * self.x
-    
-    F->Sub(v, x(lhs), xo);
-    F->Mul(t, s, v);
-    F->Sub(yo, t, y(lhs)); 
-    // y3=s*(x1-x3)-y1
-
-*/  //END_THS_VERSION_CUR
-
 
       F->Set_ui(v, 3);
       
@@ -624,12 +576,6 @@ namespace ffm {
       F->Mul(t, s, v);
       F->Sub(yo, t, y(lhs)); 
       // y3=s*(x1-x3)-y1
-
-      //      printElem ("<s_n>", s_n, Format::HEX);
-      //printElem ("<s_d>", s_d, Format::HEX);
-      
-      //printElem ("<u>", u, Format::HEX);
-      //printElem ("<v>", v, Format::HEX); 
 
        
       if (IsPointOnCurve (xo, yo)) {

@@ -16,6 +16,7 @@
 #include "curl/curl.h"
 
 using namespace af;
+using namespace bmx;
 //
 //
 //
@@ -128,7 +129,7 @@ bool bmx::TxFetcher::Fetch (Transaction &otx, const std::string &txid_hex, bool 
     else {
       txbinlen += ReadTransaction (otx, CreateReadMemStream (&txbin[0], txbin.size()));
     }
-
+    
     return (txbinlen == txbin.size ()); 
   }
 
@@ -193,7 +194,6 @@ size_t read_and_parse_txout (bmx::TxOut& txout, af::ReadStreamRef rs) {
 // --------------------------------------------------------------
 size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   //FN_SCOPE (); 
-  //printf ("%s:ENTER\n", __FUNCTION__);
   size_t readlen     = 0; 
   size_t num_inputs  = 0; 
   size_t num_outputs = 0; 
@@ -202,7 +202,6 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   readlen += rs->Read (&tx.version, sizeof(tx.version));
 
   // only ver1 for now
-  
   if (tx.version != 0x0001) {
     printf (" Tx [version.%u]\n \n", tx.version);
     //return readlen; 
@@ -232,8 +231,6 @@ size_t bmx::ReadTransaction (Transaction& tx, af::ReadStreamRef rs) {
   //printf ("%s:EXIT\n", __FUNCTION__);
   return readlen; 
 } 
-
-
 // 
 // writing 
 //
@@ -425,7 +422,7 @@ std::uint64_t bmx::Amount (const TxIn& txin, bool mainnet) {
 //
 //
 int64 bmx::Tx::Fee (const bmx::Tx::Struc& tx, bool mainnet) {
-  //FN_SCOPE ();
+  FN_SCOPE ();
 
   int64 input_sum =  0;
   for (size_t i = 0; i < tx.inputs.size (); ++i) {

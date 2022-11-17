@@ -1,4 +1,5 @@
 
+
 //
 //
 #include "secp256k1.h"
@@ -26,18 +27,21 @@ namespace
   const std::string G = "G";
   const std::string n = "n";
 
-  //  const char n_minus_2[] = "n-2"; 
+  //  const char n_minus_2[] = "n-2";
 
-  void printbin (const char* lbl, const af::digest32& bytes) {
+  void printbin(const char *lbl, const af::digest32 &bytes) {
+    
     printf ("%s: ", lbl);
     for (auto b : bytes) printf ("%02x ", b);
-    printf ("\n"); 
+    printf ("\n");
+
   }
 
   
     // def deterministic_k(self, z):
     //     k = b'\x00' * 32
     //     v = b'\x01' * 32
+
   
 
     //     if z > N:
@@ -117,7 +121,8 @@ bmx::Point& bmx::MakePublicKey (Point& out, const PrivateKey& secr) {
   copy_BE (out.x, arrtmp); 
   // p.y
   F->Raw (arrtmp, pt::y(pm[v]), false);
-  copy_BE (out.y, arrtmp); 
+  copy_BE (out.y, arrtmp);
+
 
   return out; 
 
@@ -142,8 +147,6 @@ size_t bmx::ReadPoint (Point& out , ReadStreamRef rs) {
       readlen += read_byte32 (out.y, rs);
     }
     else { // just the x coord
-
-      printf ("%s:[pref != 4]\n", __FUNCTION__); 
 
       FEConRef F (nullptr); 
       Init_FE_context (F); 
@@ -989,7 +992,7 @@ digest32& bmx::Deterministic_K (digest32& ok, const PrivateKey& priv, const dige
     wstxt->Write (&v[0], 32);
     wstxt->Write (&byte0x0, 1);
     af::hmac_sha256 (k, k, &input_txt[0], wstxt->GetPos ());
-    
+
     //v = hmac.new(k, v, s256).digest()
     wstxt->SetPos (0, byte_stream::SeekMode::Abs); 
     wstxt->Write (&v[0], 32);

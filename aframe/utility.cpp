@@ -5,7 +5,7 @@
 #include "binary_IO.h"
 #include "hash.h"
 
-#include "ffm/ffm.h"
+#include <ffm/ffm.h>
 
 
 

@@ -9,4 +9,11 @@
 #include "fe_math.h"
 #include "ec_math.h"
 
+
+namespace ffm {
+
+  int ffm_dumb (); 
+  
+}
+
 #endif

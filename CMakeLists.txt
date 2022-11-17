@@ -13,7 +13,8 @@ include_directories (
 add_definitions (-DCMAKE_EXPORT_COMPILE_COMMANDS=1)
 
 
-add_compile_options (-g -O0 )
+add_compile_options (-g -O0 -Wall -Wextra -Wshadow -Wpedantic) # -Werror -Wconversion
+
 
 #
 link_directories (

@@ -1,4 +1,4 @@
-
+//
 
 ////
 ////from lilarch 
@@ -57,7 +57,6 @@ std::string hexfrom (const Ty& srcbin) {
 //
 //
 int thicnspicy  (std::vector<std::string>& args) {
-
   printf ("%s:ENTER\n", __FUNCTION__); 
 
   pt::map pm;
@@ -69,6 +68,7 @@ int thicnspicy  (std::vector<std::string>& args) {
 				   kSEC256k1_n_sz, 0);
   
   ScopeDeleter dr(F);
+  
   //
   bytearray   ar;
   PublicKey   pubk;
@@ -139,7 +139,6 @@ void print_sig (const bmx::Signature& s) {
 
 
 
-
 #include "ch06_ex.cpp"
 #include "ch07_ex.cpp"
 #include "ch08_ex.cpp"
@@ -162,13 +161,13 @@ int main (int argv, char** argc) {
   std::vector<std::string> args (argc, argc+argv);
   
   //test_gcrypt (args);
-  
+
   // CH4_Ex(args);
   //thicnspicy (args);
   //test_read_SEC_bin (args); 
 
   // CH6_Ex(args);
-  // CH7_Ex(args); 
+  CH7_Ex(args); 
   // CH8_Ex(args);
   // CH9_Ex(args); 
   // CH10_Ex(args);
@@ -177,7 +176,7 @@ int main (int argv, char** argc) {
 
   // CH13_Ex(args); 
 
-  test_base58_decode (args);
+  //test_base58_decode (args);
   //Ex_4_4 (args); 
   
   //test_encoding_base58_match ();

@@ -13,7 +13,11 @@
 #include "binary_IO.h"
 #include "connection.h"
 
+namespace af {
 
+  int af_dumb (); 
+  
+}
 
 
 #endif

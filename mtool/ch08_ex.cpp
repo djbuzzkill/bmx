@@ -1,6 +1,6 @@
 
 
-int test_op_checksig   (std::vector<std::string>& args) {
+int test_op_checksig (std::vector<std::string>& args) {
 
   FN_SCOPE();
   // def test_op_checksig(self):
@@ -10,8 +10,6 @@ int test_op_checksig   (std::vector<std::string>& args) {
   //   stack = [sig, sec]
   //   self.assertTrue(op_checksig(stack, z))
   //   self.assertEqual(decode_num(stack[0]), 1)
-
-
   return 0; 
 }
 
